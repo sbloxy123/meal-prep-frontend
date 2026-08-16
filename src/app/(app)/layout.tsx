@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useSession, signOut } from "@/lib/auth-client";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
@@ -22,6 +23,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         <span className="font-semibold text-gray-900">Recipe Inventory</span>
         <div className="flex items-center gap-4 text-sm">
           <span className="text-gray-500">{session.user.email}</span>
+          <Link href="/account" className="text-gray-700 hover:text-gray-900 font-medium">
+            Account
+          </Link>
           <button
             onClick={() => signOut().then(() => router.push("/sign-in"))}
             className="text-gray-700 hover:text-gray-900 font-medium"
