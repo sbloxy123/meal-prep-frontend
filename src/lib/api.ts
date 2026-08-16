@@ -1,4 +1,6 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+// Data API calls go to /backend/* on the same origin,
+// which next.config.ts proxies through to the Railway API.
+const API_URL = "/backend";
 
 export async function apiFetch<T = unknown>(
   path: string,
