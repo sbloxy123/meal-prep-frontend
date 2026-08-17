@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Edit Recipe</title>
+        <link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+        <link rel="stylesheet" href="/styles/styles.css" />
+        <link rel="stylesheet" href="/styles/shopping-list.css" />
+        <script type="module" src="/js/script.js"></script>
+
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+
+    </head>
+    <body>
+
+        <div class="shopping__list__page">
+            <%- include('partials/header') %>
+            <h1 class="page__heading"><%= shoppingListPageTitle %></h1>
+
+            <button class="open__menu__button reset__button ui__button uppercase" type="button">view selected recipes</button>
+            
+            <div class="shopping__list__menu">
+                <h2 class="shopping__list__menu__title">This week's menu:</h2>
+                
+                <% if( allRecipesOnMenu.length > 0) { %>
+                <div class="our__recipes">
+                    <div class="collections__filter">
+                        <h3>Filter by collections:</h3>
+                        <ul class="recipe__collection__filter__list tag__list reset__ul">
+                        </ul>
+                    </div>
+
+                    <!-- <button class="layout__toggle__button reset__button ui__button ui__button__update">
+                        <span>Toggle Layout</span>
+                        <svg viewBox="0 0 33 33" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M1.25 11.25H31.25M11.25 31.25V11.25M4.58333 1.25H27.9167C29.7576 1.25 31.25 2.74238 31.25 4.58333V27.9167C31.25 29.7576 29.7576 31.25 27.9167 31.25H4.58333C2.74238 31.25 1.25 29.7576 1.25 27.9167V4.58333C1.25 2.74238 2.74238 1.25 4.58333 1.25Z" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </button> -->
+
+                    <ul class="recipe__list">
+                        <% allRecipesOnMenu.forEach(recipe => { %>
+                            <li class="recipe__item" data-title="<%= recipe.title %>" data-is-on-menu="<%= recipe.is_on_menu %>">
+                                <button class="<%= recipe.favorite ? 'active' : '' %> recipe__item__favorite__icon reset__button" data-recipe-id="<%= recipe.id %>">
+                                    <svg width="20" height="19" viewBox="0 0 20 19" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M3.825 19L5.45 11.975L0 7.25L7.2 6.625L10 0L12.8 6.625L20 7.25L14.55 11.975L16.175 19L10 15.275L3.825 19Z" fill="none" stroke="none" stroke-width="1" />
+                                    </svg>
+                                </button>
+                                <ul class="single__recipe__collection__list reset__ul">
+                                    <% singleRecipeTags.forEach(tag => { 
+                                        if (tag.tag_recipe_title == recipe.title){ %>
+                                        <li class="single__recipe__collection__item tag__item" data-tag-name="<%=tag.name %>"><%= tag.name %></li>
+                                    <% }}) %>
+                                </ul>
+                                <div class="recipe__item__block">
+                                    <h3 class="recipe__item__title"><%= recipe.title %></h3>
+                                    
+                                    <div class="add__to__cook__list">
+                                        <% if(!recipe.is_on_menu ) { %>
+                                            <button class="add__to__cook__list__button ui__button ui__button__submit" type="button">
+                                                Add to pan
+                                            </button>
+                                        <% } else { %>
+                                            <span class="on__menu__label">✓ On this week's menu</span>
+                                            <div class="recipe__item__buttons">
+                                                <button class="add__to__cook__list__button ui__button ui__button__update" type="button">
+                                                    Edit stock check
+                                                </button>
+                                                <form action="/shopping-list/recipe/<%= recipe.id %>?_method=PUT" method="POST">
+                                                    <button type="submit" class="remove__from__cook__list__button ui__button ui__button__warning">
+                                                        Remove from pan
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        <% } %>
+                                    </div>
+                                    <div class="ingredients__popout">
+                                        <div class="close__ingredients__popup close__ingredients__popup__bg"></div>
+                                        <div class="ingredients__popout__block">
+                                            <div class="close__ingredients__popup">
+                                                <button type="button" class="reset__button">
+                                                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                        <path d="M1.4 14L0 12.6L5.6 7L0 1.4L1.4 0L7 5.6L12.6 0L14 1.4L8.4 7L14 12.6L12.6 14L7 8.4L1.4 14Z" fill="currentColor"/>
+                                                    </svg>
+                                                </button>
+                                            </div>
+                                            <h3><%= recipe.title %></h3>
+                                            <p>add ingredients to your pan:</p>
+                                            <ul class="ingredients__popout__list reset__ul">
+                                                <% 
+                                                    singleRecipeIngredients.map((recipeIngredientItem) => {
+                                                    if (recipeIngredientItem.recipe_title == recipe.title && recipeIngredientItem.ingredient !== ""){
+                                                    const isActive = shoppingListIngredientsByRecipe.some(
+                                                            item => item.recipe_id == recipe.id && item.ingredient_name == recipeIngredientItem.ingredient
+                                                        );
+                                                %> 
+                                                    <li class="ingredients__popout__item">
+                                                        <button type="button" class="ingredient__button <%= isActive ? 'selected' : '' %>" title="click to add ingredient to shopping list" data-ingredient-name="<%= recipeIngredientItem.ingredient %>"><%= recipeIngredientItem.ingredient %></button>
+                                                    </li> 
+                                                <% 
+                                                    }
+                                                    }) 
+                                                %>
+                                            </ul>
+
+                                            <form class="add__to__ingredients__form" action="/shopping-list" method="POST">
+                                                <input name="recipeId" type="hidden" value="<%= recipe.id %>">
+                                                <div class="hidden__ingredients__inputs__container">
+                                                </div>
+                                                <button class="add__ingredients__to__pan__button" type="submit">add recipe and ingredients</button>
+                                            </form>
+                                            <h3>Recipe Details:</h3>
+
+                                            <%- include('partials/updateRecipeForm', {
+                                                recipe,
+                                                recipeIngredientsForUpdate: singleRecipeIngredients.filter(i => i.recipe_title === recipe.title),
+                                                recipeTagsForUpdate: singleRecipeTags.filter(t => t.tag_recipe_title === recipe.title),
+                                                allTags
+                                            }) %>
+                                        </div>
+                                    </div>
+                                </div>
+                            </li> 
+                        <% }) %>
+                    </ul>
+                </div>
+                
+                <% } else { %>
+                <h4>You dont have any recipe's in your menu</h4>
+                <% } %>
+            </div>
+                    
+            <div class="shopping__list__recipe__ingredients">
+                <h3 class="shopping__list__heading">Recipe ingredients:</h3>
+                <% 
+                    let recipeItems = shoppingList.filter(function(item){
+                        return item.ingredient_name !== null
+                    })
+                    if(recipeItems.length > 0) {
+                %>  
+                    <ul class="reset__ul">
+                        <% shoppingList.forEach((shoppingItem) => { 
+                            if (shoppingItem.ingredient_name !== null) { %>
+                            <li class="shopping__list__recipe__ingredients__item">
+
+                                <form class="shopping__list__item__form" action="/shopping-list/<%= shoppingItem.id %>?_method=PUT" method="POST">
+                                    <input type="text" name="ingredient_name" value="<%= shoppingItem.ingredient_name %>">
+                                    <button class="update__shopping__list__submit__button form__button form__button__submit reset__button" type="submit">done</button>
+                                    <button class="cancel__edit__ingredient__item__button form__button form__button__cancel reset__button" type="button">cancel</button>
+                                </form>
+
+                                <p class="shopping__list__recipe__ingredient__title">
+                                    <span><%= shoppingItem.ingredient_name %></span>
+                                    <% if (shoppingItem.recipe_count > 1) { %>
+                                        <span><sup> appears in x <%= shoppingItem.recipe_count %> recipes</sup></span>
+                                    <% } %>
+                                    <button class="edit__ingredient__item__button form__button form__button__edit reset__button" title="edit item">
+                                        <svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M10 18.1213H19M14.5 1.62132C14.8978 1.2235 15.4374 1 16 1C16.2786 1 16.5544 1.05487 16.8118 1.16148C17.0692 1.26808 17.303 1.42434 17.5 1.62132C17.697 1.8183 17.8532 2.05216 17.9598 2.30953C18.0665 2.5669 18.1213 2.84274 18.1213 3.12132C18.1213 3.3999 18.0665 3.67574 17.9598 3.93311C17.8532 4.19048 17.697 4.42434 17.5 4.62132L5 17.1213L1 18.1213L2 14.1213L14.5 1.62132Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        </svg>
+                                    </button>
+                                </p>
+
+                                <form class="shopping__list__item__delete" action="/shopping-list/shopping-list-item/<%= shoppingItem.id %>?_method=DELETE" method="POST" onclick="return confirm(`are you sure you want to delete <%= shoppingItem.ingredient_name %> from your shopping list?`)">
+                                    <button class="form__button form__button__delete reset__button" type="submit">
+                                        <svg viewBox="0 0 16 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M3 18C2.45 18 1.97917 17.8042 1.5875 17.4125C1.19583 17.0208 1 16.55 1 16V3H0V1H5V0H11V1H16V3H15V16C15 16.55 14.8042 17.0208 14.4125 17.4125C14.0208 17.8042 13.55 18 13 18H3ZM13 3H3V16H13V3ZM5 14H7V5H5V14ZM9 14H11V5H9V14Z" fill="currentColor"/>
+                                        </svg>
+
+                                    </button>
+                                </form>
+                            </li>
+                        <% }}) %>
+                    </ul>
+                    
+                <% } else { %>
+                <h4><em>No ingredients from recipes added yet</em></h4>
+                <% } %>
+            </div>
+
+            <div class="shopping__list__custom__product__ingredients">
+                <h3 class="shopping__list__heading">Custom shopping list additions:</h3>
+                <% 
+                    let customItems = shoppingList.filter(function(item){
+                        return item.custom_product !== null
+                    })
+                    if(customItems.length > 0) {
+                %>  
+                
+                    <ul class="reset__ul">
+                        <% shoppingList.forEach(shoppingItem => { 
+                            if (shoppingItem.custom_product !== null) { %>
+                            <li class="shopping__list__recipe__ingredients__item">
+                                <form class="shopping__list__item__form" action="/shopping-list/custom-product/<%= shoppingItem.id %>?_method=PUT" method="POST">
+                                    <input type="text" name="custom_product" value="<%= shoppingItem.custom_product %>">
+                                    <button class="update__shopping__list__submit__button form__button form__button__submit reset__button" type="submit">done</button>
+                                    <button class="cancel__edit__ingredient__item__button form__button form__button__cancel reset__button" type="button">cancel</button>
+                                </form>
+
+                                <p class="shopping__list__recipe__ingredient__title">
+                                    <span>
+                                        <%= shoppingItem.custom_product %>
+                                    </span>
+                                    <button class="edit__ingredient__item__button form__button form__button__edit reset__button" title="edit item">
+                                        <svg viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M10 18.1213H19M14.5 1.62132C14.8978 1.2235 15.4374 1 16 1C16.2786 1 16.5544 1.05487 16.8118 1.16148C17.0692 1.26808 17.303 1.42434 17.5 1.62132C17.697 1.8183 17.8532 2.05216 17.9598 2.30953C18.0665 2.5669 18.1213 2.84274 18.1213 3.12132C18.1213 3.3999 18.0665 3.67574 17.9598 3.93311C17.8532 4.19048 17.697 4.42434 17.5 4.62132L5 17.1213L1 18.1213L2 14.1213L14.5 1.62132Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                        </svg>
+                                    </button>
+                                </p>
+
+                                <form class="shopping__list__item__delete" action="/shopping-list/shopping-list-item/<%= shoppingItem.id %>?_method=DELETE" method="POST" onclick="return confirm(`are you sure you want to delete <%= shoppingItem.ingredient_name %> from your shopping list?`)">
+                                    <button class="form__button form__button__delete reset__button" type="submit">
+                                        <svg viewBox="0 0 16 18" xmlns="http://www.w3.org/2000/svg">
+                                            <path d="M3 18C2.45 18 1.97917 17.8042 1.5875 17.4125C1.19583 17.0208 1 16.55 1 16V3H0V1H5V0H11V1H16V3H15V16C15 16.55 14.8042 17.0208 14.4125 17.4125C14.0208 17.8042 13.55 18 13 18H3ZM13 3H3V16H13V3ZM5 14H7V5H5V14ZM9 14H11V5H9V14Z" fill="currentColor" />
+                                        </svg>
+
+                                    </button>
+                                </form>
+
+                            </li>
+                        <% }}) %>
+                    </ul>
+                <% } else { %>
+
+                <h4><em>No custom ingredients added yet</em></h4>
+
+                <% } %>
+
+                <form action="/shopping-list/custom-product" method="POST" class="add__custom__product__form">
+                    <label for="custom_product"><h3 class="shopping__list__heading uppercase">Add extra items to your shopping: </h3></label>
+                    <div class="custom__product__form__field">
+                        <input type="text" id="custom_product" placeholder="e.g. Oven Cleaner" name="custom_product">
+                        <button type="submit" class="custom__product__form__button form__button form__button__submit reset__button">Add product</button>
+                    </div>
+                </form>
+    
+                <form id="parse__ingredients__form" class="add__custom__product__form">
+                    <label for="ingredients_text"><h3 class="shopping__list__heading uppercase">Paste a list of ingredients:</h3></label>
+                    <div class="custom__product__form__field custom__product__form__field--textarea">
+                        <textarea id="ingredients_text" name="ingredients_text" rows="5" placeholder="paste list here"></textarea>
+                        <button type="submit" id="parse__ingredients__button" class="custom__product__form__button form__button form__button__submit reset__button">Add items</button>
+                    </div>
+                    <p id="parse__ingredients__status" class="parse__ingredients__status"></p>
+                </form>
+
+                <button id="organise__list__button" class="reset__button ui__button ui__button__submit">GENERATE SHOPPING LIST!</button>
+                <div id="organised__list__output"></div>
+            </div>
+
+            <form action="/shopping-list?_method=DELETE" method="POST" class="delete__all__form">
+                <button type="submit" class="delete__all__button ui__button ui__button__warning reset__button" onclick="return confirm(`are you sure you want to clear your entire shopping list?`)">Clear Shopping List</button>
+            </form>
+
+
+
+        </div>
+        <%- include('partials/footer') %>
+
+    </body>
+</html>

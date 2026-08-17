@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Recipes</title>
+        <link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+        <link rel="stylesheet" href="/styles/page-home.css">
+        <script type="module" src="/js/script.js"></script>
+
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+    </head>
+    
+    <body>
+        <div class="homepage">
+            <%- include('partials/header') %>
+            <div class="new__recipe__popout">
+                <div class="new__recipe__popout__block">
+                    <button class="close__add__recipe__popout__button">Close</button>
+                    <h1>Add a new recipe</h1>
+                    <div class="recipe__form">
+                        <form action="/recipes" method="POST" class="add__recipe__form">
+                            <div class="add__recipe__form__block">
+                                <div class="form__group">
+                                    <h3>Recipe details</h3>
+
+                                    <div class="form__field">
+                                        <label for="recipe_title">Add a title</label>
+                                        <input type="text" id="recipe_title" name="recipe_title">
+                                    </div>
+
+                                    <div class="form__field">
+                                        <label for="recipe_description">Add a description:</label>
+                                        <textarea type="text" id="recipe_description" name="recipe_description"></textarea>
+                                    </div>
+
+                                    <div class="form__field">
+                                        <label for="recipe_instructions">Add instructions:</label>
+                                        <textarea type="text" id="recipe_instructions" name="recipe_instructions"></textarea>
+                                    </div>
+
+                                    <div class="form__field">
+                                        <label for="recipe_link_url">Add a link:</label>
+                                        <input type="text" id="recipe_link_url" name="recipe_link_url">
+                                    </div>
+
+                                    <div class="form__field">
+                                        <label for="prep_time_minutes">Prep time:</label>
+                                        <input type="number" id="prep_time_minutes" name="prep_time_minutes">
+                                    </div>
+
+                                    <div class="form__field">
+                                        <label for="cook_time_minutes">Cook time:</label>
+                                        <input type="number" id="cook_time_minutes" name="cook_time_minutes">
+                                    </div>
+                                </div>
+                                <div class="form__group">
+                                    <h3>Ingredients</h3>
+                                    <ul id="ingredient__list" class="reset__ul"></ul>
+                                    <div class="ingredient__input__form">
+                                        <div class="form__field">
+                                            <label for="ingredient_name_input">Ingredient</label>
+                                            <input type="text" id="ingredient_name_input" placeholder="e.g. flour">
+                                        </div>
+                                        <div class="ingredient__inputs__measurements">
+                                            <div class="form__field">
+                                                <label for="ingredient_quantity_input">Quantity</label>
+                                                <input type="number" id="ingredient_quantity_input" placeholder="e.g. 200">
+                                            </div>
+                                            <div class="form__field">
+                                                <label for="ingredient_unit_input">Unit</label>
+                                                <input type="text" id="ingredient_unit_input" placeholder="e.g. g">
+                                            </div>
+                                        </div>
+                                        <button type="button" id="add__ingredient__button" class="ui__button">Add ingredient</button>
+                                    </div>
+                                    <div id="ingredient__form__values"></div>
+                                </div>
+
+                                <div class="form__group">
+
+                                    <div class="collections__form__block">
+
+                                        <h3 class="collections__form__block__title">Collections</h3>
+                                        <p>Current recipe collections:</p>
+                                        <ul id="selected__tag__list">
+                                            <!-- user-selected tags get placed in here using js -->
+                                        </ul>
+
+                                        <div class="existing__collection">
+                                            <p>Add from existing collection:</p>
+                                            <ul class="existing__collection__list">
+                                                <% allTags?.forEach(tag => { %>
+                                                    <li class="existing__collection__item">
+                                                        <button type="button" data-tag-title="<%= tag.name %>" class="existing__collection__item__button">
+                                                            <%= tag.name %></li>
+                                                        </button>
+                                                <% }) %>
+                                            </ul>
+                                        </div>
+                                        <p class="new__collections__add__title">Add a new collection:</p>
+                                        <div class="new__colection">
+                                            <input type="text" id="collection__input">
+                                            <button type="button" id="add__collection__button" class="ui__button ui__button__submit">Add new collection</button>
+                                        </div>
+                                        <div id="collection__form__values">
+                                            <!-- hidden input fields get placed in here using js -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="add__recipe__submit ui__button ui__button__submit" type="submit">Add Recipe</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <button type="button" class="open__add__recipe__popout__button ui__button ui__button__submit">add new recipe</button>
+
+            <!-- === OUR RECIPE'S LIST === -->
+            <div class="our__recipes">
+                <h1 class="page__heading"><%= recipesPageTitle %></h1>
+
+                <input type="search" id="recipe__search" placeholder="Search by title or ingredient..." autocomplete="off">
+
+                <div class="collections__filter">
+                    <h3>Filter by collections:</h3>
+                    <ul class="recipe__collection__filter__list tag__list reset__ul">
+                        <li class="recipe__collection__filter__item recipe__collection__filter__favorite">
+                            <button type="button" class="filter__button tag__item filter__button__favorite" data-filter-name="breakfast">
+                                <span>
+                                    <svg width="20" height="19" viewBox="0 0 20 19" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M3.825 19L5.45 11.975L0 7.25L7.2 6.625L10 0L12.8 6.625L20 7.25L14.55 11.975L16.175 19L10 15.275L3.825 19Z" fill="none" stroke="none" stroke-width="1" />
+                                    </svg>
+                                </span>
+                                <span>Favorites</span>
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+
+                
+                
+
+                <!-- <button class="layout__toggle__button reset__button ui__button ui__button__update">
+                    <span>Toggle Layout</span>
+                    <svg viewBox="0 0 33 33" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M1.25 11.25H31.25M11.25 31.25V11.25M4.58333 1.25H27.9167C29.7576 1.25 31.25 2.74238 31.25 4.58333V27.9167C31.25 29.7576 29.7576 31.25 27.9167 31.25H4.58333C2.74238 31.25 1.25 29.7576 1.25 27.9167V4.58333C1.25 2.74238 2.74238 1.25 4.58333 1.25Z" stroke="currentColor" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button> -->
+
+                <ul class="recipe__list">
+                    <% recipeItems.forEach(recipe => { %>
+                        <li class="recipe__item" data-title="<%= recipe.title %>" data-is-on-menu="<%= recipe.is_on_menu %>" data-favorite-recipe="<%= !!recipe.favorite %>">
+                            <button class="<%= recipe.favorite ? 'active' : '' %> recipe__item__favorite__icon reset__button" data-recipe-id="<%= recipe.id %>">
+                                <svg width="20" height="19" viewBox="0 0 20 19" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M3.825 19L5.45 11.975L0 7.25L7.2 6.625L10 0L12.8 6.625L20 7.25L14.55 11.975L16.175 19L10 15.275L3.825 19Z" fill="none" stroke="none" stroke-width="1" />
+                                </svg>
+                            </button>
+                            <ul class="single__recipe__collection__list reset__ul">
+                                <% singleRecipeTags.forEach(tag => { 
+                                    if (tag.tag_recipe_title == recipe.title){ %>
+                                    <li class="single__recipe__collection__item tag__item" data-tag-name="<%=tag.name %>"><%= tag.name %></li>
+                                <% }}) %>
+                            </ul>
+                            <div class="recipe__item__block">
+                                <h3 class="recipe__item__title"><%= recipe.title %></h3>
+                                <p class="recipe__item__description"><%= recipe.description %></p>
+                                
+                                <div class="add__to__cook__list">
+                                    <% if(!recipe.is_on_menu ) { %>
+                                        <span class="on__menu__label"></span>
+                                        <button class="add__to__cook__list__button ui__button ui__button__submit" type="button">
+                                            Add to pan
+                                        </button>
+                                    <% } else { %>
+                                        <span class="on__menu__label">✓ On this week's menu</span>
+
+                                        <div class="recipe__item__buttons">
+                                            <button class="add__to__cook__list__button ui__button ui__button__update" type="button">
+                                                Edit stock check
+                                            </button>
+                                            <form action="/shopping-list/recipe/<%= recipe.id %>?_method=PUT" method="POST">
+                                                <button type="submit" class="remove__from__cook__list__button ui__button ui__button__warning">
+                                                    Remove from pan
+                                                </button>
+                                            </form>
+                                        </div>
+                                        
+                                    <% } %>
+                                </div>
+                                <div class="ingredients__popout">
+                                    <div class="close__ingredients__popup close__ingredients__popup__bg"></div>
+
+                                    <div class="ingredients__popout__block">
+                                        <div class="close__ingredients__popup">
+                                            <button type="button" class="reset__button">
+                                                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                    <path d="M1.4 14L0 12.6L5.6 7L0 1.4L1.4 0L7 5.6L12.6 0L14 1.4L8.4 7L14 12.6L12.6 14L7 8.4L1.4 14Z" fill="currentColor"/>
+                                                </svg>
+                                            </button>
+
+                                        </div>
+                                        
+                                        <h2 class="ingredients__popout__title"><%= recipe.title %></h2>
+                                        <p>Add ingredients to your pan:</p>
+                                        <ul class="ingredients__popout__list reset__ul">
+                                            <% 
+                                                singleRecipeIngredients.map((recipeIngredientItem) => {
+                                                if (recipeIngredientItem.recipe_title == recipe.title && recipeIngredientItem.ingredient !== ""){
+                                                const isActive = shoppingListIngredientsByRecipe.some(
+                                                        item => item.recipe_id == recipe.id && item.ingredient_name == recipeIngredientItem.ingredient
+                                                    );
+                                            %> 
+                                                <li class="ingredients__popout__item">
+                                                    <button type="button" class="ingredient__button <%= isActive ? 'selected' : '' %>" title="click to add ingredient to shopping list" data-ingredient-name="<%= recipeIngredientItem.ingredient %>"><%= recipeIngredientItem.ingredient %></button>
+                                                </li> 
+                                            <% 
+                                                }
+                                                }) 
+                                            %>
+                                        </ul>
+
+                                        <form class="add__to__ingredients__form" action="/shopping-list" method="POST">
+                                            <input name="recipeId" type="hidden" value="<%= recipe.id %>">
+                                            <div class="hidden__ingredients__inputs__container">
+                                            </div>
+                                            <button class="add__ingredients__to__pan__button" type="submit">add recipe and ingredients</button>
+                                        </form>
+
+                                        <h3>Recipe Details:</h3>
+
+                                        <%- include('partials/updateRecipeForm', {
+                                            recipe,
+                                            recipeIngredientsForUpdate: singleRecipeIngredients.filter(i => i.recipe_title === recipe.title),
+                                            recipeTagsForUpdate: singleRecipeTags.filter(t => t.tag_recipe_title === recipe.title),
+                                            allTags
+                                        }) %>
+                                    </div>
+
+                                </div>
+
+                            </div>
+                        </li> 
+                    <% }) %>
+                </ul>
+            </div>
+        </div>
+        <%- include('partials/footer') %>
+    </body>
+</html>

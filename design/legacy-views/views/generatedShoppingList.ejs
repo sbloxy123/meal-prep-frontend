@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Document</title>
+        <link rel="icon" type="image/svg+xml" href="/images/favicon.svg">
+        <script type="module" src="/js/script.js"></script>
+        <link rel="stylesheet" href="/styles/styles.css">
+        <link rel="stylesheet" href="/styles/generate-list.css">
+
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet">
+    </head>
+    
+    <body>
+        <%- include('partials/header') %>
+        <h1><%= generatedShoppingListPageTitle %></h1>
+
+        <section class="generated__list__section">
+
+            <div class="generated__lists reset__div">
+                <%
+                    productsByAisles.forEach(item => {
+                %>
+
+                    <div class="aisle__block">
+                        
+                        <h3><%= item.aisle_name %></h3>
+
+                        <ul class="aisle__product__list reset__ul">
+                            <% item.products.forEach(product => { %>
+                                <li class="aisle__product__list__item ">
+                                    
+                                    <p class="aisle__product__list__item__title"><%= product.product_name %>  
+                                        <% if (product.recipe_count > 0) {%>
+                                            <sup> * in <%= product.recipe_count %> recipe</sup>
+                                        <% } %>
+                                        <% if (product.quantity > 1) {%>
+                                            <sup> * in <%= product.quantity %> recipes</sup>
+                                        <% } %>
+                                    </p>
+                                    <div class="generated__list__item__action__buttons">
+                                        <input class="is__collected__checkbox" type="checkbox" id="is_collected" name="is_collected" <%= product.is_collected ? 'checked' : '' %> data-item-id="<%= product.id %>">
+
+                                        <button type="submit" class="<%= product.is_collected ? 'visible' : '' %> generated__item__delete__button form__button form__button__delete reset__button" data-product-id="<%= product.id %>" data-product-name="<%= product.product_name %>">
+                                            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M3 6H21M5 6V20C5 21.1046 5.89543 22 7 22H17C18.1046 22 19 21.1046 19 20V6M8 6V4C8 2.89543 8.89543 2 10 2H14C15.1046 2 16 2.89543 16 4V6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                <path d="M14 11V17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                                <path d="M10 11V17" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                                            </svg>
+                                        </button>
+
+                                    </div>
+                                </li>
+
+                            <% }) %>
+                        </ul>
+                    </div>
+                <% }) %>
+            </ul>
+        </section>
+        <%- include('partials/footer') %>
+    </body>
+</html>
