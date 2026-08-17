@@ -27,6 +27,7 @@ Copied into `design/` in the frontend repo:
 | File | What it is |
 | --- | --- |
 | `design/Meal Plan Redesign.dc.html` | **The design.** Open it in a browser. |
+| `design/classical-styles.css` | Must sit **next to** the design file or it renders unstyled — no borders, no rules, no gold. Same file as `design/classical/styles.css`. |
 | `design/support.js`, `design/image-slot.js` | Required for that file to render. Not app code. |
 | `design/classical/styles.css` | The design system. Vendor this into the app. |
 | `design/legacy-views/` | The retired EJS templates. **Behavioural** reference only — never a styling reference. |
@@ -42,6 +43,8 @@ It contains three sections, top to bottom:
 4. **Core screens.** Shared mobile screens: login, recipe detail, draft list, aisle list, empty state, recipe form. **Build these.**
 
 Photos in the design are drag-and-drop placeholders. They indicate size and position only.
+
+**If the design opens flat** — no borders, no hairline rules, no gold, buttons showing default browser chrome — the stylesheet has not loaded. Every rule and accent in the design comes from CSS custom properties in `styles.css`; without it those declarations are invalid and drop out. Check that `classical-styles.css`, `support.js` and `image-slot.js` are all in the same folder as the `.dc.html` file.
 
 ---
 
