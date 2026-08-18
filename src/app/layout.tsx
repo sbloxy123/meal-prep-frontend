@@ -12,6 +12,8 @@ import "../styles/recipes.css";
 import "../styles/week.css";
 // Draft shopping list.
 import "../styles/shopping.css";
+// Generated list / shopping mode.
+import "../styles/shop.css";
 
 export const metadata: Metadata = {
   title: "Mise en Place",

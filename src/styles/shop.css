@@ -1,0 +1,213 @@
+/* Generated list / shopping mode — collapsing aisle sections, tick to collect,
+   an overall progress counter, and the shop footer. Tokens from the system. */
+
+.shop {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+}
+
+.shop-head {
+  padding: 8px 20px 12px;
+  border-bottom: 1px solid var(--color-divider);
+}
+.shop-head-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 16px;
+}
+.shop-counter {
+  font-family: var(--font-heading);
+  font-size: 22px;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-accent);
+  flex: none;
+}
+.shop-progress {
+  height: 2px;
+  background: var(--color-neutral-300);
+  margin-top: 12px;
+}
+.shop-progress-fill {
+  height: 2px;
+  background: var(--color-accent);
+  transition: width 200ms ease-out;
+}
+
+.shop-body {
+  flex: 1;
+  min-height: 0;
+}
+
+.shop-aisle {
+  border-bottom: 1px solid var(--color-divider);
+}
+.shop-aisle-head {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  text-align: left;
+}
+.shop-aisle-head h6 {
+  margin: 0;
+  flex: 1;
+}
+.shop-aisle-head svg {
+  color: var(--color-accent);
+  flex: none;
+}
+.shop-aisle--collapsed .shop-aisle-head h6 {
+  color: color-mix(in srgb, var(--color-text) 60%, transparent);
+}
+.shop-aisle--collapsed .shop-aisle-head svg {
+  color: var(--color-neutral-600);
+}
+.shop-aisle-count {
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  color: color-mix(in srgb, var(--color-text) 55%, transparent);
+  flex: none;
+}
+.shop-items {
+  padding: 2px 20px;
+}
+
+.shop-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 13px 0;
+  border-bottom: 1px solid var(--color-divider);
+  font-size: 16px;
+  cursor: pointer;
+}
+.shop-items > .shop-item:last-child {
+  border-bottom: 0;
+}
+.shop-item input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+.shop-check {
+  width: 22px;
+  height: 22px;
+  flex: none;
+  border: 1px solid var(--color-neutral-400);
+  border-radius: 2px;
+  display: grid;
+  place-items: center;
+  color: var(--color-accent);
+}
+.shop-check svg {
+  opacity: 0;
+}
+.shop-item input:checked + .shop-check {
+  border-color: var(--color-accent);
+}
+.shop-item input:checked + .shop-check svg {
+  opacity: 1;
+}
+.shop-item input:focus-visible + .shop-check {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+.shop-item-name {
+  flex: 1;
+  min-width: 0;
+}
+.shop-item-qty {
+  font-size: 12px;
+  color: color-mix(in srgb, var(--color-text) 52%, transparent);
+  font-variant-numeric: tabular-nums;
+  flex: none;
+}
+.shop-item.is-collected {
+  color: color-mix(in srgb, var(--color-text) 40%, transparent);
+}
+.shop-item.is-collected .shop-item-name {
+  text-decoration: line-through;
+  text-decoration-color: var(--color-neutral-400);
+}
+.shop-item-delete {
+  flex: none;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  padding: 2px 4px;
+  line-height: 0;
+  color: color-mix(in srgb, var(--color-text) 45%, transparent);
+}
+.shop-item-delete:hover {
+  color: var(--color-accent-700);
+}
+
+.shop-foot {
+  border-top: 1px solid var(--color-divider);
+  padding: 10px 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.shop-add {
+  display: flex;
+  gap: 8px;
+}
+.shop-add .input {
+  flex: 1;
+}
+.shop-add .btn {
+  flex: none;
+  height: 38px;
+}
+.shop-foot-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.shop-finish {
+  margin-left: auto;
+  height: 38px;
+}
+.shop-add-error {
+  margin: 0;
+  font-size: 12px;
+  color: var(--color-accent-700);
+}
+
+@media (min-width: 1024px) {
+  .shop-head {
+    padding: 26px 32px 18px;
+  }
+  .shop-counter {
+    font-size: 26px;
+  }
+  .shop-aisles {
+    padding: 20px 32px;
+    columns: 3;
+    column-gap: 28px;
+  }
+  .shop-aisle {
+    break-inside: avoid;
+    border-bottom: 0;
+    margin-bottom: 18px;
+  }
+  .shop-aisle-head {
+    padding: 0 0 8px;
+    border-bottom: 1px solid var(--color-divider);
+  }
+  .shop-items {
+    padding: 2px 0;
+  }
+  .shop-foot {
+    padding: 14px 32px 22px;
+  }
+}
