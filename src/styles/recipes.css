@@ -1,0 +1,380 @@
+/* Recipes list — a single card that reflows: a horizontal row on mobile
+   (76px photo left) and a bordered vertical card on desktop (126px photo on
+   top). Colour/type/radius from the design tokens; layout switches at 1024px. */
+
+/* Filter bar — search + collection chips, below the page header. */
+.recipes-filters {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 20px 12px;
+  border-bottom: 1px solid var(--color-divider);
+}
+.search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-md);
+  padding: 8px 10px;
+}
+.search:focus-within {
+  border-color: var(--color-accent);
+}
+.search > svg {
+  color: var(--color-accent);
+  flex: none;
+}
+.search input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 14px;
+  color: var(--color-text);
+  caret-color: var(--color-accent);
+  outline: none;
+}
+.search input::placeholder {
+  color: color-mix(in srgb, var(--color-text) 45%, transparent);
+}
+
+.chips {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+.chip {
+  cursor: pointer;
+  font-family: inherit;
+}
+.chip.tag-neutral {
+  border: 1px solid transparent;
+}
+.chip-all {
+  opacity: 0.65;
+}
+
+@media (min-width: 1024px) {
+  .recipes-filters {
+    padding: 16px 32px;
+  }
+}
+
+/* List container: stacked hairline-separated rows on mobile, 3-up grid on
+   desktop. */
+.recipes-list {
+  display: flex;
+  flex-direction: column;
+}
+.recipes-list > * + * {
+  border-top: 1px solid var(--color-divider);
+}
+
+.recipe {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+  padding: 14px 0;
+}
+
+.recipe-photo {
+  width: 76px;
+  height: 76px;
+  flex: none;
+  border: 1px solid var(--color-divider);
+  border-radius: 3px;
+  background: var(--color-neutral-100);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  color: color-mix(in srgb, var(--color-text) 30%, transparent);
+}
+.recipe-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.recipe-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.recipe-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: flex-start;
+}
+.recipe-title {
+  font-family: var(--font-heading);
+  font-weight: var(--font-heading-weight);
+  font-size: 18px;
+  line-height: 1.15;
+  color: var(--color-text);
+  text-decoration: none;
+}
+.recipe-title:hover {
+  color: var(--color-accent-700);
+}
+
+.recipe-fav {
+  flex: none;
+  margin-top: 3px;
+  padding: 2px;
+  line-height: 0;
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  color: var(--color-neutral-500);
+}
+.recipe-fav:hover {
+  color: var(--color-accent);
+}
+.recipe-fav[aria-pressed="true"] {
+  color: var(--color-accent);
+}
+
+.recipe-tags {
+  display: flex;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+/* On-menu row: label + hairline + Edit (mobile); label + Edit pushed right
+   (desktop). */
+.recipe-onmenu {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 2px;
+}
+.recipe-onmenu-label {
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-accent-700);
+}
+.recipe-onmenu-rule {
+  flex: 1;
+  height: 1px;
+  background: var(--color-divider);
+}
+
+/* Add-to-this-week: accent outline, right-aligned on mobile; full-width
+   secondary on desktop. Uses .btn for base layout. */
+.recipe-add {
+  align-self: flex-end;
+  height: 32px;
+  color: var(--color-accent);
+  border: 1px solid var(--color-accent);
+}
+.recipe-add:hover {
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+}
+
+.recipe-edit {
+  font-size: 13px;
+}
+.recipe-edit-suffix {
+  /* "Edit stock check" on mobile, "Edit" on desktop */
+}
+
+/* ── Recipe detail ─────────────────────────────────────────────────────── */
+
+.detail {
+  max-width: 760px;
+  margin: 0 auto;
+}
+.detail-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 13px;
+  padding: 12px 20px 0;
+}
+.detail-hero {
+  width: 100%;
+  height: 230px;
+  border: 1px solid var(--color-divider);
+  background: var(--color-neutral-100);
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  color: color-mix(in srgb, var(--color-text) 28%, transparent);
+}
+.detail-hero img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.detail-head {
+  padding: 16px 20px 14px;
+  border-bottom: 1px solid var(--color-divider);
+}
+.detail-tags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+.detail-title {
+  margin: 0;
+  font-weight: 400;
+  font-size: 28px;
+}
+.detail-meta {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: color-mix(in srgb, var(--color-text) 55%, transparent);
+}
+.detail-body {
+  padding: 14px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.detail-ingredients {
+  columns: 2;
+  column-gap: 18px;
+  font-size: 14px;
+  line-height: 2;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.detail-ingredients li {
+  break-inside: avoid;
+}
+.detail-ing-qty {
+  font-variant-numeric: tabular-nums;
+  color: color-mix(in srgb, var(--color-text) 60%, transparent);
+}
+.detail-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.detail-step {
+  display: flex;
+  gap: 12px;
+  font-size: 14px;
+}
+.detail-step-n {
+  font-family: var(--font-heading);
+  font-variant-numeric: tabular-nums;
+  color: var(--color-accent);
+  flex: none;
+  min-width: 1.4em;
+}
+.detail-para {
+  font-size: 14px;
+  text-align: justify;
+  hyphens: auto;
+  margin: 0;
+}
+.detail-source {
+  font-size: 13px;
+}
+.detail-actions {
+  border-top: 1px solid var(--color-divider);
+  padding: 14px 20px 20px;
+  display: flex;
+  gap: 10px;
+}
+.detail-fav {
+  width: 44px;
+  height: 44px;
+  flex: none;
+  color: var(--color-accent);
+}
+.detail-add {
+  flex: 1;
+  height: 44px;
+  font-size: 15px;
+}
+
+@media (min-width: 1024px) {
+  .detail-hero {
+    height: 320px;
+    border-radius: var(--radius-md);
+    margin-top: 8px;
+  }
+  .detail-title {
+    font-size: 34px;
+  }
+}
+
+@media (min-width: 1024px) {
+  .recipes-list {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 22px;
+    align-content: start;
+  }
+  .recipes-list > * + * {
+    border-top: 0;
+  }
+
+  .recipe {
+    flex-direction: column;
+    /* stretch (not the mobile row's flex-start) so content fills the card:
+       star to the right edge, add button full-width. */
+    align-items: stretch;
+    gap: 9px;
+    padding: 12px;
+    border: 1px solid var(--color-divider);
+    border-radius: var(--radius-md);
+  }
+  .recipe--on-menu {
+    border-color: var(--color-accent-300);
+  }
+
+  .recipe-photo {
+    width: 100%;
+    height: 126px;
+  }
+  .recipe-content {
+    gap: 8px;
+  }
+  .recipe-title {
+    font-size: 17px;
+  }
+
+  .recipe-onmenu-rule {
+    display: none;
+  }
+  .recipe-onmenu .recipe-edit {
+    margin-left: auto;
+    font-size: 12px;
+  }
+
+  .recipe-add {
+    align-self: stretch;
+    width: 100%;
+    height: 34px;
+    color: var(--color-text);
+    border-color: var(--color-divider);
+  }
+  .recipe-add:hover {
+    background: color-mix(in srgb, var(--color-text) 7%, transparent);
+  }
+
+  .recipe-edit-suffix {
+    display: none;
+  }
+}
