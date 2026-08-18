@@ -8,7 +8,9 @@ interface RecipeCardProps {
   recipe: Recipe;
   tags: string[];
   onToggleFavorite: (id: number, next: boolean) => void;
-  // Wired in step 3 (stock check). Present so the card renders the right state.
+  // On-menu state comes from the MenuProvider (authoritative after mutations);
+  // falls back to the recipe's own flag before it loads.
+  isOnMenu?: boolean;
   onAddToWeek?: (recipe: Recipe) => void;
   onEditStockCheck?: (recipe: Recipe) => void;
 }
@@ -17,12 +19,14 @@ export function RecipeCard({
   recipe,
   tags,
   onToggleFavorite,
+  isOnMenu,
   onAddToWeek,
   onEditStockCheck,
 }: RecipeCardProps) {
   const href = `/recipes/${recipe.id}`;
+  const onMenu = isOnMenu ?? recipe.is_on_menu;
   return (
-    <article className={`recipe${recipe.is_on_menu ? " recipe--on-menu" : ""}`}>
+    <article className={`recipe${onMenu ? " recipe--on-menu" : ""}`}>
       <Link href={href} className="recipe-photo" aria-label={recipe.title}>
         {recipe.image_url ? (
           // eslint-disable-next-line @next/next/no-img-element -- next/image + Cloudinary loader lands in step 8
@@ -58,7 +62,7 @@ export function RecipeCard({
           </div>
         )}
 
-        {recipe.is_on_menu ? (
+        {onMenu ? (
           <div className="recipe-onmenu">
             <span className="recipe-onmenu-label">On this week</span>
             <span className="recipe-onmenu-rule" />

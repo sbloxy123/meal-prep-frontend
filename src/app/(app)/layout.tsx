@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
 import { AppShell } from "@/components/app-shell";
+import { MenuProvider } from "@/lib/menu";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -17,5 +18,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   if (isPending || !session) return null;
 
-  return <AppShell>{children}</AppShell>;
+  return (
+    <MenuProvider>
+      <AppShell>{children}</AppShell>
+    </MenuProvider>
+  );
 }

@@ -1,0 +1,412 @@
+/* Stock check (bottom sheet on mobile, centred dialog on desktop) plus the
+   This week tray, right column and screen. Tokens from the design system. */
+
+/* ── Stock check ───────────────────────────────────────────────────────── */
+.sc-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: color-mix(in srgb, var(--color-neutral-900) 40%, transparent);
+}
+.sc {
+  display: flex;
+  width: 100%;
+  max-height: 88vh;
+  background: var(--color-bg);
+  border-top: 1px solid var(--color-divider);
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+.sc-photo {
+  display: none;
+}
+.sc-inner {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 14px 20px calc(22px + env(safe-area-inset-bottom));
+  overflow: hidden;
+}
+.sc-grip {
+  width: 40px;
+  height: 3px;
+  flex: none;
+  border-radius: 2px;
+  background: var(--color-neutral-400);
+  align-self: center;
+}
+.sc-kicker {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+.sc-title {
+  margin: 4px 0 0;
+  font-weight: 400;
+  font-size: 24px;
+}
+.sc-help {
+  margin: 6px 0 0;
+  font-size: 13px;
+}
+.sc-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+.sc-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 11px 2px;
+  border-bottom: 1px solid var(--color-divider);
+  font-size: 15px;
+  cursor: pointer;
+  color: color-mix(in srgb, var(--color-text) 62%, transparent);
+}
+.sc-item:last-child {
+  border-bottom: 0;
+}
+.sc-item:has(input:checked) {
+  color: var(--color-text);
+}
+.sc-item input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+.sc-box {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  border: 1px solid var(--color-neutral-400);
+  border-radius: 2px;
+  display: grid;
+  place-items: center;
+  color: var(--color-accent);
+}
+.sc-box svg {
+  opacity: 0;
+}
+.sc-item input:checked + .sc-box {
+  border-color: var(--color-accent);
+}
+.sc-item input:checked + .sc-box svg {
+  opacity: 1;
+}
+.sc-item input:focus-visible + .sc-box {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+.sc-name {
+  flex: 1;
+}
+.sc-selectbar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.sc-count {
+  flex: 1;
+  text-align: right;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+}
+.sc-error {
+  margin: 0;
+  font-size: 13px;
+  color: var(--color-accent-700);
+}
+.sc-actions {
+  display: flex;
+  gap: 10px;
+}
+.sc-cancel {
+  display: none;
+}
+.sc-submit {
+  flex: 1;
+  height: 46px;
+  font-size: 16px;
+  margin: 0;
+}
+
+@media (min-width: 1024px) {
+  .sc-backdrop {
+    align-items: center;
+    padding: 16px;
+  }
+  .sc {
+    width: 560px;
+    max-width: 100%;
+    max-height: min(88vh, 640px);
+    border: 1px solid var(--color-divider);
+    border-radius: var(--radius-lg);
+  }
+  .sc-photo {
+    display: grid;
+    place-items: center;
+    width: 200px;
+    flex: none;
+    align-self: stretch;
+    background: var(--color-neutral-100);
+    border-right: 1px solid var(--color-divider);
+    color: color-mix(in srgb, var(--color-text) 28%, transparent);
+  }
+  .sc-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .sc-inner {
+    padding: 24px 26px;
+  }
+  .sc-grip {
+    display: none;
+  }
+  .sc-title {
+    font-size: 26px;
+  }
+  .sc-selectbar {
+    margin-top: auto;
+  }
+  .sc-cancel {
+    display: inline-flex;
+  }
+  .sc-submit {
+    height: 42px;
+    font-size: 14px;
+  }
+}
+
+/* ── Recipes page two-column layout (grid + This week column on desktop) ── */
+.recipes-layout {
+  display: flex;
+  min-height: 100%;
+}
+.recipes-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── This week tray (mobile, docked above the tab bar) ─────────────────── */
+.tray {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
+  z-index: 45;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 20px;
+  background: var(--color-accent-100);
+  border-top: 1px solid var(--color-accent-300);
+}
+.tray-title {
+  font-family: var(--font-heading);
+  font-weight: var(--font-heading-weight);
+  font-size: 16px;
+}
+.tray-sub {
+  font-size: 12px;
+  color: var(--color-accent-800);
+}
+.tray-open {
+  height: 34px;
+  border-color: var(--color-accent-700);
+  color: var(--color-accent-800);
+}
+/* Spacer to clear the fixed tray so the last rows aren't hidden behind it. */
+.tray-spacer {
+  height: 66px;
+}
+
+/* ── This week desktop right column (on Recipes) ──────────────────────── */
+.week-col {
+  display: none;
+}
+.week-col-head {
+  padding: 26px 22px 16px;
+  border-bottom: 1px solid var(--color-divider);
+}
+.week-col-kicker {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+.week-col-title {
+  margin: 4px 0 0;
+  font-weight: 400;
+  font-size: 24px;
+}
+.week-col-list {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 4px 22px;
+}
+.week-col-item {
+  padding: 14px 0;
+  border-bottom: 1px solid var(--color-divider);
+}
+.week-col-item-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+.week-col-item-title {
+  font-family: var(--font-heading);
+  font-weight: var(--font-heading-weight);
+  font-size: 15px;
+}
+.week-col-item-count {
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-accent);
+  flex: none;
+}
+.week-col-item-summary {
+  font-size: 12px;
+  margin-top: 3px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.week-col-empty {
+  padding: 24px 22px;
+  font-size: 13px;
+}
+.week-col-foot {
+  padding: 16px 22px 22px;
+  border-top: 1px solid var(--color-divider);
+}
+
+/* ── This week screen (/this-week) ─────────────────────────────────────── */
+.week-screen {
+  max-width: 760px;
+  margin: 0 auto;
+  width: 100%;
+}
+.week-list {
+  padding: 6px 20px;
+}
+.week-item {
+  padding: 12px 0;
+  border-bottom: 1px solid var(--color-divider);
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+.week-item-main {
+  flex: 1;
+  min-width: 0;
+}
+.week-item-title {
+  font-family: var(--font-heading);
+  font-weight: var(--font-heading-weight);
+  font-size: 18px;
+}
+.week-item-summary {
+  font-size: 13px;
+  margin-top: 4px;
+}
+.week-item-actions {
+  display: flex;
+  gap: 4px;
+  margin-top: 4px;
+  align-items: center;
+}
+.week-item-count {
+  font-family: var(--font-heading);
+  font-size: 15px;
+  color: var(--color-accent);
+  font-variant-numeric: tabular-nums;
+  flex: none;
+}
+.week-remove {
+  background: none;
+  border: 0;
+  cursor: pointer;
+  font-family: var(--font-heading);
+  font-weight: var(--font-heading-weight);
+  font-size: 13px;
+  color: color-mix(in srgb, var(--color-text) 55%, transparent);
+  padding: var(--space-2) 6px;
+}
+.week-remove:hover {
+  color: var(--color-accent-700);
+}
+.week-remove:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.week-foot {
+  border-top: 1px solid var(--color-divider);
+  padding: 12px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* ── Empty states (This week / centred pattern) ───────────────────────── */
+.week-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  padding: 40px 40px 0;
+}
+.week-empty-icon {
+  width: 78px;
+  height: 78px;
+  border: 1px solid var(--color-divider);
+  display: grid;
+  place-items: center;
+  color: var(--color-accent);
+  margin-bottom: 18px;
+}
+.week-empty h3 {
+  margin: 0;
+  font-weight: 400;
+}
+.week-empty p {
+  font-size: 14px;
+  margin: 8px 0 0;
+  text-wrap: pretty;
+}
+.week-empty-rule {
+  height: 1px;
+  width: 60px;
+  background: var(--color-divider);
+  margin: 22px 0;
+  border: 0;
+}
+
+@media (min-width: 1024px) {
+  .tray,
+  .tray-spacer {
+    display: none;
+  }
+  .week-col {
+    width: 290px;
+    flex: none;
+    border-left: 1px solid var(--color-divider);
+    display: flex;
+    flex-direction: column;
+  }
+}

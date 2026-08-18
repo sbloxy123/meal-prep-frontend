@@ -7,6 +7,7 @@ import { Star, ChevronLeft, Image as ImageIcon } from "lucide-react";
 import { apiSend } from "@/lib/api";
 import type { RecipeDetail } from "@/lib/types";
 import { parseInstructions } from "@/lib/instructions";
+import { useMenu } from "@/lib/menu";
 
 type LoadState =
   | { status: "loading" }
@@ -25,6 +26,7 @@ function formatQuantity(quantity: number | string | null, unit: string | null): 
 export default function RecipeDetailPage() {
   const params = useParams<{ id: string }>();
   const id = params.id;
+  const menu = useMenu();
   const [state, setState] = useState<LoadState>({ status: "loading" });
 
   useEffect(() => {
@@ -205,9 +207,14 @@ export default function RecipeDetailPage() {
         >
           <Star size={18} fill={recipe.favorite ? "currentColor" : "none"} aria-hidden />
         </button>
-        {/* Stock check is wired in step 3. */}
-        <button type="button" className="btn btn-primary detail-add">
-          {recipe.is_on_menu ? "Edit stock check" : "Add to this week"}
+        <button
+          type="button"
+          className="btn btn-primary detail-add"
+          onClick={() => menu.openStockCheck({ id: recipe.id, title: recipe.title })}
+        >
+          {(menu.loaded ? menu.onMenuIds.has(recipe.id) : recipe.is_on_menu)
+            ? "Edit stock check"
+            : "Add to this week"}
         </button>
       </div>
     </div>

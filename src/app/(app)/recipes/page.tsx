@@ -6,6 +6,8 @@ import { apiFetch, apiSend } from "@/lib/api";
 import type { RecipesResponse } from "@/lib/types";
 import { PageHeader } from "@/components/page-header";
 import { RecipeCard } from "@/components/recipe-card";
+import { ThisWeekColumn, ThisWeekTray } from "@/components/this-week";
+import { useMenu } from "@/lib/menu";
 
 type Filter = { kind: "all" } | { kind: "favourites" } | { kind: "collection"; name: string };
 
@@ -18,6 +20,7 @@ export default function RecipesPage() {
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<Filter>({ kind: "all" });
   const [showAllCollections, setShowAllCollections] = useState(false);
+  const menu = useMenu();
 
   useEffect(() => {
     apiFetch<RecipesResponse>("/recipes")
@@ -113,7 +116,8 @@ export default function RecipesPage() {
   }
 
   return (
-    <>
+    <div className="recipes-layout">
+      <div className="recipes-main">
       <PageHeader
         title="Recipes"
         kicker={loading ? undefined : `${recipes.length} recipe${recipes.length === 1 ? "" : "s"}`}
@@ -194,12 +198,22 @@ export default function RecipesPage() {
                 recipe={recipe}
                 tags={tagsByTitle.get(recipe.title) ?? []}
                 onToggleFavorite={toggleFavorite}
+                isOnMenu={menu.loaded ? menu.onMenuIds.has(recipe.id) : undefined}
+                onAddToWeek={(r) => menu.openStockCheck(r)}
+                onEditStockCheck={(r) => menu.openStockCheck(r)}
               />
             ))}
           </div>
         )}
       </div>
-    </>
+
+      {/* Mobile: tray docked above the tab bar when ≥1 recipe is on the menu. */}
+      <ThisWeekTray />
+      </div>
+
+      {/* Desktop: permanent This week right column. */}
+      <ThisWeekColumn />
+    </div>
   );
 }
 

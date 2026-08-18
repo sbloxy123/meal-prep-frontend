@@ -6,7 +6,7 @@ import { BookOpen, Calendar, ListChecks } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { useSession } from "@/lib/auth-client";
-import { useNavData, type NavData } from "@/lib/nav-data";
+import { useMenu, type Collection } from "@/lib/menu";
 
 const WORDMARK_LINES = ["Mise", "en place"];
 
@@ -17,14 +17,6 @@ interface NavItem {
   count?: number;
 }
 
-function buildNavItems(nav: NavData): NavItem[] {
-  return [
-    { href: "/recipes", label: "Recipes", icon: BookOpen },
-    { href: "/this-week", label: "This week", icon: Calendar, count: nav.thisWeekCount },
-    { href: "/shopping-list", label: "List", icon: ListChecks, count: nav.listCount },
-  ];
-}
-
 /** Match /recipes for both the list and its detail routes, etc. */
 function isActive(pathname: string, href: string): boolean {
   return pathname === href || pathname.startsWith(`${href}/`);
@@ -32,12 +24,16 @@ function isActive(pathname: string, href: string): boolean {
 
 export function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
-  const nav = useNavData();
-  const navItems = buildNavItems(nav);
+  const menu = useMenu();
+  const navItems: NavItem[] = [
+    { href: "/recipes", label: "Recipes", icon: BookOpen },
+    { href: "/this-week", label: "This week", icon: Calendar, count: menu.thisWeek.length },
+    { href: "/shopping-list", label: "List", icon: ListChecks, count: menu.listCount },
+  ];
 
   return (
     <div className="shell">
-      <DesktopRail pathname={pathname} navItems={navItems} collections={nav.collections} />
+      <DesktopRail pathname={pathname} navItems={navItems} collections={menu.collections} />
       <div className="shell-main">
         <div className="shell-page">{children}</div>
       </div>
@@ -53,7 +49,7 @@ function DesktopRail({
 }: {
   pathname: string;
   navItems: NavItem[];
-  collections: NavData["collections"];
+  collections: Collection[];
 }) {
   const { data: session } = useSession();
 

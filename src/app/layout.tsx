@@ -8,6 +8,8 @@ import "../styles/classical.css";
 import "../styles/shell.css";
 // Recipes list + detail styling.
 import "../styles/recipes.css";
+// Stock check, This week tray / column / screen.
+import "../styles/week.css";
 
 export const metadata: Metadata = {
   title: "Mise en Place",
