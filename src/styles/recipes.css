@@ -364,6 +364,12 @@
   .recipe-content {
     gap: 8px;
   }
+  /* Cards in a grid row stretch to equal height; push the action (always the
+     last child — add button or on-menu row) to the bottom so it lines up
+     across cards regardless of how many tags they have. */
+  .recipe-content > :last-child {
+    margin-top: auto;
+  }
   .recipe-title {
     font-size: 17px;
   }
