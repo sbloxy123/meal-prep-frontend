@@ -4,6 +4,8 @@ import "./globals.css";
 // Google Fonts @import) and component classes. Imported after globals.css so
 // its custom properties and base styles win over Tailwind's preflight.
 import "../styles/classical.css";
+// App shell chrome (rail, tab bar, page header) — lays out the design tokens.
+import "../styles/shell.css";
 
 export const metadata: Metadata = {
   title: "Mise en Place",

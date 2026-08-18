@@ -1,0 +1,237 @@
+/* App shell — desktop left rail, mobile bottom tab bar, and the reusable page
+   header. Colour, type, radius and shadow all come from the vendored design
+   system's custom properties (classical.css); this file only lays them out.
+   Breakpoint is 1024px per the redesign brief §5 (mobile-first here). */
+
+.shell {
+  display: flex;
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+/* The column that holds the page. On mobile it clears the fixed tab bar; on
+   desktop the rail sits beside it. */
+.shell-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: calc(64px + env(safe-area-inset-bottom));
+}
+
+.shell-page {
+  flex: 1;
+  min-width: 0;
+}
+
+/* ── Desktop left rail (≥1024px) ───────────────────────────────────────── */
+
+.rail {
+  display: none;
+}
+
+.rail-wordmark {
+  font-family: var(--font-heading);
+  font-weight: var(--font-heading-weight);
+  font-size: 20px;
+  line-height: 1.1;
+}
+
+.rail-divider {
+  height: 1px;
+  background: var(--color-divider);
+  margin: 22px 0;
+  border: 0;
+}
+
+.rail-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.rail-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 9px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid transparent;
+  color: color-mix(in srgb, var(--color-text) 62%, transparent);
+  text-decoration: none;
+  font-size: 14px;
+}
+.rail-nav-item:hover {
+  color: var(--color-text);
+}
+.rail-nav-item[aria-current="page"] {
+  border-color: var(--color-accent-300);
+  background: var(--color-accent-100);
+  color: var(--color-accent-800);
+}
+.rail-nav-label {
+  flex: 1;
+}
+.rail-nav-count {
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-accent);
+}
+
+.rail-collections-title {
+  margin: 0 0 10px;
+}
+.rail-collections {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  font-size: 13px;
+  color: color-mix(in srgb, var(--color-text) 70%, transparent);
+}
+.rail-collection {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+.rail-collection span:last-child {
+  font-variant-numeric: tabular-nums;
+}
+.rail-collections-all {
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.rail-user {
+  margin-top: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-top: 18px;
+  border-top: 1px solid var(--color-divider);
+  color: inherit;
+  text-decoration: none;
+}
+.rail-user:hover .rail-user-name {
+  color: var(--color-accent);
+}
+.rail-user-avatar {
+  width: 28px;
+  height: 28px;
+  flex: none;
+  border: 1px solid var(--color-divider);
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-heading);
+  font-size: 13px;
+  text-transform: uppercase;
+}
+.rail-user-name {
+  font-size: 13px;
+}
+
+/* ── Mobile bottom tab bar (<1024px) ───────────────────────────────────── */
+
+.tabbar {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 40;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  background: var(--color-bg);
+  border-top: 1px solid var(--color-divider);
+  padding: 9px 0 calc(10px + env(safe-area-inset-bottom));
+}
+.tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 44px;
+  color: color-mix(in srgb, var(--color-text) 55%, transparent);
+  text-decoration: none;
+}
+.tab[aria-current="page"] {
+  color: var(--color-accent);
+}
+.tab-label {
+  font-size: 11px;
+  letter-spacing: 0.04em;
+}
+
+/* Page body — the padded region below the header. Matches the design's inner
+   gutters (mobile 14/20, desktop 20/32). */
+.page-body {
+  padding: 14px 20px;
+}
+
+/* ── Page header (reusable) ────────────────────────────────────────────── */
+
+.page-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 8px 20px 14px;
+  border-bottom: 1px solid var(--color-divider);
+}
+.page-header-kicker {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+.page-header-title {
+  margin: 2px 0 0;
+  font-weight: 400;
+  font-size: 30px;
+}
+.page-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: none;
+}
+/* The mobile kicker carries the wordmark; the page's own kicker is desktop-only
+   (the rail already shows the wordmark there). */
+.page-header-wordmark {
+  display: block;
+}
+.page-header-pagekicker {
+  display: none;
+}
+
+@media (min-width: 1024px) {
+  .rail {
+    width: 216px;
+    flex: none;
+    border-right: 1px solid var(--color-divider);
+    display: flex;
+    flex-direction: column;
+    padding: 26px 22px;
+  }
+  .shell-main {
+    padding-bottom: 0;
+  }
+  .tabbar {
+    display: none;
+  }
+  .page-header {
+    padding: 26px 32px 18px;
+  }
+  .page-header-title {
+    font-size: 38px;
+  }
+  .page-header-wordmark {
+    display: none;
+  }
+  .page-header-pagekicker {
+    display: block;
+  }
+  .page-body {
+    padding: 20px 32px;
+  }
+}

@@ -1,9 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import { authClient } from "@/lib/auth-client";
+import { useRouter } from "next/navigation";
+import { authClient, signOut } from "@/lib/auth-client";
+import { PageHeader } from "@/components/page-header";
 
 export default function AccountPage() {
+  const router = useRouter();
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
 
@@ -39,10 +42,21 @@ export default function AccountPage() {
   }
 
   return (
-    <div className="max-w-md">
-      <h1 className="text-2xl font-semibold text-gray-900 mb-6">Account</h1>
-
-      <div className="bg-white rounded-xl shadow p-8">
+    <>
+      <PageHeader
+        title="Account"
+        actions={
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={() => signOut().then(() => router.push("/sign-in"))}
+          >
+            Sign out
+          </button>
+        }
+      />
+      <div className="page-body max-w-md">
+        <div className="bg-white rounded-xl shadow p-8">
         <h2 className="text-base font-medium text-gray-900 mb-4">Change password</h2>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -99,7 +113,8 @@ export default function AccountPage() {
             {status === "loading" ? "Updating…" : "Update password"}
           </button>
         </form>
+        </div>
       </div>
-    </div>
+    </>
   );
 }
