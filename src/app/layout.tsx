@@ -10,6 +10,8 @@ import "../styles/shell.css";
 import "../styles/recipes.css";
 // Stock check, This week tray / column / screen.
 import "../styles/week.css";
+// Draft shopping list.
+import "../styles/shopping.css";
 
 export const metadata: Metadata = {
   title: "Mise en Place",

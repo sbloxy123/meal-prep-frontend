@@ -16,11 +16,21 @@ import { ConfirmDialog } from "@/components/confirm-dialog";
 // GET /shopping-list — the one endpoint that backs This week, the shopping
 // list count, collections, and the stock-check ingredient lists.
 interface ShoppingListResponse {
-  shoppingList: unknown[];
+  shoppingList: ShoppingItem[];
   allRecipesOnMenu: { id: number; title: string }[];
   singleRecipeIngredients: { recipe_title: string; ingredient: string }[];
   singleRecipeTags: { tag_recipe_title: string; name: string }[];
   shoppingListIngredientsByRecipe: { recipe_id: number; ingredient_name: string }[];
+}
+
+// A row of shopping_list. Recipe-derived items carry ingredient_name (with
+// custom_product null); user-added items carry custom_product. recipe_count is
+// how many on-menu recipes reference the item.
+export interface ShoppingItem {
+  id: number;
+  ingredient_name: string | null;
+  custom_product: string | null;
+  recipe_count: number | string;
 }
 
 export interface WeekRecipe {
@@ -46,6 +56,8 @@ interface MenuValue {
   onMenuIds: Set<number>;
   listCount: number;
   collections: Collection[];
+  shoppingList: ShoppingItem[];
+  recipeTitlesFor: (ingredientName: string) => string[];
   ingredientsFor: (title: string) => string[];
   selectedFor: (recipeId: number) => Set<string>;
   openStockCheck: (recipe: OpenRecipe) => void;
@@ -143,6 +155,25 @@ export function MenuProvider({ children }: { children: ReactNode }) {
     [data],
   );
 
+  const shoppingList = data?.shoppingList ?? [];
+
+  // Which on-menu recipes a recipe-derived item came from (for the "From
+  // recipes" labels and the "in N recipes" note).
+  const recipeTitlesFor = useCallback(
+    (ingredientName: string) => {
+      const titleById = new Map((data?.allRecipesOnMenu ?? []).map((r) => [r.id, r.title]));
+      const titles = new Set<string>();
+      for (const row of data?.shoppingListIngredientsByRecipe ?? []) {
+        if (row.ingredient_name === ingredientName) {
+          const t = titleById.get(row.recipe_id);
+          if (t) titles.add(t);
+        }
+      }
+      return [...titles];
+    },
+    [data],
+  );
+
   const removeRecipe = useCallback(
     async (recipeId: number) => {
       await apiSend(`/shopping-list/recipe/${recipeId}`, { method: "PUT" });
@@ -174,6 +205,8 @@ export function MenuProvider({ children }: { children: ReactNode }) {
     onMenuIds,
     listCount,
     collections,
+    shoppingList,
+    recipeTitlesFor,
     ingredientsFor,
     selectedFor,
     openStockCheck: setOpenRecipe,
