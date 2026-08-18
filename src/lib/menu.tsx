@@ -11,6 +11,7 @@ import {
 } from "react";
 import { apiFetch, apiSend } from "./api";
 import { StockCheck } from "@/components/stock-check";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 
 // GET /shopping-list — the one endpoint that backs This week, the shopping
 // list count, collections, and the stock-check ingredient lists.
@@ -48,7 +49,9 @@ interface MenuValue {
   ingredientsFor: (title: string) => string[];
   selectedFor: (recipeId: number) => Set<string>;
   openStockCheck: (recipe: OpenRecipe) => void;
-  removeRecipe: (recipeId: number) => Promise<void>;
+  // Opens a confirmation first — removing a recipe also clears its items from
+  // the shopping list, so it's destructive and non-undoable.
+  requestRemoveRecipe: (recipe: OpenRecipe) => void;
   refresh: () => Promise<void>;
 }
 
@@ -64,6 +67,7 @@ export function MenuProvider({ children }: { children: ReactNode }) {
   const [data, setData] = useState<ShoppingListResponse | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [openRecipe, setOpenRecipe] = useState<OpenRecipe | null>(null);
+  const [removeTarget, setRemoveTarget] = useState<OpenRecipe | null>(null);
 
   const refresh = useCallback(async () => {
     try {
@@ -173,7 +177,7 @@ export function MenuProvider({ children }: { children: ReactNode }) {
     ingredientsFor,
     selectedFor,
     openStockCheck: setOpenRecipe,
-    removeRecipe,
+    requestRemoveRecipe: setRemoveTarget,
     refresh,
   };
 
@@ -188,6 +192,18 @@ export function MenuProvider({ children }: { children: ReactNode }) {
           isEdit={onMenuIds.has(openRecipe.id)}
           onSubmit={(ings) => submitStockCheck(openRecipe.id, ings, onMenuIds.has(openRecipe.id))}
           onClose={() => setOpenRecipe(null)}
+        />
+      )}
+      {removeTarget && (
+        <ConfirmDialog
+          title={`Remove ${removeTarget.title}?`}
+          body="This takes it off this week and removes its ingredients from your shopping list, unless another recipe on the menu still needs them."
+          confirmLabel="Remove"
+          onConfirm={async () => {
+            await removeRecipe(removeTarget.id);
+            setRemoveTarget(null);
+          }}
+          onClose={() => setRemoveTarget(null)}
         />
       )}
     </MenuContext.Provider>

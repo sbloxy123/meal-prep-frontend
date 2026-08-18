@@ -201,6 +201,7 @@ export default function RecipesPage() {
                 isOnMenu={menu.loaded ? menu.onMenuIds.has(recipe.id) : undefined}
                 onAddToWeek={(r) => menu.openStockCheck(r)}
                 onEditStockCheck={(r) => menu.openStockCheck(r)}
+                onRemoveFromWeek={(r) => menu.requestRemoveRecipe(r)}
               />
             ))}
           </div>

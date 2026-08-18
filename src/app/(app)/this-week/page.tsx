@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { CookingPot } from "lucide-react";
 import { useMenu, type WeekRecipe } from "@/lib/menu";
@@ -11,7 +10,7 @@ function plural(n: number, word: string) {
 }
 
 export default function ThisWeekPage() {
-  const { loaded, thisWeek, listCount, openStockCheck, removeRecipe } = useMenu();
+  const { loaded, thisWeek, listCount, openStockCheck, requestRemoveRecipe } = useMenu();
 
   const kicker = thisWeek.length
     ? `${plural(thisWeek.length, "recipe")} · ${plural(listCount, "item")}`
@@ -35,7 +34,7 @@ export default function ThisWeekPage() {
                 key={r.id}
                 recipe={r}
                 onEdit={() => openStockCheck(r)}
-                onRemove={() => removeRecipe(r.id)}
+                onRemove={() => requestRemoveRecipe(r)}
               />
             ))}
           </div>
@@ -68,9 +67,8 @@ function WeekRow({
 }: {
   recipe: WeekRecipe;
   onEdit: () => void;
-  onRemove: () => Promise<void>;
+  onRemove: () => void;
 }) {
-  const [removing, setRemoving] = useState(false);
   return (
     <div className="week-item">
       <div className="week-item-main">
@@ -82,16 +80,8 @@ function WeekRow({
           <button type="button" className="btn btn-ghost" onClick={onEdit}>
             Edit stock check
           </button>
-          <button
-            type="button"
-            className="week-remove"
-            disabled={removing}
-            onClick={() => {
-              setRemoving(true);
-              onRemove().catch(() => setRemoving(false));
-            }}
-          >
-            {removing ? "Removing…" : "Remove"}
+          <button type="button" className="week-remove" onClick={onRemove}>
+            Remove
           </button>
         </div>
       </div>

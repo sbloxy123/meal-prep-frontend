@@ -13,6 +13,7 @@ interface RecipeCardProps {
   isOnMenu?: boolean;
   onAddToWeek?: (recipe: Recipe) => void;
   onEditStockCheck?: (recipe: Recipe) => void;
+  onRemoveFromWeek?: (recipe: Recipe) => void;
 }
 
 export function RecipeCard({
@@ -22,6 +23,7 @@ export function RecipeCard({
   isOnMenu,
   onAddToWeek,
   onEditStockCheck,
+  onRemoveFromWeek,
 }: RecipeCardProps) {
   const href = `/recipes/${recipe.id}`;
   const onMenu = isOnMenu ?? recipe.is_on_menu;
@@ -72,6 +74,13 @@ export function RecipeCard({
               onClick={() => onEditStockCheck?.(recipe)}
             >
               Edit<span className="recipe-edit-suffix"> stock check</span>
+            </button>
+            <button
+              type="button"
+              className="recipe-remove"
+              onClick={() => onRemoveFromWeek?.(recipe)}
+            >
+              Remove
             </button>
           </div>
         ) : (

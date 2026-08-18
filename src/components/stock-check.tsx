@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import { Check, Image as ImageIcon } from "lucide-react";
+import { useModalA11y } from "@/lib/use-modal";
 
 interface StockCheckProps {
   recipe: { id: number; title: string };
@@ -25,45 +26,7 @@ export function StockCheck({
   const [error, setError] = useState(false);
   const dialogRef = useRef<HTMLDivElement>(null);
 
-  // Focus management + trap + Escape + body scroll lock (§11).
-  useEffect(() => {
-    const trigger = document.activeElement as HTMLElement | null;
-    const node = dialogRef.current;
-    const focusables = () =>
-      Array.from(
-        node?.querySelectorAll<HTMLElement>(
-          'button:not([disabled]), input, [href], [tabindex]:not([tabindex="-1"])',
-        ) ?? [],
-      );
-    focusables()[0]?.focus();
-
-    function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") {
-        e.stopPropagation();
-        onClose();
-      } else if (e.key === "Tab") {
-        const items = focusables();
-        if (items.length === 0) return;
-        const first = items[0];
-        const last = items[items.length - 1];
-        if (e.shiftKey && document.activeElement === first) {
-          e.preventDefault();
-          last.focus();
-        } else if (!e.shiftKey && document.activeElement === last) {
-          e.preventDefault();
-          first.focus();
-        }
-      }
-    }
-    document.addEventListener("keydown", onKey, true);
-    const prevOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.removeEventListener("keydown", onKey, true);
-      document.body.style.overflow = prevOverflow;
-      trigger?.focus?.();
-    };
-  }, [onClose]);
+  useModalA11y(dialogRef, onClose);
 
   function toggle(name: string) {
     setSelected((prev) => {

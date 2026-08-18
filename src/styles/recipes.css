@@ -183,6 +183,19 @@
 .recipe-edit {
   font-size: 13px;
 }
+.recipe-remove {
+  background: none;
+  border: 0;
+  cursor: pointer;
+  font-family: var(--font-heading);
+  font-weight: var(--font-heading-weight);
+  font-size: 13px;
+  color: color-mix(in srgb, var(--color-text) 52%, transparent);
+  padding: 2px 4px;
+}
+.recipe-remove:hover {
+  color: var(--color-accent-700);
+}
 .recipe-edit-suffix {
   /* "Edit stock check" on mobile, "Edit" on desktop */
 }
@@ -360,6 +373,9 @@
   }
   .recipe-onmenu .recipe-edit {
     margin-left: auto;
+    font-size: 12px;
+  }
+  .recipe-onmenu .recipe-remove {
     font-size: 12px;
   }
 
