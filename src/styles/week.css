@@ -9,17 +9,47 @@
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  background: color-mix(in srgb, var(--color-neutral-900) 40%, transparent);
+  background: color-mix(in srgb, var(--color-neutral-900) 34%, transparent);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+  animation: sc-fade-in 160ms ease-out;
 }
 .sc {
   display: flex;
   width: 100%;
-  max-height: 88vh;
+  /* Cap the sheet so the blurred background stays visible above it; it slides
+     up from the bottom edge. */
+  max-height: 80vh;
+  max-height: 80dvh;
   background: var(--color-bg);
   border-top: 1px solid var(--color-divider);
   border-radius: var(--radius-lg) var(--radius-lg) 0 0;
   box-shadow: var(--shadow-lg);
   overflow: hidden;
+  animation: sc-sheet-up 240ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+@keyframes sc-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes sc-sheet-up {
+  from {
+    transform: translateY(100%);
+  }
+}
+@keyframes sc-dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sc-backdrop,
+  .sc {
+    animation: none;
+  }
 }
 .sc-photo {
   display: none;
@@ -153,6 +183,7 @@
     max-height: min(88vh, 640px);
     border: 1px solid var(--color-divider);
     border-radius: var(--radius-lg);
+    animation: sc-dialog-in 180ms ease-out;
   }
   .sc-photo {
     display: grid;
