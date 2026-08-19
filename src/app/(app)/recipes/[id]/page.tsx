@@ -18,7 +18,9 @@ type LoadState =
 function formatQuantity(quantity: number | string | null, unit: string | null): string {
   if (quantity == null || quantity === "") return "";
   // Postgres numeric comes back like "500.00" / "1.50" — drop trailing zeros.
+  // A 0 quantity means "unspecified" (blank in the form), so show nothing.
   const n = Number(quantity);
+  if (n === 0) return "";
   const value = Number.isFinite(n) ? String(n) : String(quantity);
   return unit ? `${value} ${unit}` : value;
 }
@@ -66,10 +68,17 @@ export default function RecipeDetailPage() {
   }
 
   const backLink = (
-    <Link href="/recipes" className="detail-back">
-      <ChevronLeft size={15} aria-hidden />
-      Recipes
-    </Link>
+    <div className="detail-topbar">
+      <Link href="/recipes" className="detail-back">
+        <ChevronLeft size={15} aria-hidden />
+        Recipes
+      </Link>
+      {state.status === "ready" && (
+        <Link href={`/recipes/${id}/edit`} className="btn btn-ghost detail-edit">
+          Edit
+        </Link>
+      )}
+    </div>
   );
 
   if (state.status === "loading") {

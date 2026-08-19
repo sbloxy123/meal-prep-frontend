@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { Search } from "lucide-react";
 import { apiFetch, apiSend } from "@/lib/api";
 import type { RecipesResponse } from "@/lib/types";
@@ -122,10 +123,9 @@ export default function RecipesPage() {
         title="Recipes"
         kicker={loading ? undefined : `${recipes.length} recipe${recipes.length === 1 ? "" : "s"}`}
         actions={
-          // Add/edit form lands in step 6.
-          <button type="button" className="btn btn-secondary">
+          <Link href="/recipes/new" className="btn btn-secondary">
             New recipe
-          </button>
+          </Link>
         }
       />
 
@@ -225,9 +225,9 @@ function EmptyRecipes() {
       <p className="text-muted" style={{ fontSize: 14 }}>
         Add your first recipe to start building this week&rsquo;s menu and shopping list.
       </p>
-      <button type="button" className="btn btn-primary" style={{ marginTop: 8 }}>
+      <Link href="/recipes/new" className="btn btn-primary" style={{ marginTop: 8 }}>
         New recipe
-      </button>
+      </Link>
     </div>
   );
 }

@@ -14,6 +14,8 @@ import "../styles/week.css";
 import "../styles/shopping.css";
 // Generated list / shopping mode.
 import "../styles/shop.css";
+// Add / edit recipe form.
+import "../styles/recipe-form.css";
 
 export const metadata: Metadata = {
   title: "Mise en Place",
