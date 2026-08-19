@@ -16,82 +16,79 @@ export default function SignUpPage() {
     setLoading(true);
 
     const form = new FormData(e.currentTarget);
-    const { error } = await signUp.email({
+    const email = form.get("email") as string;
+    const { data, error } = await signUp.email({
       name: form.get("name") as string,
-      email: form.get("email") as string,
+      email,
       password: form.get("password") as string,
     });
 
     if (error) {
-      setError(error.message ?? "Sign up failed");
+      setError(error.message ?? "Couldn't create your account.");
       setLoading(false);
       return;
     }
 
-    router.push("/recipes");
+    // When verification is enforced, sign-up doesn't create a session (no
+    // token) — send them to verify. Otherwise they're signed straight in.
+    if ((data as { token?: string | null } | null)?.token) {
+      router.push("/recipes");
+    } else {
+      router.push(`/verify-email?email=${encodeURIComponent(email)}`);
+    }
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="w-full max-w-md bg-white rounded-xl shadow p-8 space-y-6">
-        <h1 className="text-2xl font-semibold text-gray-900">Create account</h1>
+    <div className="auth">
+      <div className="auth-main">
+        <div className="auth-kicker">Get started</div>
+        <h1 className="auth-title-sm">Create your account</h1>
+        <p className="auth-lede text-muted">
+          Plan the week, build the list, shop it aisle by aisle.
+        </p>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Name
-            </label>
-            <input
-              name="name"
-              type="text"
-              required
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
-            />
+        <hr className="auth-rule" />
+
+        <form className="auth-form" onSubmit={handleSubmit}>
+          <div className="field">
+            <label htmlFor="name">Name</label>
+            <input id="name" name="name" type="text" required autoComplete="name" className="input" />
           </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Email
-            </label>
-            <input
-              name="email"
-              type="email"
-              required
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
-            />
+          <div className="field">
+            <label htmlFor="email">Email</label>
+            <input id="email" name="email" type="email" required autoComplete="email" className="input" />
           </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Password
-            </label>
+          <div className="field">
+            <label htmlFor="password">Password</label>
             <input
+              id="password"
               name="password"
               type="password"
               required
               minLength={8}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+              autoComplete="new-password"
+              className="input"
             />
           </div>
 
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && (
+            <p className="auth-error" role="alert">
+              {error}
+            </p>
+          )}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-gray-900 text-white rounded-lg py-2 text-sm font-medium hover:bg-gray-700 disabled:opacity-50"
-          >
+          <button type="submit" className="btn btn-primary btn-block auth-submit" disabled={loading}>
             {loading ? "Creating account…" : "Create account"}
           </button>
         </form>
 
-        <p className="text-sm text-gray-500 text-center">
-          Already have an account?{" "}
-          <Link href="/sign-in" className="text-gray-900 font-medium underline">
-            Sign in
-          </Link>
-        </p>
+        <div className="auth-alt">
+          <span className="text-muted">Already have an account?</span>
+          <Link href="/sign-in">Sign in</Link>
+        </div>
       </div>
+
+      <div className="auth-foot">Mise en Place</div>
     </div>
   );
 }

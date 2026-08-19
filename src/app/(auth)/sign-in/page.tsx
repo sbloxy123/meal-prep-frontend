@@ -16,13 +16,20 @@ export default function SignInPage() {
     setLoading(true);
 
     const form = new FormData(e.currentTarget);
+    const email = form.get("email") as string;
     const { error } = await signIn.email({
-      email: form.get("email") as string,
+      email,
       password: form.get("password") as string,
     });
 
     if (error) {
-      setError(error.message ?? "Sign in failed");
+      // When email verification is enforced (households release), an
+      // unverified user can't sign in — send them to check their inbox.
+      if (error.status === 403 || /verif/i.test(error.message ?? "")) {
+        router.push(`/verify-email?email=${encodeURIComponent(email)}`);
+        return;
+      }
+      setError(error.message ?? "That email and password didn't match.");
       setLoading(false);
       return;
     }
@@ -31,53 +38,60 @@ export default function SignInPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="w-full max-w-md bg-white rounded-xl shadow p-8 space-y-6">
-        <h1 className="text-2xl font-semibold text-gray-900">Sign in</h1>
+    <div className="auth">
+      <div className="auth-main">
+        <div className="auth-kicker">Est. 2024</div>
+        <h1 className="auth-title">
+          The week&rsquo;s
+          <br />
+          shopping,
+          <br />
+          in order.
+        </h1>
+        <p className="auth-lede text-muted">
+          Your recipes, the ingredients you actually need, and a list that reads aisle by aisle.
+        </p>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Email
-            </label>
-            <input
-              name="email"
-              type="email"
-              required
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
-            />
+        <hr className="auth-rule" />
+
+        <form className="auth-form" onSubmit={handleSubmit}>
+          <div className="field">
+            <label htmlFor="email">Email</label>
+            <input id="email" name="email" type="email" required autoComplete="email" className="input" />
           </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Password
-            </label>
+          <div className="field" style={{ marginBottom: 6 }}>
+            <label htmlFor="password">Password</label>
             <input
+              id="password"
               name="password"
               type="password"
               required
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
+              autoComplete="current-password"
+              className="input"
             />
           </div>
+          <Link href="/forgot-password" className="auth-forgot">
+            Forgot password?
+          </Link>
 
-          {error && <p className="text-sm text-red-600">{error}</p>}
+          {error && (
+            <p className="auth-error" role="alert">
+              {error}
+            </p>
+          )}
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-gray-900 text-white rounded-lg py-2 text-sm font-medium hover:bg-gray-700 disabled:opacity-50"
-          >
+          <button type="submit" className="btn btn-primary btn-block auth-submit" disabled={loading}>
             {loading ? "Signing in…" : "Sign in"}
           </button>
         </form>
 
-        <p className="text-sm text-gray-500 text-center">
-          No account?{" "}
-          <Link href="/sign-up" className="text-gray-900 font-medium underline">
-            Sign up
-          </Link>
-        </p>
+        <div className="auth-alt">
+          <span className="text-muted">No account yet?</span>
+          <Link href="/sign-up">Create one</Link>
+        </div>
       </div>
+
+      <div className="auth-foot">Mise en Place</div>
     </div>
   );
 }

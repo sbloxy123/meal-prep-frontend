@@ -1,0 +1,91 @@
+/* Auth screens (sign in, sign up, verify email, reset password) — the
+   editorial login shell from the design. Full-height, centred, no app chrome. */
+
+.auth {
+  min-height: 100vh;
+  min-height: 100dvh;
+  width: 100%;
+  max-width: 440px;
+  margin: 0 auto;
+  padding: 0 28px;
+  display: flex;
+  flex-direction: column;
+}
+.auth-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.auth-kicker {
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+.auth-title {
+  margin: 8px 0 0;
+  font-weight: 400;
+  font-size: 44px;
+  line-height: 1.02;
+}
+.auth-title-sm {
+  margin: 8px 0 0;
+  font-weight: 400;
+  font-size: 30px;
+}
+.auth-lede {
+  margin: 16px 0 0;
+  font-size: 14px;
+  text-wrap: pretty;
+}
+.auth-rule {
+  height: 1px;
+  background: var(--color-divider);
+  border: 0;
+  margin: 26px 0 22px;
+}
+.auth-form {
+  display: flex;
+  flex-direction: column;
+}
+.auth-form .field {
+  margin-bottom: 14px;
+}
+.auth-form .input {
+  min-height: 44px;
+}
+.auth-forgot {
+  align-self: flex-end;
+  font-size: 13px;
+  margin: -6px 0 0;
+}
+.auth-submit {
+  height: 48px;
+  font-size: 16px;
+  margin-top: 20px;
+}
+.auth-error {
+  font-size: 13px;
+  color: var(--color-accent-700);
+  margin: 14px 0 0;
+}
+.auth-note {
+  font-size: 13px;
+  margin: 14px 0 0;
+}
+.auth-alt {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 16px;
+  font-size: 13px;
+}
+.auth-foot {
+  padding-bottom: 22px;
+  text-align: center;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--color-text) 40%, transparent);
+}
