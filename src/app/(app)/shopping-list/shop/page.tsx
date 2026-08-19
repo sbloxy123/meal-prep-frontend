@@ -8,6 +8,8 @@ import { apiFetch, apiSend } from "@/lib/api";
 import { useMenu } from "@/lib/menu";
 import { useToast } from "@/lib/toast";
 import { useSession } from "@/lib/auth-client";
+import { queuedSend, useWriteQueue } from "@/lib/write-queue";
+import { useWakeLock } from "@/lib/use-wake-lock";
 import { PageHeader } from "@/components/page-header";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 
@@ -57,6 +59,8 @@ export default function ShoppingModePage() {
   const toast = useToast();
   const { data: session } = useSession();
   const userId = session?.user.id;
+  const { pending, offline } = useWriteQueue();
+  useWakeLock(); // keep the screen awake while shopping (§8.6)
 
   const [items, setItems] = useState<GenItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -155,14 +159,12 @@ export default function ShoppingModePage() {
     const next = !item.is_collected;
     pendingToggle.current.add(item.id);
     setItems((prev) => prev.map((i) => (i.id === item.id ? { ...i, is_collected: next } : i)));
-    apiSend(`/generated-shopping-list/item/${item.id}`, {
+    // Queue the tick: it survives a supermarket signal drop and syncs on
+    // reconnect (§8.5b), so the optimistic state is never rolled back.
+    queuedSend(`/generated-shopping-list/item/${item.id}`, {
       method: "PUT",
       body: JSON.stringify({ is_collected: next }),
-    })
-      .catch(() => {
-        setItems((prev) => prev.map((i) => (i.id === item.id ? { ...i, is_collected: !next } : i)));
-      })
-      .finally(() => pendingToggle.current.delete(item.id));
+    }).finally(() => pendingToggle.current.delete(item.id));
   }
 
   // Optimistic delete with undo (§8.4): remove locally; the DELETE only fires
@@ -311,6 +313,15 @@ export default function ShoppingModePage() {
         <p className="sr-only" role="status" aria-live="polite">
           {collected} of {total} collected
         </p>
+        {(offline || pending > 0) && (
+          <p className="shop-status" role="status">
+            {offline
+              ? pending > 0
+                ? `Offline · ${pending} change${pending === 1 ? "" : "s"} will sync`
+                : "Offline — changes will sync when you reconnect"
+              : `Syncing ${pending} change${pending === 1 ? "" : "s"}…`}
+          </p>
+        )}
       </div>
 
       <div className="shop-body">
