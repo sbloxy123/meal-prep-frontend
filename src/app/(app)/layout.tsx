@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
 import { AppShell } from "@/components/app-shell";
 import { MenuProvider } from "@/lib/menu";
+import { ToastProvider } from "@/lib/toast";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   const router = useRouter();
@@ -20,7 +21,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
 
   return (
     <MenuProvider>
-      <AppShell>{children}</AppShell>
+      <ToastProvider>
+        <AppShell>{children}</AppShell>
+      </ToastProvider>
     </MenuProvider>
   );
 }

@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { X } from "lucide-react";
 import { useMenu, type ShoppingItem } from "@/lib/menu";
+import { useToast } from "@/lib/toast";
 import { apiFetch, apiSend } from "@/lib/api";
 import { PageHeader } from "@/components/page-header";
 import { AiBox } from "@/components/ai-box";
@@ -12,6 +13,7 @@ import { ConfirmDialog } from "@/components/confirm-dialog";
 export default function ShoppingListPage() {
   const router = useRouter();
   const menu = useMenu();
+  const toast = useToast();
   const [editingId, setEditingId] = useState<number | null>(null);
   const [removedIds, setRemovedIds] = useState<Set<number>>(new Set());
   const [newItem, setNewItem] = useState("");
@@ -58,19 +60,26 @@ export default function ShoppingListPage() {
     await menu.refresh();
   }
 
-  // Optimistic delete — hide immediately, reconcile on refresh, restore on
-  // failure. (Undo toast lands in step 6.)
+  // Optimistic delete with an undo toast (§8.4): hide immediately; the real
+  // DELETE only fires when the toast expires, so Undo just un-hides it.
+  function restore(id: number) {
+    setRemovedIds((prev) => {
+      const next = new Set(prev);
+      next.delete(id);
+      return next;
+    });
+  }
   function remove(item: ShoppingItem) {
     setRemovedIds((prev) => new Set(prev).add(item.id));
-    apiSend(`/shopping-list/shopping-list-item/${item.id}`, { method: "DELETE" })
-      .then(() => menu.refresh())
-      .catch(() =>
-        setRemovedIds((prev) => {
-          const next = new Set(prev);
-          next.delete(item.id);
-          return next;
-        }),
-      );
+    toast.showUndo({
+      message: `Removed ${displayName(item)}`,
+      onUndo: () => restore(item.id),
+      onCommit: () => {
+        apiSend(`/shopping-list/shopping-list-item/${item.id}`, { method: "DELETE" })
+          .then(() => menu.refresh())
+          .catch(() => restore(item.id));
+      },
+    });
   }
 
   async function organiseAndGo() {

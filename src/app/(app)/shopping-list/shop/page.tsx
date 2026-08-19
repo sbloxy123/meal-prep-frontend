@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ChevronDown, ChevronRight, GripVertical, RotateCcw, X } from "lucide-react";
 import { apiFetch, apiSend } from "@/lib/api";
 import { useMenu } from "@/lib/menu";
+import { useToast } from "@/lib/toast";
 import { useSession } from "@/lib/auth-client";
 import { PageHeader } from "@/components/page-header";
 
@@ -50,6 +51,7 @@ function applyOrder(aisles: Aisle[], order: string[]): Aisle[] {
 
 export default function ShoppingModePage() {
   const menu = useMenu();
+  const toast = useToast();
   const { data: session } = useSession();
   const userId = session?.user.id;
 
@@ -116,14 +118,29 @@ export default function ShoppingModePage() {
     });
   }
 
+  // Optimistic delete with undo (§8.4): remove locally; the DELETE only fires
+  // when the toast expires, so Undo re-inserts it at its original position.
   function deleteItem(item: GenItem) {
+    const index = items.findIndex((i) => i.id === item.id);
     setItems((prev) => prev.filter((i) => i.id !== item.id));
-    apiSend(`/generated-shopping-list/item/${item.id}`, {
-      method: "DELETE",
-      body: JSON.stringify({ productId: item.id, productName: item.product_name }),
-    })
-      .then(() => menu.refresh())
-      .catch(() => void load());
+    toast.showUndo({
+      message: `Removed ${item.product_name}`,
+      onUndo: () =>
+        setItems((prev) => {
+          if (prev.some((i) => i.id === item.id)) return prev;
+          const arr = [...prev];
+          arr.splice(Math.min(index, arr.length), 0, item);
+          return arr;
+        }),
+      onCommit: () => {
+        apiSend(`/generated-shopping-list/item/${item.id}`, {
+          method: "DELETE",
+          body: JSON.stringify({ productId: item.id, productName: item.product_name }),
+        })
+          .then(() => menu.refresh())
+          .catch(() => void load());
+      },
+    });
   }
 
   async function clearCollected() {
