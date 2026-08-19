@@ -21,12 +21,18 @@ interface UndoToastSpec {
   duration?: number;
 }
 
-interface ToastItem extends Required<UndoToastSpec> {
+interface ToastItem {
   id: number;
+  message: string;
+  duration: number;
+  onUndo?: () => void;
+  onCommit?: () => void;
 }
 
 interface ToastValue {
   showUndo: (spec: UndoToastSpec) => void;
+  /** A plain, auto-dismissing confirmation toast (no undo). */
+  show: (message: string, duration?: number) => void;
 }
 
 const ToastContext = createContext<ToastValue | null>(null);
@@ -50,8 +56,13 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     setToasts((prev) => [...prev, { id, duration: 6000, ...spec }]);
   }, []);
 
+  const show = useCallback((message: string, duration = 4000) => {
+    const id = nextId.current++;
+    setToasts((prev) => [...prev, { id, message, duration }]);
+  }, []);
+
   return (
-    <ToastContext.Provider value={{ showUndo }}>
+    <ToastContext.Provider value={{ showUndo, show }}>
       {children}
       {toasts.length > 0 && (
         <div className="toasts">
@@ -67,7 +78,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 function Toast({ toast, onRemove }: { toast: ToastItem; onRemove: (id: number) => void }) {
   useEffect(() => {
     const timer = setTimeout(() => {
-      toast.onCommit();
+      toast.onCommit?.();
       onRemove(toast.id);
     }, toast.duration);
     return () => clearTimeout(timer);
@@ -76,16 +87,18 @@ function Toast({ toast, onRemove }: { toast: ToastItem; onRemove: (id: number) =
   return (
     <div className="toast" role="status">
       <span className="toast-msg">{toast.message}</span>
-      <button
-        type="button"
-        className="btn btn-ghost toast-undo"
-        onClick={() => {
-          toast.onUndo();
-          onRemove(toast.id);
-        }}
-      >
-        Undo
-      </button>
+      {toast.onUndo && (
+        <button
+          type="button"
+          className="btn btn-ghost toast-undo"
+          onClick={() => {
+            toast.onUndo?.();
+            onRemove(toast.id);
+          }}
+        >
+          Undo
+        </button>
+      )}
     </div>
   );
 }

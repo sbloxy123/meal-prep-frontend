@@ -3,11 +3,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ChevronDown, ChevronRight, GripVertical, RotateCcw, X } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { apiFetch, apiSend } from "@/lib/api";
 import { useMenu } from "@/lib/menu";
 import { useToast } from "@/lib/toast";
 import { useSession } from "@/lib/auth-client";
 import { PageHeader } from "@/components/page-header";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 
 interface GenItem {
   id: number;
@@ -50,6 +52,7 @@ function applyOrder(aisles: Aisle[], order: string[]): Aisle[] {
 }
 
 export default function ShoppingModePage() {
+  const router = useRouter();
   const menu = useMenu();
   const toast = useToast();
   const { data: session } = useSession();
@@ -58,6 +61,7 @@ export default function ShoppingModePage() {
   const [items, setItems] = useState<GenItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
+  const [confirmFinish, setConfirmFinish] = useState(false);
   const [forgot, setForgot] = useState("");
   const [addingForgot, setAddingForgot] = useState(false);
   const [forgotError, setForgotError] = useState(false);
@@ -404,12 +408,31 @@ export default function ShoppingModePage() {
               <RotateCcw size={13} aria-hidden /> Reset order
             </button>
           )}
-          {/* Finish shop is wired in step 7 (§8.1). */}
-          <button type="button" className="btn btn-primary shop-finish" disabled>
+          <button
+            type="button"
+            className="btn btn-primary shop-finish"
+            onClick={() => setConfirmFinish(true)}
+          >
             Finish shop
           </button>
         </div>
       </div>
+
+      {confirmFinish && (
+        <ConfirmDialog
+          title="Finish shop?"
+          body="This clears your shopping list and the aisle list, and takes every recipe off this week — a clean slate for next time. It can't be undone."
+          confirmLabel="Finish shop"
+          onConfirm={async () => {
+            await apiSend("/shopping-list/finish", { method: "POST" });
+            await menu.refresh();
+            setConfirmFinish(false);
+            toast.show("Shop finished — this week's all cleared.");
+            router.push("/recipes");
+          }}
+          onClose={() => setConfirmFinish(false)}
+        />
+      )}
     </div>
   );
 }
