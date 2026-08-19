@@ -1,10 +1,11 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { X } from "lucide-react";
 import { useMenu, type ShoppingItem } from "@/lib/menu";
 import { useToast } from "@/lib/toast";
+import { useSession } from "@/lib/auth-client";
 import { apiFetch, apiSend } from "@/lib/api";
 import { PageHeader } from "@/components/page-header";
 import { AiBox } from "@/components/ai-box";
@@ -14,6 +15,7 @@ export default function ShoppingListPage() {
   const router = useRouter();
   const menu = useMenu();
   const toast = useToast();
+  const { data: session } = useSession();
   const [editingId, setEditingId] = useState<number | null>(null);
   const [removedIds, setRemovedIds] = useState<Set<number>>(new Set());
   const [newItem, setNewItem] = useState("");
@@ -22,6 +24,13 @@ export default function ShoppingListPage() {
   const [generateError, setGenerateError] = useState(false);
   const [confirmClear, setConfirmClear] = useState(false);
   const [confirmRegen, setConfirmRegen] = useState(false);
+  // Whether an aisle list already exists, and a fingerprint of the draft it was
+  // generated from — so we can offer "Show list by aisle" (just navigate) when
+  // the draft is unchanged, and "Generate list by aisle" when it's moved on.
+  const [genExists, setGenExists] = useState(false);
+  const [savedSig, setSavedSig] = useState<string | null>(null);
+
+  const sigKey = session?.user.id ? `mise:generated-from:${session.user.id}` : null;
 
   const items = menu.shoppingList.filter((i) => !removedIds.has(i.id));
   const recipeItems = items.filter((i) => !i.custom_product);
@@ -30,6 +39,36 @@ export default function ShoppingListPage() {
   function displayName(item: ShoppingItem) {
     return item.custom_product ?? item.ingredient_name ?? "";
   }
+
+  // Fingerprint of the persisted draft (id + name of each item), order-agnostic.
+  function draftSignature() {
+    return JSON.stringify(
+      menu.shoppingList
+        .map((i) => `${i.id}:${(i.custom_product ?? i.ingredient_name ?? "").toLowerCase()}`)
+        .sort(),
+    );
+  }
+
+  useEffect(() => {
+    if (!sigKey) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setSavedSig(localStorage.getItem(sigKey));
+  }, [sigKey]);
+
+  useEffect(() => {
+    let cancelled = false;
+    apiFetch<{ generatedShoppingItems: unknown[] }>("/generated-shopping-list")
+      .then((g) => {
+        if (!cancelled) setGenExists((g.generatedShoppingItems?.length ?? 0) > 0);
+      })
+      .catch(() => {});
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  // The aisle list is current if one exists and the draft hasn't changed since.
+  const listIsCurrent = genExists && savedSig !== null && savedSig === draftSignature();
 
   async function addItem() {
     const name = newItem.trim();
@@ -84,8 +123,20 @@ export default function ShoppingListPage() {
 
   async function organiseAndGo() {
     await apiSend("/shopping-list/organise", { method: "POST" });
+    if (sigKey) localStorage.setItem(sigKey, draftSignature());
     router.push("/shopping-list/shop");
   }
+
+  // The primary CTA either opens the current aisle list or (re)generates it.
+  function primaryAction() {
+    if (listIsCurrent) router.push("/shopping-list/shop");
+    else generate();
+  }
+  const primaryLabel = generating
+    ? "Generating…"
+    : listIsCurrent
+      ? "Show list by aisle"
+      : "Generate list by aisle";
 
   async function generate() {
     if (generating || items.length === 0) return;
@@ -131,10 +182,10 @@ export default function ShoppingListPage() {
               type="button"
               className="btn btn-primary"
               style={{ height: 42, paddingInline: 20 }}
-              onClick={generate}
+              onClick={primaryAction}
               disabled={generating || items.length === 0}
             >
-              {generating ? "Generating…" : "Generate list by aisle"}
+              {primaryLabel}
             </button>
           </div>
         }
@@ -253,10 +304,10 @@ export default function ShoppingListPage() {
             type="button"
             className="btn btn-primary btn-block"
             style={{ height: 46, fontSize: 16, margin: 0 }}
-            onClick={generate}
+            onClick={primaryAction}
             disabled={generating || items.length === 0}
           >
-            {generating ? "Generating…" : "Generate list by aisle"}
+            {primaryLabel}
           </button>
           <button
             type="button"
