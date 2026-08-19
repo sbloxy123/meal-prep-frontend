@@ -44,6 +44,7 @@ export function ImageDrop({ value, onChange }: ImageDropProps) {
     <div className="field">
       <label>Photo</label>
 
+      <div className="img-drop-slot">
       {value ? (
         <div className="img-drop img-drop--has">
           <div className="img-drop-preview">
@@ -99,6 +100,7 @@ export function ImageDrop({ value, onChange }: ImageDropProps) {
           Photo uploads aren&rsquo;t set up yet.
         </div>
       )}
+      </div>
 
       {error && <p className="rf-error">{error}</p>}
     </div>
