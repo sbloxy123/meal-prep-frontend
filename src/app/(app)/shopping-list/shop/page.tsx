@@ -2,9 +2,10 @@
 
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
-import { ChevronDown, ChevronRight, X } from "lucide-react";
+import { ChevronDown, ChevronRight, GripVertical, RotateCcw, X } from "lucide-react";
 import { apiFetch, apiSend } from "@/lib/api";
 import { useMenu } from "@/lib/menu";
+import { useSession } from "@/lib/auth-client";
 import { PageHeader } from "@/components/page-header";
 
 interface GenItem {
@@ -36,14 +37,32 @@ function groupByAisle(items: GenItem[]): Aisle[] {
   return order.map((name) => ({ name, items: byName.get(name)! }));
 }
 
+// §8.7 — sort aisles by the user's saved order; aisles they've never ordered
+// (new ones from the AI) fall to the bottom in the AI's order.
+function applyOrder(aisles: Aisle[], order: string[]): Aisle[] {
+  if (order.length === 0) return aisles;
+  const rank = new Map(order.map((name, i) => [name, i]));
+  const known = aisles.filter((a) => rank.has(a.name));
+  const unknown = aisles.filter((a) => !rank.has(a.name));
+  known.sort((a, b) => rank.get(a.name)! - rank.get(b.name)!);
+  return [...known, ...unknown];
+}
+
 export default function ShoppingModePage() {
   const menu = useMenu();
+  const { data: session } = useSession();
+  const userId = session?.user.id;
+
   const [items, setItems] = useState<GenItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
   const [forgot, setForgot] = useState("");
   const [addingForgot, setAddingForgot] = useState(false);
   const [forgotError, setForgotError] = useState(false);
+  const [order, setOrder] = useState<string[]>([]);
+  const [dragging, setDragging] = useState<string | null>(null);
+
+  const orderKey = userId ? `mise:aisle-order:${userId}` : null;
 
   const load = useCallback(async () => {
     try {
@@ -62,7 +81,26 @@ export default function ShoppingModePage() {
     void load();
   }, [load]);
 
-  const aisles = groupByAisle(items);
+  // Load the saved aisle order for this user.
+  useEffect(() => {
+    if (!orderKey) return;
+    const raw = localStorage.getItem(orderKey);
+    if (raw) {
+      try {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        setOrder(JSON.parse(raw));
+      } catch {
+        /* ignore malformed */
+      }
+    }
+  }, [orderKey]);
+
+  // Persist whenever the order changes.
+  useEffect(() => {
+    if (orderKey && order.length) localStorage.setItem(orderKey, JSON.stringify(order));
+  }, [order, orderKey]);
+
+  const aisles = applyOrder(groupByAisle(items), order);
   const total = items.length;
   const collected = items.filter((i) => i.is_collected).length;
   const pct = total ? Math.round((collected / total) * 100) : 0;
@@ -103,7 +141,6 @@ export default function ShoppingModePage() {
     void load();
   }
 
-  // §8.2a — add one item without regenerating (goes to an "Other" aisle).
   async function addForgotten() {
     const name = forgot.trim();
     if (!name || addingForgot) return;
@@ -130,6 +167,31 @@ export default function ShoppingModePage() {
       else next.add(name);
       return next;
     });
+  }
+
+  // §8.7 — pointer-based drag reordering (works with touch and mouse).
+  function onGripDown(e: React.PointerEvent, name: string) {
+    e.preventDefault();
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+    setDragging(name);
+    setOrder(aisles.map((a) => a.name)); // promote all current aisles into the order
+  }
+  function onGripMove(e: React.PointerEvent, name: string) {
+    if (dragging !== name) return;
+    const el = document.elementFromPoint(e.clientX, e.clientY)?.closest<HTMLElement>(".shop-aisle");
+    const over = el?.dataset.aisle;
+    if (!over || over === name) return;
+    setOrder((prev) => {
+      const arr = prev.filter((n) => n !== name);
+      const idx = arr.indexOf(over);
+      if (idx === -1) return prev;
+      arr.splice(idx, 0, name);
+      return arr;
+    });
+  }
+  function resetOrder() {
+    setOrder([]);
+    if (orderKey) localStorage.removeItem(orderKey);
   }
 
   if (loading) {
@@ -189,20 +251,34 @@ export default function ShoppingModePage() {
             return (
               <section
                 key={aisle.name}
-                className={`shop-aisle${isCollapsed ? " shop-aisle--collapsed" : ""}`}
+                data-aisle={aisle.name}
+                className={`shop-aisle${isCollapsed ? " shop-aisle--collapsed" : ""}${dragging === aisle.name ? " shop-aisle--dragging" : ""}`}
               >
-                <button
-                  type="button"
-                  className="shop-aisle-head"
-                  aria-expanded={!isCollapsed}
-                  onClick={() => toggleAisle(aisle.name)}
-                >
-                  {isCollapsed ? <ChevronRight size={14} aria-hidden /> : <ChevronDown size={14} aria-hidden />}
-                  <h6>{aisle.name}</h6>
-                  <span className="shop-aisle-count">
-                    {done}/{aisle.items.length}
-                  </span>
-                </button>
+                <div className="shop-aisle-head">
+                  <button
+                    type="button"
+                    className="shop-aisle-toggle"
+                    aria-expanded={!isCollapsed}
+                    onClick={() => toggleAisle(aisle.name)}
+                  >
+                    {isCollapsed ? <ChevronRight size={14} aria-hidden /> : <ChevronDown size={14} aria-hidden />}
+                    <h6>{aisle.name}</h6>
+                    <span className="shop-aisle-count">
+                      {done}/{aisle.items.length}
+                    </span>
+                  </button>
+                  <button
+                    type="button"
+                    className="shop-aisle-grip"
+                    aria-label={`Reorder ${aisle.name}`}
+                    onPointerDown={(e) => onGripDown(e, aisle.name)}
+                    onPointerMove={(e) => onGripMove(e, aisle.name)}
+                    onPointerUp={() => setDragging(null)}
+                    onPointerCancel={() => setDragging(null)}
+                  >
+                    <GripVertical size={15} aria-hidden />
+                  </button>
+                </div>
                 {!isCollapsed && (
                   <div className="shop-items">
                     {aisle.items.map((item) => (
@@ -257,6 +333,11 @@ export default function ShoppingModePage() {
           >
             Clear collected
           </button>
+          {order.length > 0 && (
+            <button type="button" className="btn btn-ghost shop-reset" onClick={resetOrder}>
+              <RotateCcw size={13} aria-hidden /> Reset order
+            </button>
+          )}
           {/* Finish shop is wired in step 7 (§8.1). */}
           <button type="button" className="btn btn-primary shop-finish" disabled>
             Finish shop
@@ -287,7 +368,6 @@ function ShopItem({
       </span>
       <span className="shop-item-name">{item.product_name}</span>
       {qty && <span className="shop-item-qty">{qty}</span>}
-      {/* Delete appears once collected, matching today's behaviour (§6.7). */}
       {item.is_collected && (
         <button
           type="button"

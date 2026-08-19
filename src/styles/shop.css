@@ -44,29 +44,60 @@
   border-bottom: 1px solid var(--color-divider);
 }
 .shop-aisle-head {
-  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 12px 20px;
+}
+.shop-aisle-toggle {
+  flex: 1;
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 12px 20px;
+  padding: 0;
   background: none;
   border: 0;
   cursor: pointer;
   text-align: left;
 }
-.shop-aisle-head h6 {
+.shop-aisle-toggle h6 {
   margin: 0;
   flex: 1;
 }
-.shop-aisle-head svg {
+.shop-aisle-toggle > svg {
   color: var(--color-accent);
   flex: none;
 }
-.shop-aisle--collapsed .shop-aisle-head h6 {
+.shop-aisle--collapsed .shop-aisle-toggle h6 {
   color: color-mix(in srgb, var(--color-text) 60%, transparent);
 }
-.shop-aisle--collapsed .shop-aisle-head svg {
+.shop-aisle--collapsed .shop-aisle-toggle > svg {
   color: var(--color-neutral-600);
+}
+.shop-aisle-grip {
+  flex: none;
+  padding: 4px;
+  line-height: 0;
+  background: none;
+  border: 0;
+  cursor: grab;
+  color: var(--color-neutral-400);
+  /* let the pointer drive the drag instead of scrolling */
+  touch-action: none;
+}
+.shop-aisle-grip:hover {
+  color: var(--color-neutral-600);
+}
+.shop-aisle-grip:active {
+  cursor: grabbing;
+}
+.shop-aisle--dragging {
+  background: color-mix(in srgb, var(--color-accent) 7%, transparent);
+}
+.shop-reset {
+  font-size: 13px;
+  gap: 5px;
 }
 .shop-aisle-count {
   font-size: 11px;
