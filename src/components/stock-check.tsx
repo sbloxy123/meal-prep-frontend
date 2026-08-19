@@ -1,11 +1,12 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { Check, Image as ImageIcon } from "lucide-react";
+import { Check } from "lucide-react";
 import { useModalA11y } from "@/lib/use-modal";
+import { RecipeImage } from "@/components/recipe-image";
 
 interface StockCheckProps {
-  recipe: { id: number; title: string };
+  recipe: { id: number; title: string; image_url?: string | null };
   ingredients: string[];
   initialSelected: Set<string>;
   isEdit: boolean;
@@ -82,8 +83,8 @@ export function StockCheck({
         aria-labelledby="sc-title"
         ref={dialogRef}
       >
-        <div className="sc-photo" aria-hidden>
-          <ImageIcon size={26} />
+        <div className="sc-photo">
+          <RecipeImage src={recipe.image_url} alt={recipe.title} sizes="400px" iconSize={26} />
         </div>
 
         <div className="sc-inner">

@@ -186,11 +186,13 @@
     animation: sc-dialog-in 180ms ease-out;
   }
   .sc-photo {
+    position: relative;
     display: grid;
     place-items: center;
     width: 200px;
     flex: none;
     align-self: stretch;
+    overflow: hidden;
     background: var(--color-neutral-100);
     border-right: 1px solid var(--color-divider);
     color: color-mix(in srgb, var(--color-text) 28%, transparent);

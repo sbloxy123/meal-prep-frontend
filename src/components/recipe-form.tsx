@@ -7,6 +7,7 @@ import { X, Plus } from "lucide-react";
 import { apiSend } from "@/lib/api";
 import { useMenu } from "@/lib/menu";
 import { ConfirmDialog } from "@/components/confirm-dialog";
+import { ImageDrop, type RecipePhoto } from "@/components/image-drop";
 
 export interface RecipeFormInitial {
   title?: string;
@@ -17,6 +18,8 @@ export interface RecipeFormInitial {
   cook_time_minutes?: number | null;
   ingredients?: { name: string; quantity: string; unit: string }[];
   collections?: string[];
+  image_url?: string | null;
+  image_public_id?: string | null;
 }
 
 interface RecipeFormProps {
@@ -43,6 +46,9 @@ export function RecipeForm({ mode, recipeId, initial = {} }: RecipeFormProps) {
   const [collections, setCollections] = useState<string[]>(initial.collections ?? []);
   const [addingCollection, setAddingCollection] = useState(false);
   const [newCollection, setNewCollection] = useState("");
+  const [photo, setPhoto] = useState<RecipePhoto | null>(
+    initial.image_url ? { url: initial.image_url, publicId: initial.image_public_id ?? "" } : null,
+  );
 
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState<Record<string, string[]>>({});
@@ -87,6 +93,8 @@ export function RecipeForm({ mode, recipeId, initial = {} }: RecipeFormProps) {
       ingredient_quantity: rows.map((r) => (r.quantity.trim() ? Number(r.quantity) : 0)),
       ingredient_unit: rows.map((r) => r.unit.trim()),
       tags: collections,
+      image_url: photo?.url,
+      image_public_id: photo?.publicId,
     };
 
     try {
@@ -140,6 +148,8 @@ export function RecipeForm({ mode, recipeId, initial = {} }: RecipeFormProps) {
           submit();
         }}
       >
+        <ImageDrop value={photo} onChange={setPhoto} />
+
         <div className="field">
           <label htmlFor="rf-title">Title</label>
           <input

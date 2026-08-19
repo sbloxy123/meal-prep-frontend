@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { Star, Image as ImageIcon } from "lucide-react";
+import { Star } from "lucide-react";
 import type { Recipe } from "@/lib/types";
+import { RecipeImage } from "@/components/recipe-image";
 
 interface RecipeCardProps {
   recipe: Recipe;
@@ -30,12 +31,7 @@ export function RecipeCard({
   return (
     <article className={`recipe${onMenu ? " recipe--on-menu" : ""}`}>
       <Link href={href} className="recipe-photo" aria-label={recipe.title}>
-        {recipe.image_url ? (
-          // eslint-disable-next-line @next/next/no-img-element -- next/image + Cloudinary loader lands in step 8
-          <img src={recipe.image_url} alt="" />
-        ) : (
-          <ImageIcon size={22} aria-hidden />
-        )}
+        <RecipeImage src={recipe.image_url} sizes="(min-width: 1024px) 400px, 76px" />
       </Link>
 
       <div className="recipe-content">

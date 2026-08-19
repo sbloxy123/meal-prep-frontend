@@ -44,6 +44,8 @@ export default function EditRecipePage() {
               unit: ing.unit ?? "",
             })),
             collections: r.recipe_tags.map((t) => t.tag_name),
+            image_url: r.image_url,
+            image_public_id: r.image_public_id,
           },
         });
       })

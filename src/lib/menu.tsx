@@ -48,6 +48,7 @@ export interface Collection {
 interface OpenRecipe {
   id: number;
   title: string;
+  image_url?: string | null;
 }
 
 interface MenuValue {

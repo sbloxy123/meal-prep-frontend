@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { Star, ChevronLeft, Image as ImageIcon } from "lucide-react";
+import { Star, ChevronLeft } from "lucide-react";
+import { RecipeImage } from "@/components/recipe-image";
 import { apiSend } from "@/lib/api";
 import type { RecipeDetail } from "@/lib/types";
 import { parseInstructions } from "@/lib/instructions";
@@ -135,12 +136,12 @@ export default function RecipeDetailPage() {
       {backLink}
 
       <div className="detail-hero">
-        {recipe.image_url ? (
-          // eslint-disable-next-line @next/next/no-img-element -- next/image + Cloudinary loader lands in step 8
-          <img src={recipe.image_url} alt="" />
-        ) : (
-          <ImageIcon size={30} aria-hidden />
-        )}
+        <RecipeImage
+          src={recipe.image_url}
+          alt={recipe.title}
+          sizes="(min-width: 1024px) 1200px, 100vw"
+          iconSize={30}
+        />
       </div>
 
       <div className="detail-head">
@@ -219,7 +220,13 @@ export default function RecipeDetailPage() {
         <button
           type="button"
           className="btn btn-primary detail-add"
-          onClick={() => menu.openStockCheck({ id: recipe.id, title: recipe.title })}
+          onClick={() =>
+            menu.openStockCheck({
+              id: recipe.id,
+              title: recipe.title,
+              image_url: recipe.image_url,
+            })
+          }
         >
           {(menu.loaded ? menu.onMenuIds.has(recipe.id) : recipe.is_on_menu)
             ? "Edit stock check"
