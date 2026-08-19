@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ChevronDown, ChevronRight, GripVertical, RotateCcw, X } from "lucide-react";
 import { apiFetch, apiSend } from "@/lib/api";
@@ -66,6 +66,12 @@ export default function ShoppingModePage() {
 
   const orderKey = userId ? `mise:aisle-order:${userId}` : null;
 
+  // Ids with an optimistic mutation in flight, so a background sync (poll /
+  // focus) doesn't clobber them: items hidden during their undo window, and
+  // items with an in-flight collect toggle.
+  const pendingRemove = useRef<Set<number>>(new Set());
+  const pendingToggle = useRef<Set<number>>(new Set());
+
   const load = useCallback(async () => {
     try {
       const res = await apiFetch<GenResponse>("/generated-shopping-list");
@@ -77,11 +83,45 @@ export default function ShoppingModePage() {
     }
   }, []);
 
+  // Background sync — takes server state as the base (so items added/removed on
+  // another device show up), but keeps optimistic changes: hides items in their
+  // undo window and preserves in-flight toggles.
+  const sync = useCallback(async () => {
+    try {
+      const res = await apiFetch<GenResponse>("/generated-shopping-list");
+      const server = res.generatedShoppingItems ?? [];
+      setItems((local) => {
+        const localById = new Map(local.map((i) => [i.id, i]));
+        return server
+          .filter((si) => !pendingRemove.current.has(si.id))
+          .map((si) => (pendingToggle.current.has(si.id) ? localById.get(si.id) ?? si : si));
+      });
+    } catch {
+      // ignore transient failures
+    }
+  }, []);
+
   useEffect(() => {
     // State only changes after the fetch resolves.
     // eslint-disable-next-line react-hooks/set-state-in-effect
     void load();
   }, [load]);
+
+  // Poll every 60s while visible, and sync on focus/visibility regain, so a
+  // list edited elsewhere updates without a manual refresh.
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState === "visible") void sync();
+    };
+    const interval = setInterval(onVisible, 60000);
+    document.addEventListener("visibilitychange", onVisible);
+    window.addEventListener("focus", onVisible);
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", onVisible);
+      window.removeEventListener("focus", onVisible);
+    };
+  }, [sync]);
 
   // Load the saved aisle order for this user.
   useEffect(() => {
@@ -109,36 +149,45 @@ export default function ShoppingModePage() {
 
   function toggleCollected(item: GenItem) {
     const next = !item.is_collected;
+    pendingToggle.current.add(item.id);
     setItems((prev) => prev.map((i) => (i.id === item.id ? { ...i, is_collected: next } : i)));
     apiSend(`/generated-shopping-list/item/${item.id}`, {
       method: "PUT",
       body: JSON.stringify({ is_collected: next }),
-    }).catch(() => {
-      setItems((prev) => prev.map((i) => (i.id === item.id ? { ...i, is_collected: !next } : i)));
-    });
+    })
+      .catch(() => {
+        setItems((prev) => prev.map((i) => (i.id === item.id ? { ...i, is_collected: !next } : i)));
+      })
+      .finally(() => pendingToggle.current.delete(item.id));
   }
 
   // Optimistic delete with undo (§8.4): remove locally; the DELETE only fires
   // when the toast expires, so Undo re-inserts it at its original position.
   function deleteItem(item: GenItem) {
     const index = items.findIndex((i) => i.id === item.id);
+    // Mark pending so a background sync doesn't resurrect it during the undo
+    // window (the server still has it until the toast commits).
+    pendingRemove.current.add(item.id);
     setItems((prev) => prev.filter((i) => i.id !== item.id));
     toast.showUndo({
       message: `Removed ${item.product_name}`,
-      onUndo: () =>
+      onUndo: () => {
+        pendingRemove.current.delete(item.id);
         setItems((prev) => {
           if (prev.some((i) => i.id === item.id)) return prev;
           const arr = [...prev];
           arr.splice(Math.min(index, arr.length), 0, item);
           return arr;
-        }),
+        });
+      },
       onCommit: () => {
         apiSend(`/generated-shopping-list/item/${item.id}`, {
           method: "DELETE",
           body: JSON.stringify({ productId: item.id, productName: item.product_name }),
         })
           .then(() => menu.refresh())
-          .catch(() => void load());
+          .catch(() => void load())
+          .finally(() => pendingRemove.current.delete(item.id));
       },
     });
   }

@@ -99,6 +99,27 @@ export function MenuProvider({ children }: { children: ReactNode }) {
     void refresh();
   }, [refresh]);
 
+  // Refetch when the app regains focus / visibility, so a list edited on
+  // another device shows up without a manual refresh. Throttled to avoid the
+  // focus + visibilitychange double-fire. (Optimistic deletes are held in each
+  // page's local state, so a refresh here can't resurrect them.)
+  useEffect(() => {
+    let last = 0;
+    const maybeRefresh = () => {
+      if (document.visibilityState !== "visible") return;
+      const now = Date.now();
+      if (now - last < 2000) return;
+      last = now;
+      void refresh();
+    };
+    document.addEventListener("visibilitychange", maybeRefresh);
+    window.addEventListener("focus", maybeRefresh);
+    return () => {
+      document.removeEventListener("visibilitychange", maybeRefresh);
+      window.removeEventListener("focus", maybeRefresh);
+    };
+  }, [refresh]);
+
   const onMenuIds = useMemo(
     () => new Set((data?.allRecipesOnMenu ?? []).map((r) => r.id)),
     [data],
