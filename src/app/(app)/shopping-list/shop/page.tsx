@@ -41,6 +41,9 @@ export default function ShoppingModePage() {
   const [items, setItems] = useState<GenItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
+  const [forgot, setForgot] = useState("");
+  const [addingForgot, setAddingForgot] = useState(false);
+  const [forgotError, setForgotError] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -98,6 +101,26 @@ export default function ShoppingModePage() {
     );
     await menu.refresh();
     void load();
+  }
+
+  // §8.2a — add one item without regenerating (goes to an "Other" aisle).
+  async function addForgotten() {
+    const name = forgot.trim();
+    if (!name || addingForgot) return;
+    setAddingForgot(true);
+    setForgotError(false);
+    try {
+      await apiSend("/generated-shopping-list", {
+        method: "POST",
+        body: JSON.stringify({ product_name: name }),
+      });
+      setForgot("");
+      await load();
+    } catch {
+      setForgotError(true);
+    } finally {
+      setAddingForgot(false);
+    }
   }
 
   function toggleAisle(name: string) {
@@ -199,6 +222,32 @@ export default function ShoppingModePage() {
       </div>
 
       <div className="shop-foot">
+        <form
+          className="shop-add"
+          onSubmit={(e) => {
+            e.preventDefault();
+            addForgotten();
+          }}
+        >
+          <input
+            className="input"
+            value={forgot}
+            onChange={(e) => setForgot(e.target.value)}
+            placeholder="Forgot something? Add it…"
+            aria-label="Add a forgotten item"
+          />
+          <button type="submit" className="btn btn-secondary" disabled={addingForgot || !forgot.trim()}>
+            {addingForgot ? "Adding…" : "Add"}
+          </button>
+        </form>
+        {forgotError && (
+          <p className="shop-add-error" role="alert">
+            Couldn&rsquo;t add that.{" "}
+            <button type="button" className="btn btn-ghost" onClick={addForgotten}>
+              Retry
+            </button>
+          </p>
+        )}
         <div className="shop-foot-actions">
           <button
             type="button"

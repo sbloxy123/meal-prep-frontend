@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { X } from "lucide-react";
 import { useMenu, type ShoppingItem } from "@/lib/menu";
-import { apiSend } from "@/lib/api";
+import { apiFetch, apiSend } from "@/lib/api";
 import { PageHeader } from "@/components/page-header";
 import { AiBox } from "@/components/ai-box";
 import { ConfirmDialog } from "@/components/confirm-dialog";
@@ -19,6 +19,7 @@ export default function ShoppingListPage() {
   const [generating, setGenerating] = useState(false);
   const [generateError, setGenerateError] = useState(false);
   const [confirmClear, setConfirmClear] = useState(false);
+  const [confirmRegen, setConfirmRegen] = useState(false);
 
   const items = menu.shoppingList.filter((i) => !removedIds.has(i.id));
   const recipeItems = items.filter((i) => !i.custom_product);
@@ -72,13 +73,27 @@ export default function ShoppingListPage() {
       );
   }
 
+  async function organiseAndGo() {
+    await apiSend("/shopping-list/organise", { method: "POST" });
+    router.push("/shopping-list/shop");
+  }
+
   async function generate() {
     if (generating || items.length === 0) return;
     setGenerating(true);
     setGenerateError(false);
     try {
-      await apiSend("/shopping-list/organise", { method: "POST" });
-      router.push("/shopping-list/shop");
+      // §8.2b — if a generated list already has collected items, regenerating
+      // would wipe that progress; confirm first.
+      const gen = await apiFetch<{ generatedShoppingItems: { is_collected: boolean }[] }>(
+        "/generated-shopping-list",
+      );
+      if (gen.generatedShoppingItems?.some((i) => i.is_collected)) {
+        setGenerating(false);
+        setConfirmRegen(true);
+        return;
+      }
+      await organiseAndGo();
     } catch {
       setGenerateError(true);
       setGenerating(false);
@@ -256,6 +271,16 @@ export default function ShoppingListPage() {
             setConfirmClear(false);
           }}
           onClose={() => setConfirmClear(false)}
+        />
+      )}
+
+      {confirmRegen && (
+        <ConfirmDialog
+          title="Regenerate the list?"
+          body="You've already collected some items in the shop. Regenerating rebuilds the aisle list from scratch and loses that progress."
+          confirmLabel="Regenerate"
+          onConfirm={organiseAndGo}
+          onClose={() => setConfirmRegen(false)}
         />
       )}
     </div>
