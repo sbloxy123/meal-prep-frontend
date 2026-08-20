@@ -10,6 +10,7 @@ import { RecipeCard } from "@/components/recipe-card";
 import { StarterRecipes } from "@/components/starter-recipes";
 import { ThisWeekColumn, ThisWeekTray } from "@/components/this-week";
 import { useMenu, buildCollections } from "@/lib/menu";
+import { useSession } from "@/lib/auth-client";
 
 type Filter = { kind: "all" } | { kind: "favourites" } | { kind: "collection"; name: string };
 type Sort = "newest" | "oldest" | "az";
@@ -246,8 +247,11 @@ export default function RecipesPage() {
 }
 
 function EmptyRecipes({ onAddStarters }: { onAddStarters: () => void }) {
+  const { data: session } = useSession();
+  const who = session?.user.name?.trim() || session?.user.email || null;
   return (
     <div style={{ maxWidth: 420, margin: "40px auto 0", textAlign: "center" }}>
+      {who && <p className="recipes-welcome">Welcome, {who}</p>}
       <h3 style={{ fontWeight: 400 }}>No recipes yet</h3>
       <p className="text-muted" style={{ fontSize: 14 }}>
         Add your first recipe to start building this week&rsquo;s menu and shopping list.

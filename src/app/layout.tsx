@@ -19,6 +19,8 @@ import "../styles/shop.css";
 import "../styles/recipe-form.css";
 // Auth screens (sign in / up, verify, reset).
 import "../styles/auth.css";
+// Account page (profile, password, delete).
+import "../styles/account.css";
 // Undo toasts.
 import "../styles/toast.css";
 

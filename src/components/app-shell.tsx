@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BookOpen, Calendar, ListChecks } from "lucide-react";
+import { BookOpen, Calendar, ListChecks, User } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { useSession } from "@/lib/auth-client";
@@ -137,6 +137,14 @@ function MobileTabBar({
           </Link>
         );
       })}
+      <Link
+        href="/account"
+        className="tab"
+        aria-current={isActive(pathname, "/account") ? "page" : undefined}
+      >
+        <User size={20} aria-hidden />
+        <span className="tab-label">Account</span>
+      </Link>
     </nav>
   );
 }

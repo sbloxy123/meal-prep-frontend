@@ -1,16 +1,112 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { authClient, signOut } from "@/lib/auth-client";
+import { authClient, signOut, useSession } from "@/lib/auth-client";
 import { PageHeader } from "@/components/page-header";
+import { useModalA11y } from "@/lib/use-modal";
+
+function formatJoined(value?: string | Date | null) {
+  if (!value) return null;
+  const d = typeof value === "string" ? new Date(value) : value;
+  if (Number.isNaN(d.getTime())) return null;
+  return d.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric" });
+}
 
 export default function AccountPage() {
   const router = useRouter();
+  const { data: session, isPending } = useSession();
+  const user = session?.user;
+
+  return (
+    <>
+      <PageHeader
+        title="Account"
+        actions={
+          <button
+            type="button"
+            className="btn btn-secondary"
+            onClick={() => signOut().then(() => router.push("/sign-in"))}
+          >
+            Sign out
+          </button>
+        }
+      />
+      <div className="account">
+        {isPending || !user ? (
+          <p className="text-muted">Loading…</p>
+        ) : (
+          <>
+            <ProfileCard key={user.id} name={user.name ?? ""} email={user.email} joined={formatJoined(user.createdAt)} />
+            <PasswordCard />
+            <DangerCard />
+          </>
+        )}
+      </div>
+    </>
+  );
+}
+
+function ProfileCard({ name, email, joined }: { name: string; email: string; joined: string | null }) {
+  const [value, setValue] = useState(name);
+  const [status, setStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
+  const dirty = value.trim() !== name && value.trim().length > 0;
+
+  async function save() {
+    if (!dirty || status === "saving") return;
+    setStatus("saving");
+    const { error } = await authClient.updateUser({ name: value.trim() });
+    setStatus(error ? "error" : "saved");
+  }
+
+  return (
+    <section className="account-card">
+      <h2>Profile</h2>
+      <form
+        className="field account-inline"
+        onSubmit={(e) => {
+          e.preventDefault();
+          save();
+        }}
+      >
+        <label htmlFor="account-name">Display name</label>
+        <div className="account-inline-row">
+          <input
+            id="account-name"
+            className="input"
+            value={value}
+            onChange={(e) => {
+              setValue(e.target.value);
+              setStatus("idle");
+            }}
+          />
+          <button type="submit" className="btn btn-secondary" disabled={!dirty || status === "saving"}>
+            {status === "saving" ? "Saving…" : "Save"}
+          </button>
+        </div>
+        {status === "saved" && <p className="account-ok">Name updated.</p>}
+        {status === "error" && <p className="account-err">Couldn&rsquo;t update your name.</p>}
+      </form>
+
+      <div className="account-readonly">
+        <span className="account-readonly-label">Email</span>
+        <span className="account-readonly-value">{email}</span>
+      </div>
+      {joined && (
+        <div className="account-readonly">
+          <span className="account-readonly-label">Member since</span>
+          <span className="account-readonly-value">{joined}</span>
+        </div>
+      )}
+    </section>
+  );
+}
+
+function PasswordCard() {
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handleSubmit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
     setStatus("loading");
     setErrorMsg("");
@@ -42,79 +138,121 @@ export default function AccountPage() {
   }
 
   return (
-    <>
-      <PageHeader
-        title="Account"
-        actions={
+    <section className="account-card">
+      <h2>Change password</h2>
+      <form onSubmit={handleSubmit} className="account-form">
+        <div className="field">
+          <label htmlFor="currentPassword">Current password</label>
+          <input id="currentPassword" name="currentPassword" type="password" required className="input" />
+        </div>
+        <div className="field">
+          <label htmlFor="newPassword">New password</label>
+          <input id="newPassword" name="newPassword" type="password" required minLength={8} className="input" />
+        </div>
+        <div className="field">
+          <label htmlFor="confirmPassword">Confirm new password</label>
+          <input id="confirmPassword" name="confirmPassword" type="password" required minLength={8} className="input" />
+        </div>
+
+        {status === "error" && <p className="account-err">{errorMsg}</p>}
+        {status === "success" && <p className="account-ok">Password changed.</p>}
+
+        <button type="submit" className="btn btn-primary" disabled={status === "loading"}>
+          {status === "loading" ? "Updating…" : "Update password"}
+        </button>
+      </form>
+    </section>
+  );
+}
+
+function DangerCard() {
+  const [open, setOpen] = useState(false);
+  return (
+    <section className="account-card account-danger">
+      <h2>Delete account</h2>
+      <p className="text-muted" style={{ fontSize: 14, marginBottom: 12 }}>
+        Permanently deletes your account and everything in it — recipes, photos and shopping lists.
+        This can&rsquo;t be undone.
+      </p>
+      <button type="button" className="btn account-danger-btn" onClick={() => setOpen(true)}>
+        Delete account
+      </button>
+      {open && <DeleteDialog onClose={() => setOpen(false)} />}
+    </section>
+  );
+}
+
+function DeleteDialog({ onClose }: { onClose: () => void }) {
+  const router = useRouter();
+  const ref = useRef<HTMLDivElement>(null);
+  const [password, setPassword] = useState("");
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState("");
+  useModalA11y(ref, onClose);
+
+  async function confirmDelete() {
+    if (pending || !password) return;
+    setPending(true);
+    setError("");
+    const { error: err } = await authClient.deleteUser({ password });
+    if (err) {
+      setError(err.message ?? "Couldn’t delete your account.");
+      setPending(false);
+      return;
+    }
+    // Session is gone — head to sign-in with a clean load.
+    router.push("/sign-in");
+  }
+
+  return (
+    <div
+      className="dialog-backdrop"
+      style={{ zIndex: 70 }}
+      onClick={(e) => {
+        if (e.target === e.currentTarget && !pending) onClose();
+      }}
+    >
+      <div className="dialog" role="alertdialog" aria-modal="true" aria-labelledby="del-title" ref={ref}>
+        <h2 id="del-title" className="dialog-title">
+          Delete your account?
+        </h2>
+        <div className="dialog-body">
+          <p style={{ margin: "0 0 12px" }}>
+            This permanently deletes your account and all your recipes, photos and shopping lists. It
+            can&rsquo;t be undone. Enter your password to confirm.
+          </p>
+          <input
+            className="input"
+            type="password"
+            autoComplete="current-password"
+            placeholder="Current password"
+            value={password}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              setError("");
+            }}
+            disabled={pending}
+          />
+        </div>
+        {error && (
+          <p className="account-err" role="alert" style={{ margin: 0 }}>
+            {error}
+          </p>
+        )}
+        <div className="dialog-actions">
+          <button type="button" className="btn btn-ghost" onClick={onClose} disabled={pending}>
+            Cancel
+          </button>
           <button
             type="button"
-            className="btn btn-secondary"
-            onClick={() => signOut().then(() => router.push("/sign-in"))}
+            className="btn account-danger-btn"
+            onClick={confirmDelete}
+            disabled={pending || !password}
           >
-            Sign out
+            {pending ? "Deleting…" : "Delete account"}
           </button>
-        }
-      />
-      <div className="page-body max-w-md">
-        <div className="bg-white rounded-xl shadow p-8">
-        <h2 className="text-base font-medium text-gray-900 mb-4">Change password</h2>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Current password
-            </label>
-            <input
-              name="currentPassword"
-              type="password"
-              required
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              New password
-            </label>
-            <input
-              name="newPassword"
-              type="password"
-              required
-              minLength={8}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Confirm new password
-            </label>
-            <input
-              name="confirmPassword"
-              type="password"
-              required
-              minLength={8}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
-            />
-          </div>
-
-          {status === "error" && (
-            <p className="text-sm text-red-600">{errorMsg}</p>
-          )}
-          {status === "success" && (
-            <p className="text-sm text-green-600">Password changed successfully.</p>
-          )}
-
-          <button
-            type="submit"
-            disabled={status === "loading"}
-            className="w-full bg-gray-900 text-white rounded-lg py-2 text-sm font-medium hover:bg-gray-700 disabled:opacity-50"
-          >
-            {status === "loading" ? "Updating…" : "Update password"}
-          </button>
-        </form>
         </div>
       </div>
-    </>
+    </div>
   );
 }

@@ -32,7 +32,12 @@ export default function SignUpPage() {
     // When verification is enforced, sign-up doesn't create a session (no
     // token) — send them to verify. Otherwise they're signed straight in.
     if ((data as { token?: string | null } | null)?.token) {
-      router.push("/recipes");
+      // Full-page navigation, not router.push: better-auth's signUp doesn't
+      // update the client useSession store, so an SPA push would land on the
+      // (app) layout with a stale "no session" and bounce to /sign-in. A hard
+      // load makes useSession refetch and read the fresh session cookie.
+      // eslint-disable-next-line @next/next/no-location-assign-relative-destination
+      window.location.href = "/recipes";
     } else {
       router.push(`/verify-email?email=${encodeURIComponent(email)}`);
     }

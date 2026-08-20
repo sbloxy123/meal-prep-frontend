@@ -93,6 +93,16 @@
   }
 }
 
+/* Personalised greeting on the empty Recipes state. */
+.recipes-welcome {
+  font-family: var(--font-heading);
+  font-weight: var(--font-heading-weight);
+  font-size: 22px;
+  color: var(--color-accent-700);
+  margin: 0 0 2px;
+  word-break: break-word;
+}
+
 /* Starter-recipes picker (A1). */
 .starter-dialog {
   max-width: 460px;
