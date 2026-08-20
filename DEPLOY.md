@@ -75,46 +75,59 @@ should already be set.)
 
 ---
 
-## B. Households + auth release (held — deploy separately, later)
+## B. Households release (built, held for deploy)
 
-Adds households + enforced email verification + password reset (Resend). Lives
-on `feat/households-auth`, deliberately unpushed. The frontend §6.1 auth pages
-(verify-email, forgot/reset-password, unverified state) already ship in **A**.
+Adds household tenancy (shared recipes/menus/lists), enforced email
+verification + password reset, and **invite/join/leave** so people can actually
+share a kitchen. All built and locally tested; **nothing pushed**.
 
-The image migration took `004` on `api-refactor`, so households' migration must
-be renumbered to `005` first.
+- **Backend**: branch `feat/households` (recipe-inventory) — the households
+  merge, the invite/join endpoints (`/household/*`), and the `user_id` →
+  `SET NULL` change. Merges fast-forward-ish into `api-refactor`.
+- **Frontend**: branch `feat/households-ui` (meal-prep-frontend) — the account
+  Household section + `/household/join/[token]` accept page. Merges into `main`.
+- **Migrations added** (apply in order): `005_households`,
+  `006_household_invites`, `007_user_id_set_null`.
+
+**Prerequisite — Resend**: a Resend account with a **verified sending domain**.
+`EMAIL_FROM` must be a sender on that domain, or invite/verification emails only
+reach your own Resend account address.
+
+### Deploy order (migrations first, backend before frontend)
 
 ```bash
-# B0. Renumber the households migration (in the households worktree/branch)
-git mv db/migrations/004_households.sql db/migrations/005_households.sql
-git commit -m "Renumber households migration 004 -> 005 (image migration took 004)"
+# --- Backend (recipe-inventory) ---
 
-# B1. Merge into api-refactor locally so the migrations folder has 004_add_image + 005_households
-git checkout api-refactor
-git merge feat/households-auth
+# B1. Apply 005/006/007 to PROD FIRST. railway run uses the internal DB host,
+#     which only resolves inside Railway — run through the Postgres service's
+#     public URL instead (never printed):
+git checkout feat/households   # working tree must hold the new migrations
+railway run --service Postgres bash -c 'DATABASE_URL="$DATABASE_PUBLIC_URL" npm run migrate:up'
 
-# B2. Migration 005 on prod FIRST (nullable household_id — old code ignores it)
-railway run npm run migrate:up
+# B2. Pre-verify existing users so turning on verification doesn't lock them out
+railway run --service Postgres bash -c 'psql "$DATABASE_PUBLIC_URL" -c '\''UPDATE "user" SET "emailVerified"=true'\'''
 
-# B3. Resend env on Railway
-railway variables --set RESEND_API_KEY=<resend_key> --set EMAIL_FROM=<verified_sender>
+# B3. Resend env on the backend service
+railway variables --service meal-prep-app --set RESEND_API_KEY=<resend_key> --set EMAIL_FROM='Mise en Place <noreply@yourdomain>'
 
-# B4. (Optional) pre-verify existing users so they aren't locked out
-railway connect Postgres      # then: UPDATE "user" SET "emailVerified" = true;
+# B4. Ship the backend (Railway builds, npm install pulls resend; the start
+#     command re-runs migrate:up which is now a no-op)
+git checkout api-refactor && git merge feat/households && git push origin api-refactor
 
-# B5. Push -> Railway deploys (npm install pulls resend)
-git push origin api-refactor
+# --- Frontend (meal-prep-frontend), only after the backend is green ---
+git checkout main && git merge feat/households-ui && git push origin main
 ```
 
-**Do not run B5 before B2 completes** — pushing the households code before
-migration 005 is applied 500s every request on the missing `household_id`
-columns.
+**Never push B4 before B1 completes** — the new code 500s on missing
+`household_id` columns until the migrations are applied.
 
-After deploy, smoke-test the auth flows (these weren't exercised end-to-end
-against the verification backend):
-
-1. Sign up → verification email link → auto-signed-in.
-2. Forgot password → reset email link → set new password → sign in.
-3. Sign in as an unverified user → routed to `/verify-email` (the sign-in code
-   uses a 403/message heuristic; confirm it matches BetterAuth's real error and
-   tighten if needed).
+### Post-deploy smoke test (these paths weren't exercised against a live email backend)
+1. Sign up → verification email arrives → link verifies → signed in.
+2. Forgot password → reset email → set new password → sign in.
+3. Sign in as an unverified user → routed to `/verify-email`.
+4. **Invite flow**: Account → Household → invite a second email → that person
+   signs up/verifies → opens the invite link → Join → both see the shared
+   recipes/list. Then test Leave and Remove.
+5. Delete-account: a solo account deletes cleanly (household + Cloudinary gone);
+   a shared member's deletion leaves the shared recipes intact (attribution
+   nulled).
