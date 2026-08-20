@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { Search } from "lucide-react";
 import { apiFetch, apiSend } from "@/lib/api";
 import type { RecipesResponse } from "@/lib/types";
 import { PageHeader } from "@/components/page-header";
 import { RecipeCard } from "@/components/recipe-card";
+import { StarterRecipes } from "@/components/starter-recipes";
 import { ThisWeekColumn, ThisWeekTray } from "@/components/this-week";
 import { useMenu, buildCollections } from "@/lib/menu";
 
@@ -23,14 +24,21 @@ export default function RecipesPage() {
   const [filter, setFilter] = useState<Filter>({ kind: "all" });
   const [showAllCollections, setShowAllCollections] = useState(false);
   const [sort, setSort] = useState<Sort>("newest");
+  const [showStarters, setShowStarters] = useState(false);
   const menu = useMenu();
 
+  const load = useCallback(
+    () =>
+      apiFetch<RecipesResponse>("/recipes")
+        .then(setData)
+        .catch((err) => setError(err.message))
+        .finally(() => setLoading(false)),
+    [],
+  );
+
   useEffect(() => {
-    apiFetch<RecipesResponse>("/recipes")
-      .then(setData)
-      .catch((err) => setError(err.message))
-      .finally(() => setLoading(false));
-  }, []);
+    load();
+  }, [load]);
 
   // title → tag names, title → ingredient names (the list endpoint keys both
   // by recipe title).
@@ -198,7 +206,7 @@ export default function RecipesPage() {
         {error && !loading && <p style={{ color: "var(--color-accent-700)" }}>{error}</p>}
 
         {!loading && !error && recipes.length === 0 && (
-          <EmptyRecipes />
+          <EmptyRecipes onAddStarters={() => setShowStarters(true)} />
         )}
 
         {!loading && !error && recipes.length > 0 && visible.length === 0 && (
@@ -229,20 +237,37 @@ export default function RecipesPage() {
 
       {/* Desktop: permanent This week right column. */}
       <ThisWeekColumn />
+
+      {showStarters && (
+        <StarterRecipes onClose={() => setShowStarters(false)} onAdded={load} />
+      )}
     </div>
   );
 }
 
-function EmptyRecipes() {
+function EmptyRecipes({ onAddStarters }: { onAddStarters: () => void }) {
   return (
     <div style={{ maxWidth: 420, margin: "40px auto 0", textAlign: "center" }}>
       <h3 style={{ fontWeight: 400 }}>No recipes yet</h3>
       <p className="text-muted" style={{ fontSize: 14 }}>
         Add your first recipe to start building this week&rsquo;s menu and shopping list.
       </p>
-      <Link href="/recipes/new" className="btn btn-primary" style={{ marginTop: 8 }}>
-        New recipe
-      </Link>
+      <div
+        style={{
+          display: "flex",
+          gap: 8,
+          justifyContent: "center",
+          flexWrap: "wrap",
+          marginTop: 8,
+        }}
+      >
+        <Link href="/recipes/new" className="btn btn-primary">
+          New recipe
+        </Link>
+        <button type="button" className="btn btn-secondary" onClick={onAddStarters}>
+          Add starter recipes
+        </button>
+      </div>
     </div>
   );
 }

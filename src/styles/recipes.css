@@ -93,6 +93,55 @@
   }
 }
 
+/* Starter-recipes picker (A1). */
+.starter-dialog {
+  max-width: 460px;
+  width: 100%;
+}
+.starter-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 46vh;
+  overflow-y: auto;
+  margin: 4px 0;
+}
+.starter-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+}
+.starter-item.is-on {
+  border-color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 6%, transparent);
+}
+.starter-item input {
+  flex: none;
+  width: 16px;
+  height: 16px;
+  accent-color: var(--color-accent);
+}
+.starter-item-main {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+.starter-item-title {
+  font-size: 14px;
+  color: var(--color-text);
+}
+.starter-item-ings {
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* List container: stacked hairline-separated rows on mobile, 3-up grid on
    desktop. */
 .recipes-list {
