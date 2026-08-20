@@ -11,6 +11,7 @@ import { ThisWeekColumn, ThisWeekTray } from "@/components/this-week";
 import { useMenu, buildCollections } from "@/lib/menu";
 
 type Filter = { kind: "all" } | { kind: "favourites" } | { kind: "collection"; name: string };
+type Sort = "newest" | "oldest" | "az";
 
 const PINNED = 4;
 
@@ -21,6 +22,7 @@ export default function RecipesPage() {
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<Filter>({ kind: "all" });
   const [showAllCollections, setShowAllCollections] = useState(false);
+  const [sort, setSort] = useState<Sort>("newest");
   const menu = useMenu();
 
   useEffect(() => {
@@ -62,7 +64,7 @@ export default function RecipesPage() {
 
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return recipes.filter((r) => {
+    const filtered = recipes.filter((r) => {
       if (filter.kind === "favourites" && !r.favorite) return false;
       if (filter.kind === "collection" && !(tagsByTitle.get(r.title) ?? []).includes(filter.name)) {
         return false;
@@ -74,7 +76,12 @@ export default function RecipesPage() {
       }
       return true;
     });
-  }, [recipes, filter, query, tagsByTitle, ingredientsByTitle]);
+    // id is auto-incrementing, so id order == date-added order.
+    return [...filtered].sort((a, b) => {
+      if (sort === "az") return a.title.localeCompare(b.title);
+      return sort === "newest" ? b.id - a.id : a.id - b.id;
+    });
+  }, [recipes, filter, query, tagsByTitle, ingredientsByTitle, sort]);
 
   function toggleFavorite(id: number, next: boolean) {
     // Optimistic — flip locally, then persist. Revert on failure.
@@ -169,6 +176,19 @@ export default function RecipesPage() {
                 {showAllCollections ? "Show fewer" : `All ${collections.length} ›`}
               </button>
             )}
+          </div>
+          <div className="recipes-sort">
+            <label htmlFor="recipes-sort-select">Sort</label>
+            <select
+              id="recipes-sort-select"
+              value={sort}
+              onChange={(e) => setSort(e.target.value as Sort)}
+              aria-label="Sort recipes"
+            >
+              <option value="newest">Newest</option>
+              <option value="oldest">Oldest</option>
+              <option value="az">A–Z</option>
+            </select>
           </div>
         </div>
       )}
