@@ -8,7 +8,7 @@ import type { RecipesResponse } from "@/lib/types";
 import { PageHeader } from "@/components/page-header";
 import { RecipeCard } from "@/components/recipe-card";
 import { ThisWeekColumn, ThisWeekTray } from "@/components/this-week";
-import { useMenu } from "@/lib/menu";
+import { useMenu, buildCollections } from "@/lib/menu";
 
 type Filter = { kind: "all" } | { kind: "favourites" } | { kind: "collection"; name: string };
 
@@ -53,15 +53,10 @@ export default function RecipesPage() {
   }, [data]);
 
   // Collections sorted by how many recipes carry them.
-  const collections = useMemo(() => {
-    const counts = new Map<string, number>();
-    for (const list of tagsByTitle.values()) {
-      for (const name of list) counts.set(name, (counts.get(name) ?? 0) + 1);
-    }
-    return [...counts.entries()]
-      .map(([name, count]) => ({ name, count }))
-      .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
-  }, [tagsByTitle]);
+  const collections = useMemo(
+    () => buildCollections([...tagsByTitle.values()].flat()),
+    [tagsByTitle],
+  );
 
   const recipes = useMemo(() => data?.recipes ?? [], [data]);
 

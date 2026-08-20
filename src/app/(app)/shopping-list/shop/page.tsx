@@ -53,6 +53,15 @@ function applyOrder(aisles: Aisle[], order: string[]): Aisle[] {
   return [...known, ...unknown];
 }
 
+// Delete a generated item from both the aisle list and the draft. The endpoint
+// keys off the body, not the :id in the path.
+function deleteGenItem(item: GenItem) {
+  return apiSend(`/generated-shopping-list/item/${item.id}`, {
+    method: "DELETE",
+    body: JSON.stringify({ productId: item.id, productName: item.product_name }),
+  });
+}
+
 export default function ShoppingModePage() {
   const router = useRouter();
   const menu = useMenu();
@@ -187,10 +196,7 @@ export default function ShoppingModePage() {
         });
       },
       onCommit: () => {
-        apiSend(`/generated-shopping-list/item/${item.id}`, {
-          method: "DELETE",
-          body: JSON.stringify({ productId: item.id, productName: item.product_name }),
-        })
+        deleteGenItem(item)
           .then(() => menu.refresh())
           .catch(() => void load())
           .finally(() => pendingRemove.current.delete(item.id));
@@ -201,14 +207,7 @@ export default function ShoppingModePage() {
   async function clearCollected() {
     const done = items.filter((i) => i.is_collected);
     setItems((prev) => prev.filter((i) => !i.is_collected));
-    await Promise.all(
-      done.map((i) =>
-        apiSend(`/generated-shopping-list/item/${i.id}`, {
-          method: "DELETE",
-          body: JSON.stringify({ productId: i.id, productName: i.product_name }),
-        }).catch(() => {}),
-      ),
-    );
+    await Promise.all(done.map((i) => deleteGenItem(i).catch(() => {})));
     await menu.refresh();
     void load();
   }

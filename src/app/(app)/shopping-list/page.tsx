@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { X } from "lucide-react";
-import { useMenu, type ShoppingItem } from "@/lib/menu";
+import { useMenu, shoppingItemName, type ShoppingItem } from "@/lib/menu";
 import { useToast } from "@/lib/toast";
 import { useSession } from "@/lib/auth-client";
 import { apiFetch, apiSend } from "@/lib/api";
@@ -36,16 +36,10 @@ export default function ShoppingListPage() {
   const recipeItems = items.filter((i) => !i.custom_product);
   const ownItems = items.filter((i) => i.custom_product);
 
-  function displayName(item: ShoppingItem) {
-    return item.custom_product ?? item.ingredient_name ?? "";
-  }
-
   // Fingerprint of the persisted draft (id + name of each item), order-agnostic.
   function draftSignature() {
     return JSON.stringify(
-      menu.shoppingList
-        .map((i) => `${i.id}:${(i.custom_product ?? i.ingredient_name ?? "").toLowerCase()}`)
-        .sort(),
+      menu.shoppingList.map((i) => `${i.id}:${shoppingItemName(i).toLowerCase()}`).sort(),
     );
   }
 
@@ -88,7 +82,7 @@ export default function ShoppingListPage() {
 
   async function rename(item: ShoppingItem, value: string) {
     const name = value.trim();
-    if (!name || name === displayName(item)) return;
+    if (!name || name === shoppingItemName(item)) return;
     const path = item.custom_product
       ? `/shopping-list/custom-product/${item.id}`
       : `/shopping-list/${item.id}`;
@@ -111,7 +105,7 @@ export default function ShoppingListPage() {
   function remove(item: ShoppingItem) {
     setRemovedIds((prev) => new Set(prev).add(item.id));
     toast.showUndo({
-      message: `Removed ${displayName(item)}`,
+      message: `Removed ${shoppingItemName(item)}`,
       onUndo: () => restore(item.id),
       onCommit: () => {
         apiSend(`/shopping-list/shopping-list-item/${item.id}`, { method: "DELETE" })
@@ -228,7 +222,7 @@ export default function ShoppingListPage() {
                     return (
                       <ItemRow
                         key={item.id}
-                        name={displayName(item)}
+                        name={shoppingItemName(item)}
                         note={note}
                         editing={editingId === item.id}
                         onStartEdit={() => setEditingId(item.id)}
@@ -258,7 +252,7 @@ export default function ShoppingListPage() {
                   {ownItems.map((item) => (
                     <ItemRow
                       key={item.id}
-                      name={displayName(item)}
+                      name={shoppingItemName(item)}
                       editing={editingId === item.id}
                       onStartEdit={() => setEditingId(item.id)}
                       onCommit={(v) => {

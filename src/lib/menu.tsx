@@ -33,6 +33,12 @@ export interface ShoppingItem {
   recipe_count: number | string;
 }
 
+/** What a shopping-list row is called: a user item's product, else the
+    recipe-derived ingredient name. */
+export function shoppingItemName(item: ShoppingItem): string {
+  return item.custom_product ?? item.ingredient_name ?? "";
+}
+
 export interface WeekRecipe {
   id: number;
   title: string;
@@ -43,6 +49,15 @@ export interface WeekRecipe {
 export interface Collection {
   name: string;
   count: number;
+}
+
+// Count recipe→tag pairings into collections, ranked by size then name.
+export function buildCollections(tagNames: string[]): Collection[] {
+  const counts = new Map<string, number>();
+  for (const name of tagNames) counts.set(name, (counts.get(name) ?? 0) + 1);
+  return [...counts.entries()]
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
 }
 
 interface OpenRecipe {
@@ -141,15 +156,10 @@ export function MenuProvider({ children }: { children: ReactNode }) {
 
   const listCount = data?.shoppingList?.length ?? 0;
 
-  const collections = useMemo<Collection[]>(() => {
-    const counts = new Map<string, number>();
-    for (const { name } of data?.singleRecipeTags ?? []) {
-      counts.set(name, (counts.get(name) ?? 0) + 1);
-    }
-    return [...counts.entries()]
-      .map(([name, count]) => ({ name, count }))
-      .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
-  }, [data]);
+  const collections = useMemo<Collection[]>(
+    () => buildCollections((data?.singleRecipeTags ?? []).map((t) => t.name)),
+    [data],
+  );
 
   const ingredientsFor = useCallback(
     (title: string) => {
