@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { apiSend } from "./api";
+import { ApiError, apiSend } from "./api";
 
 // Offline write queue (§8.5b). Writes are optimistic; if one fails because the
 // device is offline it's parked in localStorage and retried on reconnect (the
@@ -36,10 +36,13 @@ function persist() {
   listeners.forEach((l) => l());
 }
 
-// A failed fetch (offline) rejects with a TypeError; an HTTP error from the
-// server is a plain Error. Only the former should queue.
-function isOffline(err: unknown): boolean {
-  return err instanceof TypeError;
+// Retry (queue) a write that failed for a transient reason: a dropped
+// connection (fetch → TypeError), a gateway/5xx, or a 401 (a stale cookie that
+// a re-auth will fix). A definitive 4xx (400/404) is permanent — don't retry.
+function isTransient(err: unknown): boolean {
+  if (err instanceof TypeError) return true;
+  if (err instanceof ApiError) return err.status >= 500 || err.status === 401;
+  return false;
 }
 
 export function pendingCount(): number {
@@ -57,11 +60,11 @@ export async function queuedSend(path: string, init: { method: string; body?: st
   try {
     await apiSend(path, init);
   } catch (err) {
-    if (isOffline(err)) {
+    if (isTransient(err)) {
       queue.push({ id: crypto.randomUUID(), path, method: init.method, body: init.body });
       persist();
     }
-    // Server-side errors are not a connectivity problem — don't queue.
+    // A permanent 4xx is not retryable — drop it.
   }
 }
 
@@ -74,8 +77,8 @@ export async function flushQueue(): Promise<void> {
       queue.shift();
       persist();
     } catch (err) {
-      if (isOffline(err)) return; // still offline — stop and wait
-      queue.shift(); // permanent server rejection — drop it
+      if (isTransient(err)) return; // still failing transiently — stop and wait
+      queue.shift(); // permanent rejection — drop it
       persist();
     }
   }

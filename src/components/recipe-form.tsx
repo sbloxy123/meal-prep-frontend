@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { X, Plus } from "lucide-react";
-import { apiSend } from "@/lib/api";
+import { ApiError, apiFetch, apiSend } from "@/lib/api";
 import { useMenu } from "@/lib/menu";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { ImageDrop, type RecipePhoto } from "@/components/image-drop";
@@ -98,23 +98,25 @@ export function RecipeForm({ mode, recipeId, initial = {} }: RecipeFormProps) {
     };
 
     try {
-      // Raw fetch so we can read the 400 validation body.
-      const res = await fetch(`/backend/recipes${mode === "edit" ? `/${recipeId}` : ""}`, {
+      await apiFetch(`/recipes${mode === "edit" ? `/${recipeId}` : ""}`, {
         method: mode === "edit" ? "PUT" : "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
-      if (res.status === 400) {
-        const data = await res.json().catch(() => ({}));
-        setErrors(data.errors ?? {});
+      await menu.refresh();
+      router.push(cancelHref);
+    } catch (err) {
+      if (err instanceof ApiError && err.status === 400) {
+        // The 400 body carries per-field Zod errors.
+        let parsed: { errors?: Record<string, string[]> } = {};
+        try {
+          parsed = JSON.parse(err.body);
+        } catch {
+          /* non-JSON body */
+        }
+        setErrors(parsed.errors ?? {});
         setSaving(false);
         return;
       }
-      if (!res.ok) throw new Error(await res.text());
-      await menu.refresh();
-      router.push(cancelHref);
-    } catch {
       setFormError("Something went wrong saving the recipe. Please try again.");
       setSaving(false);
     }

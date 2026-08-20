@@ -47,6 +47,19 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<ToastItem[]>([]);
   const nextId = useRef(1);
 
+  // Commit any pending toasts (e.g. an optimistic delete still in its undo
+  // window) before the page unloads, so closing/reloading within the ~6s
+  // window doesn't drop the write. Best-effort.
+  const toastsRef = useRef(toasts);
+  useEffect(() => {
+    toastsRef.current = toasts;
+  }, [toasts]);
+  useEffect(() => {
+    const flush = () => toastsRef.current.forEach((t) => t.onCommit?.());
+    window.addEventListener("pagehide", flush);
+    return () => window.removeEventListener("pagehide", flush);
+  }, []);
+
   const remove = useCallback((id: number) => {
     setToasts((prev) => prev.filter((t) => t.id !== id));
   }, []);

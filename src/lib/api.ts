@@ -2,6 +2,21 @@
 // which next.config.ts proxies through to the Railway API.
 const API_URL = "/backend";
 
+// Carries the HTTP status so callers can branch (e.g. 400 validation body,
+// 404 not-found) and the write queue can tell a transient failure (5xx/401)
+// from a permanent one (4xx). A dropped connection still surfaces as a
+// TypeError from fetch(), which never reaches here.
+export class ApiError extends Error {
+  status: number;
+  body: string;
+  constructor(status: number, body: string) {
+    super(body || `Request failed: ${status}`);
+    this.name = "ApiError";
+    this.status = status;
+    this.body = body;
+  }
+}
+
 export async function apiFetch<T = unknown>(
   path: string,
   options?: RequestInit,
@@ -15,13 +30,8 @@ export async function apiFetch<T = unknown>(
     },
   });
 
-  if (res.status === 401) {
-    throw new Error("UNAUTHORISED");
-  }
-
   if (!res.ok) {
-    const body = await res.text();
-    throw new Error(body || `Request failed: ${res.status}`);
+    throw new ApiError(res.status, res.status === 401 ? "UNAUTHORISED" : await res.text());
   }
 
   return res.json() as Promise<T>;
@@ -42,12 +52,7 @@ export async function apiSend(
     },
   });
 
-  if (res.status === 401) {
-    throw new Error("UNAUTHORISED");
-  }
-
   if (!res.ok) {
-    const body = await res.text();
-    throw new Error(body || `Request failed: ${res.status}`);
+    throw new ApiError(res.status, res.status === 401 ? "UNAUTHORISED" : await res.text());
   }
 }

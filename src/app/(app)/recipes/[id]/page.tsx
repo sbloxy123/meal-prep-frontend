@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { Star, ChevronLeft } from "lucide-react";
 import { RecipeImage } from "@/components/recipe-image";
-import { apiSend } from "@/lib/api";
+import { ApiError, apiFetch, apiSend } from "@/lib/api";
 import type { RecipeDetail } from "@/lib/types";
 import { parseInstructions } from "@/lib/instructions";
 import { useMenu } from "@/lib/menu";
@@ -34,19 +34,14 @@ export default function RecipeDetailPage() {
 
   useEffect(() => {
     let cancelled = false;
-    // Manual fetch (not apiFetch) so we can distinguish a 404 from other errors.
-    fetch(`/backend/recipes/${id}`, {
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-    })
-      .then(async (res) => {
-        if (cancelled) return;
-        if (res.status === 404) return setState({ status: "notfound" });
-        if (!res.ok) throw new Error((await res.text()) || `Request failed: ${res.status}`);
-        setState({ status: "ready", recipe: await res.json() });
+    apiFetch<RecipeDetail>(`/recipes/${id}`)
+      .then((recipe) => {
+        if (!cancelled) setState({ status: "ready", recipe });
       })
       .catch((err) => {
-        if (!cancelled) setState({ status: "error", message: err.message });
+        if (cancelled) return;
+        if (err instanceof ApiError && err.status === 404) setState({ status: "notfound" });
+        else setState({ status: "error", message: err.message });
       });
     return () => {
       cancelled = true;
@@ -122,8 +117,8 @@ export default function RecipeDetailPage() {
   }
 
   const recipe = state.recipe;
-  const tags = recipe.recipe_tags.map((t) => t.tag_name);
-  const ingredients = recipe.recipe_ingredients;
+  const tags = (recipe.recipe_tags ?? []).map((t) => t.tag_name);
+  const ingredients = recipe.recipe_ingredients ?? [];
   const steps = parseInstructions(recipe.instructions);
 
   const metaParts: string[] = [];

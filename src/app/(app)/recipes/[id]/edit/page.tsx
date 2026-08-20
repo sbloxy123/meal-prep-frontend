@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
+import { ApiError, apiFetch } from "@/lib/api";
 import type { RecipeDetail } from "@/lib/types";
 import { RecipeForm, type RecipeFormInitial } from "@/components/recipe-form";
 
@@ -20,15 +21,9 @@ export default function EditRecipePage() {
 
   useEffect(() => {
     let cancelled = false;
-    fetch(`/backend/recipes/${id}`, {
-      credentials: "include",
-      headers: { "Content-Type": "application/json" },
-    })
-      .then(async (res) => {
+    apiFetch<RecipeDetail>(`/recipes/${id}`)
+      .then((r) => {
         if (cancelled) return;
-        if (res.status === 404) return setState({ status: "notfound" });
-        if (!res.ok) throw new Error((await res.text()) || `Request failed: ${res.status}`);
-        const r: RecipeDetail = await res.json();
         setState({
           status: "ready",
           initial: {
@@ -38,19 +33,21 @@ export default function EditRecipePage() {
             link_url: r.link_url,
             prep_time_minutes: r.prep_time_minutes,
             cook_time_minutes: r.cook_time_minutes,
-            ingredients: r.recipe_ingredients.map((ing) => ({
+            ingredients: (r.recipe_ingredients ?? []).map((ing) => ({
               name: ing.name,
               quantity: ing.quantity == null ? "" : String(Number(ing.quantity) || ""),
               unit: ing.unit ?? "",
             })),
-            collections: r.recipe_tags.map((t) => t.tag_name),
+            collections: (r.recipe_tags ?? []).map((t) => t.tag_name),
             image_url: r.image_url,
             image_public_id: r.image_public_id,
           },
         });
       })
       .catch((err) => {
-        if (!cancelled) setState({ status: "error", message: err.message });
+        if (cancelled) return;
+        if (err instanceof ApiError && err.status === 404) setState({ status: "notfound" });
+        else setState({ status: "error", message: err.message });
       });
     return () => {
       cancelled = true;

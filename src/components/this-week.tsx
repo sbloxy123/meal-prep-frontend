@@ -2,10 +2,7 @@
 
 import Link from "next/link";
 import { useMenu } from "@/lib/menu";
-
-function plural(n: number, word: string) {
-  return `${n} ${word}${n === 1 ? "" : "s"}`;
-}
+import { plural } from "@/lib/format";
 
 /** Mobile: a tray docked above the tab bar whenever ≥1 recipe is on the menu.
     Renders a spacer in flow so the last rows clear the fixed tray. */

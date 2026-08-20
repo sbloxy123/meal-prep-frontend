@@ -4,10 +4,7 @@ import Link from "next/link";
 import { CookingPot } from "lucide-react";
 import { useMenu, type WeekRecipe } from "@/lib/menu";
 import { PageHeader } from "@/components/page-header";
-
-function plural(n: number, word: string) {
-  return `${n} ${word}${n === 1 ? "" : "s"}`;
-}
+import { plural } from "@/lib/format";
 
 export default function ThisWeekPage() {
   const { loaded, thisWeek, listCount, openStockCheck, requestRemoveRecipe } = useMenu();
