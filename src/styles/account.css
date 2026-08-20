@@ -79,6 +79,119 @@
   margin: 0;
 }
 
+/* Household section. */
+.hh-members {
+  display: flex;
+  flex-direction: column;
+  margin-top: 6px;
+}
+.hh-member {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 0;
+  border-top: 1px solid var(--color-divider);
+}
+.hh-avatar {
+  flex: none;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-heading);
+  font-size: 15px;
+  color: var(--color-accent-700);
+  background: var(--color-accent-100);
+  border: 1px solid var(--color-accent-300);
+}
+.hh-member-main {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  flex: 1;
+}
+.hh-member-name {
+  font-size: 14px;
+  color: var(--color-text);
+}
+.hh-you {
+  color: var(--color-neutral-600);
+}
+.hh-member-email {
+  font-size: 12px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.hh-role {
+  flex: none;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-neutral-600);
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-sm);
+  padding: 2px 7px;
+}
+.hh-role-owner {
+  color: var(--color-accent-700);
+  border-color: var(--color-accent-300);
+  background: var(--color-accent-100);
+}
+.hh-remove {
+  flex: none;
+  font: inherit;
+  font-size: 12px;
+  color: #b23b2e;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  padding: 4px 6px;
+}
+.hh-remove:hover {
+  text-decoration: underline;
+}
+.hh-subhead {
+  margin: 16px 0 8px;
+  color: var(--color-neutral-700);
+}
+.hh-invite,
+.hh-invites {
+  display: flex;
+  flex-direction: column;
+}
+.hh-invite {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 7px 0;
+  border-top: 1px solid var(--color-divider);
+  font-size: 14px;
+}
+.hh-invite-email {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.hh-invite-form {
+  margin-top: 4px;
+}
+.hh-hint {
+  font-size: 12px;
+  margin: 8px 0 0;
+}
+.hh-leave {
+  margin-top: 16px;
+  color: #b23b2e;
+  padding-inline: 0;
+}
+.hh-leave:hover {
+  background: color-mix(in srgb, #b23b2e 8%, transparent);
+}
+
 /* Danger zone. */
 .account-danger {
   border-color: color-mix(in srgb, #b23b2e 40%, var(--color-divider));
