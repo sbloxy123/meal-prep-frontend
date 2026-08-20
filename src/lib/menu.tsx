@@ -80,6 +80,9 @@ interface MenuValue {
   // Opens a confirmation first — removing a recipe also clears its items from
   // the shopping list, so it's destructive and non-undoable.
   requestRemoveRecipe: (recipe: OpenRecipe) => void;
+  // Takes every recipe off this week (each one cascades its ingredients out of
+  // the shopping list); manually-added own items are left untouched.
+  clearAllRecipes: () => Promise<void>;
   refresh: () => Promise<void>;
 }
 
@@ -214,6 +217,17 @@ export function MenuProvider({ children }: { children: ReactNode }) {
     [refresh],
   );
 
+  // Clear the whole week for a fresh menu. Reuses the per-recipe remove so each
+  // recipe's ingredients cascade out of the shopping list; own custom items are
+  // untouched. Sequential (not parallel) to avoid racing the backend's
+  // shared-ingredient reconciliation, with one refresh at the end.
+  const clearAllRecipes = useCallback(async () => {
+    for (const id of onMenuIds) {
+      await apiSend(`/shopping-list/recipe/${id}`, { method: "PUT" });
+    }
+    await refresh();
+  }, [onMenuIds, refresh]);
+
   // Submit the stock check. Editing an already-on-menu recipe reconciles by
   // clearing it first (PUT) then re-adding the ticked items (POST) — both are
   // existing endpoints, so the API contract is untouched.
@@ -243,6 +257,7 @@ export function MenuProvider({ children }: { children: ReactNode }) {
     selectedFor,
     openStockCheck: setOpenRecipe,
     requestRemoveRecipe: setRemoveTarget,
+    clearAllRecipes,
     refresh,
   };
 

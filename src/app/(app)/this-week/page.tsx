@@ -1,13 +1,17 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { CookingPot } from "lucide-react";
 import { useMenu, type WeekRecipe } from "@/lib/menu";
 import { PageHeader } from "@/components/page-header";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import { plural } from "@/lib/format";
 
 export default function ThisWeekPage() {
-  const { loaded, thisWeek, listCount, openStockCheck, requestRemoveRecipe } = useMenu();
+  const { loaded, thisWeek, listCount, openStockCheck, requestRemoveRecipe, clearAllRecipes } =
+    useMenu();
+  const [confirmClearAll, setConfirmClearAll] = useState(false);
 
   const kicker = thisWeek.length
     ? `${plural(thisWeek.length, "recipe")} · ${plural(listCount, "item")}`
@@ -50,8 +54,29 @@ export default function ThisWeekPage() {
             >
               Review shopping list
             </Link>
+            <button
+              type="button"
+              className="btn btn-ghost btn-block"
+              style={{ color: "var(--color-neutral-700)", margin: 0 }}
+              onClick={() => setConfirmClearAll(true)}
+            >
+              Clear all recipes
+            </button>
           </div>
         </>
+      )}
+
+      {confirmClearAll && (
+        <ConfirmDialog
+          title="Clear all recipes?"
+          body="This takes every recipe off this week and removes their ingredients from your shopping list. Any items you added yourself are kept. It can't be undone."
+          confirmLabel="Clear all"
+          onConfirm={async () => {
+            await clearAllRecipes();
+            setConfirmClearAll(false);
+          }}
+          onClose={() => setConfirmClearAll(false)}
+        />
       )}
     </div>
   );
