@@ -42,6 +42,13 @@
   top: 0;
   z-index: 30;
 }
+.mobile-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: inherit;
+  text-decoration: none;
+}
 @media (min-width: 1024px) {
   .mobile-header {
     display: none;
@@ -62,6 +69,11 @@
   font-weight: var(--font-heading-weight);
   font-size: 20px;
   line-height: 1.1;
+  color: var(--color-text);
+  text-decoration: none;
+}
+.rail-wordmark:hover span {
+  color: var(--color-accent-700);
 }
 
 .rail-divider {

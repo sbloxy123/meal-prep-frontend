@@ -26,8 +26,10 @@ function FornettoMark({ size = 22 }: { size?: number }) {
 function MobileHeader() {
   return (
     <header className="mobile-header">
-      <FornettoMark size={20} />
-      <span>{WORDMARK}</span>
+      <Link href="/recipes" className="mobile-brand">
+        <FornettoMark size={20} />
+        <span>{WORDMARK}</span>
+      </Link>
     </header>
   );
 }
@@ -82,10 +84,10 @@ function DesktopRail({
 
   return (
     <aside className="rail" aria-label="Primary">
-      <div className="rail-wordmark">
+      <Link href="/recipes" className="rail-wordmark">
         <FornettoMark size={22} />
         <span>{WORDMARK}</span>
-      </div>
+      </Link>
 
       <hr className="rail-divider" />
 
