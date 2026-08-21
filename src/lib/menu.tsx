@@ -17,10 +17,16 @@ import { ConfirmDialog } from "@/components/confirm-dialog";
 // list count, collections, and the stock-check ingredient lists.
 interface ShoppingListResponse {
   shoppingList: ShoppingItem[];
-  allRecipesOnMenu: { id: number; title: string }[];
+  allRecipesOnMenu: {
+    id: number;
+    title: string;
+    added_by_name: string | null;
+    added_to_menu_by: string | null;
+  }[];
   singleRecipeIngredients: { recipe_title: string; ingredient: string }[];
   singleRecipeTags: { tag_recipe_title: string; name: string }[];
   shoppingListIngredientsByRecipe: { recipe_id: number; ingredient_name: string }[];
+  householdMemberCount?: number;
 }
 
 // A row of shopping_list. Recipe-derived items carry ingredient_name (with
@@ -44,6 +50,8 @@ export interface WeekRecipe {
   title: string;
   itemCount: number;
   summary: string;
+  addedByName: string | null;
+  addedById: string | null;
 }
 
 export interface Collection {
@@ -71,6 +79,9 @@ interface MenuValue {
   thisWeek: WeekRecipe[];
   onMenuIds: Set<number>;
   listCount: number;
+  /** True when the household has >1 member — attribution ("added by") is only
+      shown then, since it's just noise in a solo household. */
+  householdShared: boolean;
   collections: Collection[];
   shoppingList: ShoppingItem[];
   recipeTitlesFor: (ingredientName: string) => string[];
@@ -153,11 +164,19 @@ export function MenuProvider({ children }: { children: ReactNode }) {
     }
     return (data?.allRecipesOnMenu ?? []).map((r) => {
       const items = byRecipe.get(r.id) ?? [];
-      return { id: r.id, title: r.title, itemCount: items.length, summary: items.join(" · ") };
+      return {
+        id: r.id,
+        title: r.title,
+        itemCount: items.length,
+        summary: items.join(" · "),
+        addedByName: r.added_by_name,
+        addedById: r.added_to_menu_by,
+      };
     });
   }, [data]);
 
   const listCount = data?.shoppingList?.length ?? 0;
+  const householdShared = (data?.householdMemberCount ?? 1) > 1;
 
   const collections = useMemo<Collection[]>(
     () => buildCollections((data?.singleRecipeTags ?? []).map((t) => t.name)),
@@ -250,6 +269,7 @@ export function MenuProvider({ children }: { children: ReactNode }) {
     thisWeek,
     onMenuIds,
     listCount,
+    householdShared,
     collections,
     shoppingList,
     recipeTitlesFor,

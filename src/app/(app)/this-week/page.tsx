@@ -4,13 +4,23 @@ import { useState } from "react";
 import Link from "next/link";
 import { CookingPot } from "lucide-react";
 import { useMenu, type WeekRecipe } from "@/lib/menu";
+import { useSession } from "@/lib/auth-client";
+import { attributionLabel } from "@/lib/who";
 import { PageHeader } from "@/components/page-header";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { plural } from "@/lib/format";
 
 export default function ThisWeekPage() {
-  const { loaded, thisWeek, listCount, openStockCheck, requestRemoveRecipe, clearAllRecipes } =
-    useMenu();
+  const {
+    loaded,
+    thisWeek,
+    listCount,
+    householdShared,
+    openStockCheck,
+    requestRemoveRecipe,
+    clearAllRecipes,
+  } = useMenu();
+  const { data: session } = useSession();
   const [confirmClearAll, setConfirmClearAll] = useState(false);
 
   const kicker = thisWeek.length
@@ -34,6 +44,11 @@ export default function ThisWeekPage() {
               <WeekRow
                 key={r.id}
                 recipe={r}
+                addedBy={
+                  householdShared
+                    ? attributionLabel(r.addedByName, r.addedById, session?.user.id)
+                    : null
+                }
                 onEdit={() => openStockCheck(r)}
                 onRemove={() => requestRemoveRecipe(r)}
               />
@@ -84,10 +99,12 @@ export default function ThisWeekPage() {
 
 function WeekRow({
   recipe,
+  addedBy,
   onEdit,
   onRemove,
 }: {
   recipe: WeekRecipe;
+  addedBy: string | null;
   onEdit: () => void;
   onRemove: () => void;
 }) {
@@ -95,6 +112,7 @@ function WeekRow({
     <div className="week-item">
       <div className="week-item-main">
         <div className="week-item-title">{recipe.title}</div>
+        {addedBy && <div className="week-item-by text-muted">Added by {addedBy}</div>}
         {recipe.summary && (
           <div className="week-item-summary text-muted">{recipe.summary}</div>
         )}

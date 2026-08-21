@@ -9,6 +9,8 @@ import { ApiError, apiFetch, apiSend } from "@/lib/api";
 import type { RecipeDetail } from "@/lib/types";
 import { parseInstructions } from "@/lib/instructions";
 import { useMenu } from "@/lib/menu";
+import { useSession } from "@/lib/auth-client";
+import { attributionLabel } from "@/lib/who";
 
 type LoadState =
   | { status: "loading" }
@@ -30,6 +32,7 @@ export default function RecipeDetailPage() {
   const params = useParams<{ id: string }>();
   const id = params.id;
   const menu = useMenu();
+  const { data: session } = useSession();
   const [state, setState] = useState<LoadState>({ status: "loading" });
 
   useEffect(() => {
@@ -126,6 +129,10 @@ export default function RecipeDetailPage() {
   if (recipe.cook_time_minutes != null) metaParts.push(`Cook ${recipe.cook_time_minutes} min`);
   metaParts.push(`${ingredients.length} ingredient${ingredients.length === 1 ? "" : "s"}`);
 
+  const author = menu.householdShared
+    ? attributionLabel(recipe.created_by_name, recipe.user_id, session?.user.id)
+    : null;
+
   return (
     <div className="detail">
       {backLink}
@@ -155,6 +162,7 @@ export default function RecipeDetailPage() {
             <span key={part}>{part}</span>
           ))}
         </div>
+        {author && <div className="detail-by text-muted">Added by {author}</div>}
       </div>
 
       <div className="detail-body">

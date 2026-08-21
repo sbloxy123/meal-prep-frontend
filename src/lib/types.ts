@@ -14,6 +14,10 @@ export interface Recipe {
   // Added in step 8 (Cloudinary); optional so the app works before the migration.
   image_url?: string | null;
   image_public_id?: string | null;
+  // Attribution (E) — who created the recipe. Nullable (user_id is SET NULL on
+  // account deletion); only surfaced in shared households.
+  user_id?: string | null;
+  created_by_name?: string | null;
 }
 
 export interface Tag {

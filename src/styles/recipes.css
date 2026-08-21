@@ -211,6 +211,17 @@
   color: var(--color-accent-700);
 }
 
+/* Attribution (E) — "Added by …" on cards and the detail page. */
+.recipe-by {
+  font-size: 12px;
+  color: var(--color-neutral-600);
+  margin-top: 4px;
+}
+.detail-by {
+  font-size: 13px;
+  margin-top: 6px;
+}
+
 .recipe-fav {
   flex: none;
   margin-top: 3px;

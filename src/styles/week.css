@@ -358,6 +358,10 @@
   font-size: 13px;
   margin-top: 4px;
 }
+.week-item-by {
+  font-size: 12px;
+  margin-top: 2px;
+}
 .week-item-actions {
   display: flex;
   gap: 4px;
