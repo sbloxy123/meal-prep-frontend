@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
 import { AppShell } from "@/components/app-shell";
+import { PendingInvite } from "@/components/pending-invite";
 import { MenuProvider } from "@/lib/menu";
 import { ToastProvider } from "@/lib/toast";
 
@@ -22,6 +23,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
     <MenuProvider>
       <ToastProvider>
+        <PendingInvite />
         <AppShell>{children}</AppShell>
       </ToastProvider>
     </MenuProvider>

@@ -3,8 +3,8 @@ import type { MetadataRoute } from "next";
 // PWA manifest (§8.5) — installable on iOS + Android, opens standalone.
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Mise en Place",
-    short_name: "Mise en Place",
+    name: "Fornetto",
+    short_name: "Fornetto",
     description: "The week's shopping, in order.",
     start_url: "/recipes",
     display: "standalone",

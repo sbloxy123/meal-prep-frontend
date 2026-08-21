@@ -65,7 +65,7 @@ export default function ForgotPasswordPage() {
           <Link href="/sign-in">Back to sign in</Link>
         </div>
       </div>
-      <div className="auth-foot">Mise en Place</div>
+      <div className="auth-foot">Fornetto</div>
     </div>
   );
 }

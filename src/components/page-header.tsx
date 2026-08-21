@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-const WORDMARK = "Mise en Place";
+const WORDMARK = "Fornetto";
 
 interface PageHeaderProps {
   title: string;

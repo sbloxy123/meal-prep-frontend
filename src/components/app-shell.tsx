@@ -8,7 +8,7 @@ import type { ReactNode } from "react";
 import { useSession } from "@/lib/auth-client";
 import { useMenu, type Collection } from "@/lib/menu";
 
-const WORDMARK_LINES = ["Mise", "en place"];
+const WORDMARK = "Fornetto";
 
 interface NavItem {
   href: string;
@@ -59,11 +59,7 @@ function DesktopRail({
 
   return (
     <aside className="rail" aria-label="Primary">
-      <div className="rail-wordmark">
-        {WORDMARK_LINES[0]}
-        <br />
-        {WORDMARK_LINES[1]}
-      </div>
+      <div className="rail-wordmark">{WORDMARK}</div>
 
       <hr className="rail-divider" />
 

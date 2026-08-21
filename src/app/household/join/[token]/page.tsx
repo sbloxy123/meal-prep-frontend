@@ -1,10 +1,11 @@
 "use client";
 
-import { use, useState } from "react";
+import { use, useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { apiFetch, ApiError } from "@/lib/api";
 import { useSession } from "@/lib/auth-client";
+import { PENDING_INVITE_KEY } from "@/components/pending-invite";
 
 export default function JoinHouseholdPage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = use(params);
@@ -12,6 +13,14 @@ export default function JoinHouseholdPage({ params }: { params: Promise<{ token:
   const { data: session, isPending } = useSession();
   const [status, setStatus] = useState<"idle" | "joining" | "joined" | "error">("idle");
   const [message, setMessage] = useState("");
+
+  // Signed-out invitee: stash the token so we can auto-join once they've
+  // authenticated (consumed by <PendingInvite> on the first app load).
+  useEffect(() => {
+    if (!isPending && !session && token) {
+      localStorage.setItem(PENDING_INVITE_KEY, token);
+    }
+  }, [isPending, session, token]);
 
   async function join() {
     setStatus("joining");
@@ -21,6 +30,7 @@ export default function JoinHouseholdPage({ params }: { params: Promise<{ token:
         method: "POST",
         body: JSON.stringify({ token }),
       });
+      localStorage.removeItem(PENDING_INVITE_KEY);
       setStatus("joined");
       setMessage(
         res?.household_name ? `You've joined ${res.household_name}.` : "You've joined the household.",
@@ -43,7 +53,7 @@ export default function JoinHouseholdPage({ params }: { params: Promise<{ token:
   return (
     <div className="auth">
       <div className="auth-main">
-        <div className="auth-kicker">Mise en Place</div>
+        <div className="auth-kicker">Fornetto</div>
         <h1 className="auth-title-sm">Join a household</h1>
 
         {isPending ? (
@@ -51,7 +61,7 @@ export default function JoinHouseholdPage({ params }: { params: Promise<{ token:
         ) : !session ? (
           <>
             <p className="auth-lede text-muted">
-              You&rsquo;ve been invited to share a kitchen on Mise en Place. Sign in or create an
+              You&rsquo;ve been invited to share a kitchen on Fornetto. Sign in or create an
               account, then open this invite link again to join.
             </p>
             <hr className="auth-rule" />
@@ -96,7 +106,7 @@ export default function JoinHouseholdPage({ params }: { params: Promise<{ token:
           </>
         )}
       </div>
-      <div className="auth-foot">Mise en Place</div>
+      <div className="auth-foot">Fornetto</div>
     </div>
   );
 }

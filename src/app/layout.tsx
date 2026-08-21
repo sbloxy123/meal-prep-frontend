@@ -25,11 +25,11 @@ import "../styles/account.css";
 import "../styles/toast.css";
 
 export const metadata: Metadata = {
-  title: "Mise en Place",
+  title: "Fornetto",
   description: "The week's shopping, in order.",
   manifest: "/manifest.webmanifest",
   icons: { icon: "/icon-192.png", apple: "/apple-touch-icon.png" },
-  appleWebApp: { capable: true, title: "Mise en Place", statusBarStyle: "default" },
+  appleWebApp: { capable: true, title: "Fornetto", statusBarStyle: "default" },
 };
 
 export const viewport: Viewport = {

@@ -30,7 +30,7 @@ function ResetPasswordInner() {
             Send a new link
           </Link>
         </div>
-        <div className="auth-foot">Mise en Place</div>
+        <div className="auth-foot">Fornetto</div>
       </div>
     );
   }
@@ -113,7 +113,7 @@ function ResetPasswordInner() {
           </form>
         )}
       </div>
-      <div className="auth-foot">Mise en Place</div>
+      <div className="auth-foot">Fornetto</div>
     </div>
   );
 }

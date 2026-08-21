@@ -198,10 +198,12 @@
   align-items: flex-start;
 }
 .recipe-title {
-  font-family: var(--font-heading);
-  font-weight: var(--font-heading-weight);
-  font-size: 18px;
-  line-height: 1.15;
+  /* Lora (body serif) at a heavier weight — more legible when scanning a list
+     than the Cormorant display face used for one-off headings. */
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 16.5px;
+  line-height: 1.25;
   color: var(--color-text);
   text-decoration: none;
 }

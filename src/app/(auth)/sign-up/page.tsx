@@ -93,7 +93,7 @@ export default function SignUpPage() {
         </div>
       </div>
 
-      <div className="auth-foot">Mise en Place</div>
+      <div className="auth-foot">Fornetto</div>
     </div>
   );
 }
