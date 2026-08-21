@@ -10,6 +10,28 @@ import { useMenu, type Collection } from "@/lib/menu";
 
 const WORDMARK = "Fornetto";
 
+/** The Fornetto oven mark — gold dome, ink base + opening. Colours come from
+    the design tokens so it tracks the theme. */
+function FornettoMark({ size = 22 }: { size?: number }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 100 100" fill="none" aria-hidden focusable="false">
+      <path d="M14 86 V46 A36 36 0 0 1 86 46 V86" stroke="var(--color-accent)" strokeWidth="3.4" />
+      <path d="M6 86 H94" stroke="var(--color-text)" strokeWidth="3.4" strokeLinecap="square" />
+      <path d="M34 86 A16 16 0 0 1 66 86" stroke="var(--color-text)" strokeWidth="3.4" />
+    </svg>
+  );
+}
+
+/** Mobile-only top brand bar (the desktop rail is hidden below 1024px). */
+function MobileHeader() {
+  return (
+    <header className="mobile-header">
+      <FornettoMark size={20} />
+      <span>{WORDMARK}</span>
+    </header>
+  );
+}
+
 interface NavItem {
   href: string;
   label: string;
@@ -35,6 +57,7 @@ export function AppShell({ children }: { children: ReactNode }) {
     <div className="shell">
       <DesktopRail pathname={pathname} navItems={navItems} collections={menu.collections} />
       <div className="shell-main">
+        <MobileHeader />
         <div className="shell-page">{children}</div>
       </div>
       <MobileTabBar pathname={pathname} navItems={navItems} />
@@ -59,7 +82,10 @@ function DesktopRail({
 
   return (
     <aside className="rail" aria-label="Primary">
-      <div className="rail-wordmark">{WORDMARK}</div>
+      <div className="rail-wordmark">
+        <FornettoMark size={22} />
+        <span>{WORDMARK}</span>
+      </div>
 
       <hr className="rail-divider" />
 

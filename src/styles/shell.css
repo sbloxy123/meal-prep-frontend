@@ -26,6 +26,28 @@
   min-width: 0;
 }
 
+/* Mobile-only top brand bar (rail is hidden < 1024px). */
+.mobile-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 52px;
+  border-bottom: 1px solid var(--color-divider);
+  background: var(--color-bg);
+  font-family: var(--font-heading);
+  font-weight: var(--font-heading-weight);
+  font-size: 19px;
+  position: sticky;
+  top: 0;
+  z-index: 30;
+}
+@media (min-width: 1024px) {
+  .mobile-header {
+    display: none;
+  }
+}
+
 /* ── Desktop left rail (≥1024px) ───────────────────────────────────────── */
 
 .rail {
@@ -33,6 +55,9 @@
 }
 
 .rail-wordmark {
+  display: flex;
+  align-items: center;
+  gap: 9px;
   font-family: var(--font-heading);
   font-weight: var(--font-heading-weight);
   font-size: 20px;
