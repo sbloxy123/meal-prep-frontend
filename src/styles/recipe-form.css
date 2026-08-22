@@ -6,6 +6,10 @@
   flex-direction: column;
   min-height: 100%;
 }
+/* "Import from a link" box above the new-recipe form; aligns to the form gutters. */
+.rf-import {
+  padding: 16px 20px 0;
+}
 .rf-head {
   display: flex;
   align-items: flex-end;
