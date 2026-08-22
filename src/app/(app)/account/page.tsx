@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { authClient, signOut, useSession } from "@/lib/auth-client";
 import { PageHeader } from "@/components/page-header";
 import { HouseholdCard } from "@/components/household-card";
+import { PreferencesCard } from "@/components/preferences-card";
 import { useModalA11y } from "@/lib/use-modal";
 
 function formatJoined(value?: string | Date | null) {
@@ -39,6 +40,7 @@ export default function AccountPage() {
         ) : (
           <>
             <ProfileCard key={user.id} name={user.name ?? ""} email={user.email} joined={formatJoined(user.createdAt)} />
+            <PreferencesCard />
             <HouseholdCard />
             <PasswordCard />
             <DangerCard />
