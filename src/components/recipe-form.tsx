@@ -115,8 +115,8 @@ export function RecipeForm({ mode, recipeId, initial = {} }: RecipeFormProps) {
           servings: servings.trim() ? Number(servings) : undefined,
           ingredients: rows.map((r) => ({
             name: r.name.trim(),
-            quantity: r.quantity.trim() ? Number(r.quantity) : 0,
-            unit: r.unit.trim(),
+            quantity: r.quantity.trim() || undefined,
+            unit: r.unit.trim() || undefined,
           })),
         }),
       });
