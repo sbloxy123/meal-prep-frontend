@@ -6,8 +6,12 @@
   flex-direction: column;
   min-height: 100%;
 }
-/* "Import from a link" box above the new-recipe form; aligns to the form gutters. */
+/* "Import from a link" / "Generate from a title" boxes above the new-recipe
+   form; aligns to the form gutters. */
 .rf-import {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
   padding: 16px 20px 0;
 }
 .rf-head {
