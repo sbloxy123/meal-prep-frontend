@@ -19,6 +19,7 @@ interface SharedRecipe {
 
 type State =
   | { status: "loading" }
+  | { status: "needauth" }
   | { status: "notfound" }
   | { status: "error"; message: string }
   | { status: "ready"; recipe: SharedRecipe };
@@ -30,7 +31,24 @@ export default function SharedRecipePage() {
   const [state, setState] = useState<State>({ status: "loading" });
   const [saving, setSaving] = useState(false);
 
+  // The preview endpoint is auth-guarded, so a logged-out recipient can't fetch
+  // it. Stash the token and route them through sign-in; PendingShare then copies
+  // the recipe on their first authenticated load.
+  function stashAndSignIn() {
+    try {
+      localStorage.setItem(PENDING_SHARE_KEY, token);
+    } catch {
+      /* ignore */
+    }
+    router.push("/sign-in");
+  }
+
   useEffect(() => {
+    if (isPending) return;
+    if (!session) {
+      setState({ status: "needauth" });
+      return;
+    }
     let cancelled = false;
     apiFetch<SharedRecipe>(`/shared-recipe/${token}`)
       .then((recipe) => {
@@ -39,26 +57,16 @@ export default function SharedRecipePage() {
       .catch((err) => {
         if (cancelled) return;
         if (err instanceof ApiError && err.status === 404) setState({ status: "notfound" });
+        else if (err instanceof ApiError && err.status === 401) setState({ status: "needauth" });
         else setState({ status: "error", message: "Couldn’t load this recipe." });
       });
     return () => {
       cancelled = true;
     };
-  }, [token]);
+  }, [token, session, isPending]);
 
   async function save() {
     if (saving) return;
-    // Not signed in → stash the token and route through sign-in; PendingShare
-    // completes the copy on the first authenticated load.
-    if (!isPending && !session) {
-      try {
-        localStorage.setItem(PENDING_SHARE_KEY, token);
-      } catch {
-        /* ignore */
-      }
-      router.push("/sign-in");
-      return;
-    }
     setSaving(true);
     try {
       const res = await apiFetch<{ id: number }>(`/shared-recipe/${token}/save`, { method: "POST" });
@@ -73,6 +81,19 @@ export default function SharedRecipePage() {
     return (
       <div className="page-body">
         <p className="text-muted">Loading recipe…</p>
+      </div>
+    );
+  }
+  if (state.status === "needauth") {
+    return (
+      <div className="page-body" style={{ textAlign: "center", marginTop: 40 }}>
+        <h3 style={{ fontWeight: 400 }}>A recipe has been shared with you</h3>
+        <p className="text-muted" style={{ fontSize: 14 }}>
+          Sign in or create a free account to view it and save it to your recipes.
+        </p>
+        <button type="button" className="btn btn-primary" style={{ marginTop: 8 }} onClick={stashAndSignIn}>
+          Sign in to view
+        </button>
       </div>
     );
   }
