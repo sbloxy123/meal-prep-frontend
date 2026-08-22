@@ -49,6 +49,12 @@ export function StarterRecipes({
             ingredient_name: r.ingredients,
             ingredient_quantity: r.ingredients.map(() => 0),
             ingredient_unit: r.ingredients.map(() => ""),
+            servings: r.servings,
+            calories: r.calories,
+            protein_g: r.protein_g,
+            carb_g: r.carb_g,
+            fat_g: r.fat_g,
+            macros_source: "estimated",
           }),
         });
       }
