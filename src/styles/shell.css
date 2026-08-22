@@ -202,6 +202,42 @@
   letter-spacing: 0.04em;
 }
 
+/* iOS "Add to Home Screen" hint — a dismissible one-liner (iOS Safari has no
+   install prompt). Hidden on desktop. */
+.ios-install {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 10px 16px 0;
+  padding: 10px 12px;
+  border: 1px solid var(--color-accent-300);
+  border-radius: var(--radius-md);
+  background: var(--color-accent-100);
+  font-size: 13px;
+  color: var(--color-text);
+}
+.ios-install-text {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+.ios-install-close {
+  flex: none;
+  background: none;
+  border: 0;
+  cursor: pointer;
+  color: inherit;
+  padding: 2px;
+  line-height: 0;
+}
+@media (min-width: 1024px) {
+  .ios-install {
+    display: none;
+  }
+}
+
 /* Page body — the padded region below the header. Matches the design's inner
    gutters (mobile 14/20, desktop 20/32). */
 .page-body {
