@@ -262,6 +262,17 @@
   margin: 0;
 }
 
+/* Mobile: the form shares `.rf { min-height: 100% }` to pin the footer to the
+   bottom, but on the new-recipe page the import box sits above it as a sibling,
+   pushing the min-height:100% form (and its footer) down past the tab-bar space
+   `.shell-main` already reserves — so the Save button hid behind the tab bar.
+   Let the form be content-height on mobile; the shell's padding then clears it. */
+@media (max-width: 1023px) {
+  .rf {
+    min-height: auto;
+  }
+}
+
 @media (min-width: 1024px) {
   .rf-head {
     padding: 26px 32px 18px;
