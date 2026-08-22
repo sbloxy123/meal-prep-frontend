@@ -19,7 +19,6 @@ interface SharedRecipe {
 
 type State =
   | { status: "loading" }
-  | { status: "needauth" }
   | { status: "notfound" }
   | { status: "error"; message: string }
   | { status: "ready"; recipe: SharedRecipe };
@@ -43,12 +42,10 @@ export default function SharedRecipePage() {
     router.push("/sign-in");
   }
 
+  // Only the authenticated fetch lives in the effect; the "needs auth" case is
+  // derived in render (below) so there's no synchronous setState here.
   useEffect(() => {
-    if (isPending) return;
-    if (!session) {
-      setState({ status: "needauth" });
-      return;
-    }
+    if (isPending || !session) return;
     let cancelled = false;
     apiFetch<SharedRecipe>(`/shared-recipe/${token}`)
       .then((recipe) => {
@@ -57,7 +54,6 @@ export default function SharedRecipePage() {
       .catch((err) => {
         if (cancelled) return;
         if (err instanceof ApiError && err.status === 404) setState({ status: "notfound" });
-        else if (err instanceof ApiError && err.status === 401) setState({ status: "needauth" });
         else setState({ status: "error", message: "Couldn’t load this recipe." });
       });
     return () => {
@@ -77,14 +73,7 @@ export default function SharedRecipePage() {
     }
   }
 
-  if (state.status === "loading") {
-    return (
-      <div className="page-body">
-        <p className="text-muted">Loading recipe…</p>
-      </div>
-    );
-  }
-  if (state.status === "needauth") {
+  if (!isPending && !session) {
     return (
       <div className="page-body" style={{ textAlign: "center", marginTop: 40 }}>
         <h3 style={{ fontWeight: 400 }}>A recipe has been shared with you</h3>
@@ -94,6 +83,13 @@ export default function SharedRecipePage() {
         <button type="button" className="btn btn-primary" style={{ marginTop: 8 }} onClick={stashAndSignIn}>
           Sign in to view
         </button>
+      </div>
+    );
+  }
+  if (state.status === "loading") {
+    return (
+      <div className="page-body">
+        <p className="text-muted">Loading recipe…</p>
       </div>
     );
   }
