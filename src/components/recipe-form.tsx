@@ -97,6 +97,13 @@ export function RecipeForm({ mode, recipeId, initial = {} }: RecipeFormProps) {
 
   const canEstimate = title.trim() !== "" && ingredients.some((r) => r.name.trim());
 
+  // Estimates from sparse data — no serving count, or half+ of the ingredients
+  // with no amount — are rougher, so we flag it when the numbers are estimated.
+  const namedRows = ingredients.filter((r) => r.name.trim());
+  const missingQty = namedRows.filter((r) => !r.quantity.trim()).length;
+  const estimateIsRough =
+    servings.trim() === "" || (namedRows.length > 0 && missingQty / namedRows.length >= 0.5);
+
   async function estimateMacros() {
     if (estimating || !canEstimate) return;
     setEstimating(true);
@@ -417,6 +424,12 @@ export function RecipeForm({ mode, recipeId, initial = {} }: RecipeFormProps) {
         </button>
         {!canEstimate && (
           <p className="rf-hint text-muted">Add a title and at least one ingredient to estimate.</p>
+        )}
+        {macrosSource === "estimated" && estimateIsRough && (
+          <p className="rf-hint text-muted">
+            Estimated — treat as a rough guide. Add serving size and ingredient amounts for a closer
+            figure.
+          </p>
         )}
         {estimateError && (
           <p className="rf-error" role="alert">
