@@ -125,9 +125,16 @@ export default function RecipeDetailPage() {
   const steps = parseInstructions(recipe.instructions);
 
   const metaParts: string[] = [];
+  if (recipe.servings != null) metaParts.push(`Serves ${recipe.servings}`);
   if (recipe.prep_time_minutes != null) metaParts.push(`Prep ${recipe.prep_time_minutes} min`);
   if (recipe.cook_time_minutes != null) metaParts.push(`Cook ${recipe.cook_time_minutes} min`);
   metaParts.push(`${ingredients.length} ingredient${ingredients.length === 1 ? "" : "s"}`);
+
+  const macros: string[] = [];
+  if (recipe.calories != null) macros.push(`${recipe.calories} kcal`);
+  if (recipe.protein_g != null) macros.push(`P ${recipe.protein_g}g`);
+  if (recipe.carb_g != null) macros.push(`C ${recipe.carb_g}g`);
+  if (recipe.fat_g != null) macros.push(`F ${recipe.fat_g}g`);
 
   const author = menu.householdShared
     ? attributionLabel(recipe.created_by_name, recipe.user_id, session?.user.id)
@@ -166,6 +173,18 @@ export default function RecipeDetailPage() {
       </div>
 
       <div className="detail-body">
+        {macros.length > 0 && (
+          <div className="detail-macros">
+            <span className="detail-macros-label">Per serving</span>
+            {macros.map((m) => (
+              <span key={m}>{m}</span>
+            ))}
+            {recipe.macros_source === "estimated" && (
+              <span className="tag tag-outline detail-macros-est">Estimated</span>
+            )}
+          </div>
+        )}
+
         {recipe.description && <p className="detail-para" style={{ textAlign: "left" }}>{recipe.description}</p>}
 
         <h6 style={{ margin: 0 }}>Ingredients</h6>

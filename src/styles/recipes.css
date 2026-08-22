@@ -222,6 +222,14 @@
   margin-top: 6px;
 }
 
+/* Nutrition (Feature 2) — compact calories line on cards. */
+.recipe-macros {
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-neutral-600);
+  margin-top: 2px;
+}
+
 .recipe-fav {
   flex: none;
   margin-top: 3px;
@@ -354,6 +362,29 @@
   font-size: 12px;
   font-variant-numeric: tabular-nums;
   color: color-mix(in srgb, var(--color-text) 55%, transparent);
+}
+/* Nutrition (Feature 2) — per-serving macros block on the detail page. */
+.detail-macros {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+  padding: 10px 12px;
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-md);
+}
+.detail-macros-label {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--color-text) 55%, transparent);
+}
+.detail-macros-est {
+  margin-left: auto;
+  font-size: 10px;
+  letter-spacing: 0.04em;
 }
 .detail-body {
   padding: 14px 20px;

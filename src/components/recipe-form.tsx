@@ -20,7 +20,15 @@ export interface RecipeFormInitial {
   collections?: string[];
   image_url?: string | null;
   image_public_id?: string | null;
+  servings?: number | null;
+  calories?: number | null;
+  protein_g?: number | null;
+  carb_g?: number | null;
+  fat_g?: number | null;
+  macros_source?: MacrosSource | null;
 }
+
+type MacrosSource = "manual" | "imported" | "estimated";
 
 interface RecipeFormProps {
   mode: "create" | "edit";
@@ -29,6 +37,11 @@ interface RecipeFormProps {
 }
 
 type IngredientRow = { name: string; quantity: string; unit: string };
+
+// Postgres numeric / possibly-null macro value → the string an <input> wants.
+function numToInput(n: number | null | undefined): string {
+  return n == null ? "" : String(n);
+}
 
 export function RecipeForm({ mode, recipeId, initial = {} }: RecipeFormProps) {
   const router = useRouter();
@@ -49,6 +62,14 @@ export function RecipeForm({ mode, recipeId, initial = {} }: RecipeFormProps) {
   const [photo, setPhoto] = useState<RecipePhoto | null>(
     initial.image_url ? { url: initial.image_url, publicId: initial.image_public_id ?? "" } : null,
   );
+  const [servings, setServings] = useState(initial.servings?.toString() ?? "");
+  const [calories, setCalories] = useState(numToInput(initial.calories));
+  const [protein, setProtein] = useState(numToInput(initial.protein_g));
+  const [carb, setCarb] = useState(numToInput(initial.carb_g));
+  const [fat, setFat] = useState(numToInput(initial.fat_g));
+  const [macrosSource, setMacrosSource] = useState<MacrosSource | null>(initial.macros_source ?? null);
+  const [estimating, setEstimating] = useState(false);
+  const [estimateError, setEstimateError] = useState("");
 
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState<Record<string, string[]>>({});
@@ -68,6 +89,53 @@ export function RecipeForm({ mode, recipeId, initial = {} }: RecipeFormProps) {
     setIngredients((prev) => prev.filter((_, idx) => idx !== i));
   }
 
+  // A hand-typed macro means the numbers are the user's own, not an estimate.
+  function editMacro(setter: (v: string) => void, value: string) {
+    setter(value);
+    setMacrosSource("manual");
+  }
+
+  const canEstimate = title.trim() !== "" && ingredients.some((r) => r.name.trim());
+
+  async function estimateMacros() {
+    if (estimating || !canEstimate) return;
+    setEstimating(true);
+    setEstimateError("");
+    const rows = ingredients.filter((r) => r.name.trim());
+    try {
+      const res = await apiFetch<{
+        calories: number | null;
+        protein_g: number | null;
+        carb_g: number | null;
+        fat_g: number | null;
+      }>("/recipes/estimate-macros", {
+        method: "POST",
+        body: JSON.stringify({
+          title: title.trim(),
+          servings: servings.trim() ? Number(servings) : undefined,
+          ingredients: rows.map((r) => ({
+            name: r.name.trim(),
+            quantity: r.quantity.trim() ? Number(r.quantity) : 0,
+            unit: r.unit.trim(),
+          })),
+        }),
+      });
+      setCalories(numToInput(res.calories));
+      setProtein(numToInput(res.protein_g));
+      setCarb(numToInput(res.carb_g));
+      setFat(numToInput(res.fat_g));
+      setMacrosSource("estimated");
+    } catch (err) {
+      setEstimateError(
+        err instanceof ApiError && err.status === 429
+          ? "Estimate limit reached — 20 per 6 hours. Try again later."
+          : "Couldn’t estimate macros. Please try again.",
+      );
+    } finally {
+      setEstimating(false);
+    }
+  }
+
   function addCollection(name: string) {
     const value = name.trim();
     if (value && !collections.includes(value)) setCollections((prev) => [...prev, value]);
@@ -82,6 +150,7 @@ export function RecipeForm({ mode, recipeId, initial = {} }: RecipeFormProps) {
     setFormError("");
 
     const rows = ingredients.filter((r) => r.name.trim());
+    const hasMacros = [calories, protein, carb, fat].some((v) => v.trim());
     const body: Record<string, unknown> = {
       recipe_title: title.trim(),
       recipe_description: description.trim() || undefined,
@@ -95,6 +164,12 @@ export function RecipeForm({ mode, recipeId, initial = {} }: RecipeFormProps) {
       tags: collections,
       image_url: photo?.url,
       image_public_id: photo?.publicId,
+      servings: servings.trim() ? Number(servings) : undefined,
+      calories: calories.trim() ? Number(calories) : undefined,
+      protein_g: protein.trim() ? Number(protein) : undefined,
+      carb_g: carb.trim() ? Number(carb) : undefined,
+      fat_g: fat.trim() ? Number(fat) : undefined,
+      macros_source: hasMacros ? macrosSource ?? "manual" : undefined,
     };
 
     try {
@@ -196,6 +271,16 @@ export function RecipeForm({ mode, recipeId, initial = {} }: RecipeFormProps) {
               onChange={(e) => setCook(e.target.value)}
             />
           </div>
+          <div className="field">
+            <label htmlFor="rf-servings">Serves</label>
+            <input
+              id="rf-servings"
+              className="input"
+              inputMode="numeric"
+              value={servings}
+              onChange={(e) => setServings(e.target.value)}
+            />
+          </div>
         </div>
 
         <div className="field">
@@ -269,6 +354,75 @@ export function RecipeForm({ mode, recipeId, initial = {} }: RecipeFormProps) {
         <button type="button" className="btn btn-secondary rf-add-ing" onClick={addIngredient}>
           Add ingredient
         </button>
+
+        <hr className="rf-divider" />
+
+        <div className="rf-section-head">
+          <h6>Nutrition</h6>
+          <span className="rf-section-rule" />
+          {macrosSource === "estimated" && <span className="tag tag-outline rf-macros-tag">Estimated</span>}
+        </div>
+        <p className="rf-hint text-muted" style={{ marginTop: -4 }}>
+          Per serving. Enter your own, or estimate from the ingredients above.
+        </p>
+        <div className="rf-macros">
+          <div className="field">
+            <label htmlFor="rf-cal">Calories</label>
+            <input
+              id="rf-cal"
+              className="input"
+              inputMode="numeric"
+              value={calories}
+              onChange={(e) => editMacro(setCalories, e.target.value)}
+            />
+          </div>
+          <div className="field">
+            <label htmlFor="rf-protein">Protein (g)</label>
+            <input
+              id="rf-protein"
+              className="input"
+              inputMode="decimal"
+              value={protein}
+              onChange={(e) => editMacro(setProtein, e.target.value)}
+            />
+          </div>
+          <div className="field">
+            <label htmlFor="rf-carb">Carbs (g)</label>
+            <input
+              id="rf-carb"
+              className="input"
+              inputMode="decimal"
+              value={carb}
+              onChange={(e) => editMacro(setCarb, e.target.value)}
+            />
+          </div>
+          <div className="field">
+            <label htmlFor="rf-fat">Fat (g)</label>
+            <input
+              id="rf-fat"
+              className="input"
+              inputMode="decimal"
+              value={fat}
+              onChange={(e) => editMacro(setFat, e.target.value)}
+            />
+          </div>
+        </div>
+        <button
+          type="button"
+          className="btn btn-secondary rf-estimate"
+          onClick={estimateMacros}
+          disabled={estimating || !canEstimate}
+        >
+          {estimating ? "Estimating…" : "Estimate macros"}
+        </button>
+        {!canEstimate && (
+          <p className="rf-hint text-muted">Add a title and at least one ingredient to estimate.</p>
+        )}
+        {estimateError && (
+          <p className="rf-error" role="alert">
+            {estimateError}
+          </p>
+        )}
 
         <hr className="rf-divider" />
 

@@ -33,6 +33,12 @@ export default function EditRecipePage() {
             link_url: r.link_url,
             prep_time_minutes: r.prep_time_minutes,
             cook_time_minutes: r.cook_time_minutes,
+            servings: r.servings,
+            calories: r.calories,
+            protein_g: r.protein_g,
+            carb_g: r.carb_g,
+            fat_g: r.fat_g,
+            macros_source: r.macros_source,
             ingredients: (r.recipe_ingredients ?? []).map((ing) => ({
               name: ing.name,
               quantity: ing.quantity == null ? "" : String(Number(ing.quantity) || ""),

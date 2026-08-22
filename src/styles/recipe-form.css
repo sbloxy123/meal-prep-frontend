@@ -109,6 +109,25 @@
   align-self: flex-start;
 }
 
+/* Nutrition (Feature 2) — per-serving macro inputs + estimate action. */
+.rf-macros {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+@media (min-width: 640px) {
+  .rf-macros {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+.rf-estimate {
+  align-self: flex-start;
+}
+.rf-macros-tag {
+  font-size: 10px;
+  letter-spacing: 0.04em;
+}
+
 .rf-collections {
   display: flex;
   gap: 6px;

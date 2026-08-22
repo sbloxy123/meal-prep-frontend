@@ -68,6 +68,12 @@ export function RecipeCard({
           </div>
         )}
 
+        {recipe.calories != null && (
+          <div className="recipe-macros">
+            {recipe.calories} kcal{recipe.servings != null ? "/serving" : ""}
+          </div>
+        )}
+
         {author && <div className="recipe-by">Added by {author}</div>}
 
         {onMenu ? (

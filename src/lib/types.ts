@@ -18,6 +18,15 @@ export interface Recipe {
   // account deletion); only surfaced in shared households.
   user_id?: string | null;
   created_by_name?: string | null;
+  // Nutrition (Feature 2) — per-serving macros; optional so the app works before
+  // the migration. `macros_source` records where the numbers came from so estimates
+  // can be labelled as rough.
+  servings?: number | null;
+  calories?: number | null;
+  protein_g?: number | null;
+  carb_g?: number | null;
+  fat_g?: number | null;
+  macros_source?: "manual" | "imported" | "estimated" | null;
 }
 
 export interface Tag {
