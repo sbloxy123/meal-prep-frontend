@@ -3,12 +3,13 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { Star, ChevronLeft } from "lucide-react";
+import { Star, ChevronLeft, Share2 } from "lucide-react";
 import { RecipeImage } from "@/components/recipe-image";
 import { ApiError, apiFetch, apiSend } from "@/lib/api";
 import type { RecipeDetail } from "@/lib/types";
 import { parseInstructions } from "@/lib/instructions";
 import { useMenu } from "@/lib/menu";
+import { useToast } from "@/lib/toast";
 import { useSession } from "@/lib/auth-client";
 import { attributionLabel } from "@/lib/who";
 
@@ -32,8 +33,10 @@ export default function RecipeDetailPage() {
   const params = useParams<{ id: string }>();
   const id = params.id;
   const menu = useMenu();
+  const toast = useToast();
   const { data: session } = useSession();
   const [state, setState] = useState<LoadState>({ status: "loading" });
+  const [sharing, setSharing] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -64,6 +67,28 @@ export default function RecipeDetailPage() {
           : cur,
       );
     });
+  }
+
+  async function share() {
+    if (sharing) return;
+    setSharing(true);
+    try {
+      const { token } = await apiFetch<{ token: string }>(`/recipes/${id}/share`, { method: "POST" });
+      const url = `${window.location.origin}/shared/${token}`;
+      const nav = window.navigator as Navigator & { share?: (d: ShareData) => Promise<void> };
+      if (nav.share) {
+        await nav.share({ title: state.status === "ready" ? state.recipe.title : "Recipe", url });
+      } else {
+        await navigator.clipboard.writeText(url);
+        toast.show("Share link copied");
+      }
+    } catch (err) {
+      // User dismissing the native share sheet throws AbortError — ignore that.
+      if (err instanceof DOMException && err.name === "AbortError") return;
+      toast.show("Couldn’t create a share link");
+    } finally {
+      setSharing(false);
+    }
   }
 
   const backLink = (
@@ -238,6 +263,15 @@ export default function RecipeDetailPage() {
           onClick={() => toggleFavorite(!recipe.favorite)}
         >
           <Star size={18} fill={recipe.favorite ? "currentColor" : "none"} aria-hidden />
+        </button>
+        <button
+          type="button"
+          className="btn btn-secondary btn-icon detail-share"
+          aria-label="Share recipe"
+          onClick={share}
+          disabled={sharing}
+        >
+          <Share2 size={18} aria-hidden />
         </button>
         <button
           type="button"

@@ -6,6 +6,7 @@ import { useSession } from "@/lib/auth-client";
 import { AppShell } from "@/components/app-shell";
 import { IosInstallHint } from "@/components/ios-install-hint";
 import { PendingInvite } from "@/components/pending-invite";
+import { PendingShare } from "@/components/pending-share";
 import { MenuProvider } from "@/lib/menu";
 import { ToastProvider } from "@/lib/toast";
 
@@ -25,6 +26,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
     <MenuProvider>
       <ToastProvider>
         <PendingInvite />
+        <PendingShare />
         <AppShell>
           <IosInstallHint />
           {children}
