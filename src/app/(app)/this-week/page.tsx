@@ -112,7 +112,11 @@ function WeekRow({
     <div className="week-item">
       <div className="week-item-main">
         <div className="week-item-title">{recipe.title}</div>
-        {addedBy && <div className="week-item-by text-muted">Added by {addedBy}</div>}
+        {addedBy && (
+          <div className="week-item-by text-muted">
+            {addedBy === "you" ? "You" : addedBy} added this to the menu
+          </div>
+        )}
         {recipe.summary && (
           <div className="week-item-summary text-muted">{recipe.summary}</div>
         )}

@@ -4,9 +4,6 @@ import Link from "next/link";
 import { Star } from "lucide-react";
 import type { Recipe } from "@/lib/types";
 import { RecipeImage } from "@/components/recipe-image";
-import { useMenu } from "@/lib/menu";
-import { useSession } from "@/lib/auth-client";
-import { attributionLabel } from "@/lib/who";
 
 interface RecipeCardProps {
   recipe: Recipe;
@@ -31,11 +28,6 @@ export function RecipeCard({
 }: RecipeCardProps) {
   const href = `/recipes/${recipe.id}`;
   const onMenu = isOnMenu ?? recipe.is_on_menu;
-  const { householdShared } = useMenu();
-  const { data: session } = useSession();
-  const author = householdShared
-    ? attributionLabel(recipe.created_by_name, recipe.user_id, session?.user.id)
-    : null;
   return (
     <article className={`recipe${onMenu ? " recipe--on-menu" : ""}`}>
       <Link href={href} className="recipe-photo" aria-label={recipe.title}>
@@ -73,8 +65,6 @@ export function RecipeCard({
             {recipe.calories} kcal{recipe.servings != null ? "/serving" : ""}
           </div>
         )}
-
-        {author && <div className="recipe-by">Added by {author}</div>}
 
         {onMenu ? (
           <div className="recipe-onmenu">
