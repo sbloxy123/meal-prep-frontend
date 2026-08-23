@@ -307,6 +307,9 @@
 .admin-bar-seg--generate {
   background: var(--color-accent-700);
 }
+.admin-bar-seg--photo {
+  background: var(--color-accent-800);
+}
 .admin-bar-empty {
   height: 1px;
   background: var(--color-divider);

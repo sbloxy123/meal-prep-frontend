@@ -80,7 +80,7 @@ export interface AdminTotals {
   activeUsers7d?: number;
   activeUsers30d?: number;
   recipes?: number;
-  aiCalls?: { import?: number; estimate?: number; generate?: number; total?: number } | null;
+  aiCalls?: { import?: number; estimate?: number; generate?: number; photo?: number; total?: number } | null;
   shares?: number;
   households?: number;
   multiMemberHouseholds?: number;
@@ -119,7 +119,7 @@ export interface AdminUserRow {
   household_name?: string | null;
   household_member_count?: number | null;
   recipe_count?: number;
-  ai_usage?: { import?: number; estimate?: number; generate?: number; total?: number } | null;
+  ai_usage?: { import?: number; estimate?: number; generate?: number; photo?: number; total?: number } | null;
   shares_created?: number | null;
   week_adds?: number | null;
   lists_generated?: number | null;

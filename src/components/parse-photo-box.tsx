@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Camera, X } from "lucide-react";
+import { Camera, Images, X } from "lucide-react";
 import { ApiError, apiFetch } from "@/lib/api";
 import { fileToDownscaledBase64 } from "@/lib/image";
 import type { RecipeFormInitial } from "@/components/recipe-form";
@@ -20,6 +20,10 @@ interface Photo {
 // (multi-second) call runs, and failures surface inline, distinguished by status
 // (429 = rate limit, no retry; 400 = unreadable photo). Photos are downscaled in
 // the browser, sent as base64, and discarded — nothing is stored.
+//
+// Two separate triggers: "Take photo" uses capture="environment" to open the
+// camera directly (Android's photo picker for a plain file input has no camera),
+// and "Choose photos" opens the gallery/library with multi-select.
 export function ParsePhotoBox({
   onParsed,
 }: {
@@ -28,7 +32,6 @@ export function ParsePhotoBox({
   const [photos, setPhotos] = useState<Photo[]>([]);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<{ message: string; retry: boolean } | null>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
 
   // Revoke any outstanding object URLs on unmount (add/remove/clear revoke as
   // they go; this covers navigating away with photos still selected). The ref is
@@ -39,7 +42,8 @@ export function ParsePhotoBox({
   }, [photos]);
   useEffect(() => () => photosRef.current.forEach((p) => URL.revokeObjectURL(p.url)), []);
 
-  function addFiles(list: FileList | null) {
+  function addFiles(input: HTMLInputElement) {
+    const list = input.files;
     if (!list || list.length === 0) return;
     setError(null);
     setPhotos((prev) => {
@@ -52,7 +56,7 @@ export function ParsePhotoBox({
       combined.slice(MAX_PHOTOS).forEach((p) => URL.revokeObjectURL(p.url));
       return combined.slice(0, MAX_PHOTOS);
     });
-    if (inputRef.current) inputRef.current.value = ""; // let the same file be picked again
+    input.value = ""; // let the same file be picked again
   }
 
   function removeAt(index: number) {
@@ -96,12 +100,40 @@ export function ParsePhotoBox({
   }
 
   const atLimit = photos.length >= MAX_PHOTOS;
+  const disabled = pending || atLimit;
 
   return (
     <div className="ai-box">
       <div className="ai-head">
         <Camera size={14} color="var(--color-accent)" aria-hidden />
         <span className="ai-label">Take a photo</span>
+      </div>
+
+      <div className="ai-photo-triggers">
+        <label className="btn btn-secondary" data-disabled={disabled || undefined}>
+          <Camera size={15} aria-hidden style={{ marginRight: 6 }} />
+          Take photo
+          <input
+            type="file"
+            accept="image/*"
+            capture="environment"
+            hidden
+            onChange={(e) => addFiles(e.currentTarget)}
+            disabled={disabled}
+          />
+        </label>
+        <label className="btn btn-secondary" data-disabled={disabled || undefined}>
+          <Images size={15} aria-hidden style={{ marginRight: 6 }} />
+          Choose photos
+          <input
+            type="file"
+            accept="image/*"
+            multiple
+            hidden
+            onChange={(e) => addFiles(e.currentTarget)}
+            disabled={disabled}
+          />
+        </label>
       </div>
 
       {photos.length > 0 && (
@@ -144,21 +176,6 @@ export function ParsePhotoBox({
             ? "Maximum 4 photos."
             : "Snap a cookbook page (or both pages of a spread) — we’ll fill in the details below for you to review."}
         </span>
-        <label
-          className="btn btn-secondary"
-          style={{ height: 34, flex: "none", cursor: pending || atLimit ? "not-allowed" : "pointer" }}
-        >
-          {photos.length > 0 ? "Add more" : "Add photos"}
-          <input
-            ref={inputRef}
-            type="file"
-            accept="image/*"
-            multiple
-            hidden
-            onChange={(e) => addFiles(e.target.files)}
-            disabled={pending || atLimit}
-          />
-        </label>
         <button
           type="button"
           className="btn btn-primary"
