@@ -236,14 +236,14 @@ export function MarketingInstallButton() {
           Install app
         </button>
         <span className="text-muted home-install-sub">
-          Works on iPhone and Android
+          Works on iPhone, Android and desktop
         </span>
       </div>
       {hint && (
         <p className="text-muted home-install-hint">
           {hint === "ios"
-            ? "On iPhone or iPad: tap the Share button in Safari, then choose “Add to Home Screen”."
-            : "If nothing pops up, open your browser menu and choose “Install app” (or “Add to Home Screen”)."}
+            ? "On iPhone or iPad: tap the Share button in Safari, then choose “Add to Home Screen”. On a Mac, Safari’s Share menu has “Add to Dock”."
+            : "If nothing pops up, use your browser’s install icon in the address bar (Chrome or Edge on desktop), or open its menu and choose “Install app” / “Add to Home Screen”."}
         </p>
       )}
     </div>

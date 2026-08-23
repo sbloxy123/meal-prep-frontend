@@ -373,6 +373,15 @@ export function MarketingHome() {
               </AiIcon>
             </AiCard>
             <AiCard
+              title="Save it from a reel"
+              body="Half the good stuff lives on Instagram, TikTok and YouTube now. Paste the link and Fornetto reads the recipe out of the caption — or paste the caption yourself when the app won't share it."
+            >
+              <AiIcon>
+                <rect x="3" y="5" width="18" height="14" rx="3" />
+                <path d="M11 9.5l4.5 2.5-4.5 2.5z" />
+              </AiIcon>
+            </AiCard>
+            <AiCard
               title="Photograph a page"
               body="The good recipes are usually in a battered cookbook on the shelf. Take a photo of the page and it reads the ingredients and method straight off it."
             >
@@ -389,18 +398,6 @@ export function MarketingHome() {
             >
               <AiIcon>
                 <path d="M12 3v4M12 17v4M4.5 12h4M15.5 12h4M6.5 6.5l2.8 2.8M14.7 14.7l2.8 2.8M17.5 6.5l-2.8 2.8M9.3 14.7l-2.8 2.8" />
-              </AiIcon>
-            </AiCard>
-            <AiCard
-              title="Brain-dump the rest"
-              body={
-                "“milk, kitchen roll, 2 tins chopped toms, coffee” — one messy line, split into tidy separate items on your list."
-              }
-            >
-              <AiIcon>
-                <path d="M8 6h12M8 12h12M8 18h12" />
-                <path d="m3.5 6 1.2 1.2L7 5" />
-                <path d="m3.5 12 1.2 1.2L7 11" />
               </AiIcon>
             </AiCard>
           </div>
@@ -451,6 +448,12 @@ export function MarketingHome() {
             </div>
           </div>
           <div className="home-features-grid">
+            <Feature
+              title="Brain-dump your list"
+              body={
+                "“milk, kitchen roll, 2 tins chopped toms, coffee” — one messy line, split into tidy separate items on your list."
+              }
+            />
             <Feature
               title="One list for the household"
               body="Invite whoever you live with. Same recipes, same week, same list — updating live on everyone's phone."
@@ -508,6 +511,34 @@ export function MarketingHome() {
         </div>
       </section>
 
+      {/* ── On your desktop ───────────────────────────────────── */}
+      <section className="home-band">
+        <div className="home-container home-desktop">
+          <div className="home-desktop-frame">
+            <Image
+              src="/home-desktop.png"
+              alt="Fornetto on desktop — the shopping list, recipes and your own items side by side"
+              width={1437}
+              height={701}
+              className="home-desktop-shot"
+            />
+          </div>
+          <div className="home-desktop-copy">
+            <div className="home-kicker">On your desktop</div>
+            <h2 className="home-desktop-title home-h2-lg">
+              Just as at home on a big screen
+            </h2>
+            <p className="home-desktop-lead">
+              Rather plan with a laptop and a coffee? Fornetto runs exactly the
+              same in the browser — pick the week&rsquo;s recipes, build the list
+              and manage everything with room to spread out. It all stays in sync
+              with your phone, so you can plan on the sofa and shop from your
+              pocket.
+            </p>
+          </div>
+        </div>
+      </section>
+
       {/* ── Questions ─────────────────────────────────────────── */}
       <section id="faq" className="home-band">
         <div className="home-container home-faq">
@@ -547,7 +578,7 @@ export function MarketingHome() {
             <Faq
               last
               q="Does importing always work?"
-              a="Usually, on ordinary recipe pages — and photographs of cookbook pages work best on a flat page in decent light. Either way you see what it read before anything is saved, so you can correct it, and the original link is kept on the recipe."
+              a="Usually, on ordinary recipe pages — and photographs of cookbook pages work best on a flat page in decent light. Instagram and TikTok sometimes won't hand over a link automatically, so you can paste the caption instead and it reads that. Either way you see what it read before anything is saved, so you can correct it, and the original link is kept on the recipe."
             />
           </div>
         </div>

@@ -649,3 +649,11 @@
     display: none;
   }
 }
+
+/* Lazy-load sentinel / "loading more" indicator at the foot of the recipe list. */
+.recipes-loadmore {
+  text-align: center;
+  padding: 20px 0 8px;
+  font-size: 13px;
+  color: var(--color-neutral-500);
+}

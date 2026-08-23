@@ -241,3 +241,9 @@ html[data-theme="dark"] .account-card {
   background: var(--color-accent-100);
   color: var(--color-accent-800);
 }
+
+/* Reuse the marketing install button inside an account card — drop its large
+   marketing top-margin so it sits like any other card action. */
+.account-card .home-install {
+  margin-top: 0;
+}

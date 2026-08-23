@@ -15,5 +15,15 @@ export default function manifest(): MetadataRoute.Manifest {
       { src: "/icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
       { src: "/icon-512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
     ],
-  };
+    // Android share target: lets an installed PWA receive a link/caption shared
+    // from Instagram/TikTok/YouTube → opens /recipes/new, which auto-runs the
+    // social import. (iOS Safari doesn't support share_target — no effect there;
+    // not in Next's Manifest type yet, hence the cast.)
+    share_target: {
+      action: "/recipes/new",
+      method: "GET",
+      enctype: "application/x-www-form-urlencoded",
+      params: { title: "title", text: "text", url: "url" },
+    },
+  } as MetadataRoute.Manifest;
 }
