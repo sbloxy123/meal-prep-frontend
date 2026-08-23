@@ -19,6 +19,12 @@
   box-shadow: var(--shadow-sm);
   padding: 20px;
 }
+/* Dark theme: #fff would stay white; use the elevated surface token so account
+   cards follow the theme. (In light mode the card stays white to sit above the
+   page background.) */
+html[data-theme="dark"] .account-card {
+  background: var(--color-surface);
+}
 .account-card h2 {
   font-size: 18px;
   margin: 0 0 14px;

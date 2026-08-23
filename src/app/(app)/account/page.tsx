@@ -3,6 +3,10 @@
 import { useRef, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { authClient, signOut, useSession } from "@/lib/auth-client";
+import { apiFetch, apiSend } from "@/lib/api";
+import type { RecipesResponse } from "@/lib/types";
+import { useMenu } from "@/lib/menu";
+import { useToast } from "@/lib/toast";
 import { PageHeader } from "@/components/page-header";
 import { HouseholdCard } from "@/components/household-card";
 import { PreferencesCard } from "@/components/preferences-card";
@@ -43,6 +47,7 @@ export default function AccountPage() {
             <PreferencesCard />
             <HouseholdCard />
             <PasswordCard />
+            <ResetRecipesCard />
             <DangerCard />
           </>
         )}
@@ -166,6 +171,88 @@ function PasswordCard() {
         </button>
       </form>
     </section>
+  );
+}
+
+function ResetRecipesCard() {
+  const [open, setOpen] = useState(false);
+  return (
+    <section className="account-card">
+      <h2>Start from scratch</h2>
+      <p className="text-muted" style={{ fontSize: 14, marginBottom: 12 }}>
+        Delete all your recipes so you can start over. Your account, household and shopping list stay.
+        This can&rsquo;t be undone.
+      </p>
+      <button type="button" className="btn account-danger-btn" onClick={() => setOpen(true)}>
+        Delete all recipes
+      </button>
+      {open && <ResetDialog onClose={() => setOpen(false)} />}
+    </section>
+  );
+}
+
+function ResetDialog({ onClose }: { onClose: () => void }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const menu = useMenu();
+  const toast = useToast();
+  const [pending, setPending] = useState(false);
+  const [error, setError] = useState("");
+  useModalA11y(ref, onClose);
+
+  async function confirmReset() {
+    if (pending) return;
+    setPending(true);
+    setError("");
+    try {
+      // No bulk endpoint — fetch the recipes and delete them one by one.
+      const data = await apiFetch<RecipesResponse>("/recipes");
+      for (const r of data.recipes) {
+        await apiSend(`/recipes/${r.id}`, { method: "DELETE" });
+      }
+      await menu.refresh();
+      toast.show("All recipes deleted.");
+      onClose();
+    } catch {
+      setError("Couldn’t delete everything — some recipes may remain. Please try again.");
+      setPending(false);
+    }
+  }
+
+  return (
+    <div
+      className="dialog-backdrop"
+      style={{ zIndex: 70 }}
+      onClick={(e) => {
+        if (e.target === e.currentTarget && !pending) onClose();
+      }}
+    >
+      <div className="dialog" role="alertdialog" aria-modal="true" aria-labelledby="reset-title" ref={ref}>
+        <h2 id="reset-title" className="dialog-title">
+          Delete all recipes?
+        </h2>
+        <div className="dialog-body">
+          <p style={{ margin: 0 }}>
+            This permanently deletes{" "}
+            {menu.householdShared ? "every recipe in your household (for all members)" : "all your recipes"}{" "}
+            and takes them off this week. Your shopping list, household and account are kept. It
+            can&rsquo;t be undone.
+          </p>
+        </div>
+        {error && (
+          <p className="account-err" role="alert" style={{ margin: 0 }}>
+            {error}
+          </p>
+        )}
+        <div className="dialog-actions">
+          <button type="button" className="btn btn-ghost" onClick={onClose} disabled={pending}>
+            Cancel
+          </button>
+          <button type="button" className="btn account-danger-btn" onClick={confirmReset} disabled={pending}>
+            {pending ? "Deleting…" : "Delete all recipes"}
+          </button>
+        </div>
+      </div>
+    </div>
   );
 }
 
