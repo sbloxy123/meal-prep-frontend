@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { ImportBox } from "@/components/import-box";
 import { GenerateBox } from "@/components/generate-box";
+import { ParsePhotoBox } from "@/components/parse-photo-box";
 import { RecipeForm, type RecipeFormInitial } from "@/components/recipe-form";
 
 export default function NewRecipePage() {
@@ -21,6 +22,7 @@ export default function NewRecipePage() {
       <div className="rf-import">
         <ImportBox onImported={handleImported} />
         <GenerateBox onGenerated={handleImported} />
+        <ParsePhotoBox onParsed={handleImported} />
       </div>
       <RecipeForm mode="create" initial={draft ?? undefined} key={draftVersion} />
     </>

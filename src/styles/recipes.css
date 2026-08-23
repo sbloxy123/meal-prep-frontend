@@ -488,10 +488,15 @@
   display: flex;
   gap: 10px;
 }
-.detail-fav {
+/* Both icon buttons match the 44px height of the primary "Add to this week"
+   button beside them (the base .btn-icon is only 36px). */
+.detail-fav,
+.detail-share {
   width: 44px;
   height: 44px;
   flex: none;
+}
+.detail-fav {
   color: var(--color-accent);
 }
 .detail-add {

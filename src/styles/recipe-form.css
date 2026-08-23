@@ -4,15 +4,15 @@
 .rf {
   display: flex;
   flex-direction: column;
-  min-height: 100%;
 }
-/* "Import from a link" / "Generate from a title" boxes above the new-recipe
-   form; aligns to the form gutters. */
+/* "Import from a link" / "Generate from a title" / "Take a photo" boxes above
+   the new-recipe form; aligns to the form gutters. The bottom padding gives the
+   "New recipe" header some breathing room below the boxes. */
 .rf-import {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  padding: 16px 20px 0;
+  padding: 16px 20px 24px;
 }
 .rf-head {
   display: flex;
@@ -264,17 +264,6 @@
   flex: 1;
   height: 44px;
   margin: 0;
-}
-
-/* Mobile: the form shares `.rf { min-height: 100% }` to pin the footer to the
-   bottom, but on the new-recipe page the import box sits above it as a sibling,
-   pushing the min-height:100% form (and its footer) down past the tab-bar space
-   `.shell-main` already reserves — so the Save button hid behind the tab bar.
-   Let the form be content-height on mobile; the shell's padding then clears it. */
-@media (max-width: 1023px) {
-  .rf {
-    min-height: auto;
-  }
 }
 
 @media (min-width: 1024px) {
