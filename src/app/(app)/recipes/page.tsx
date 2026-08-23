@@ -3,7 +3,7 @@
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Search } from "lucide-react";
+import { Search, BookOpen } from "lucide-react";
 import { apiFetch, apiSend } from "@/lib/api";
 import type { RecipesResponse } from "@/lib/types";
 import { PageHeader } from "@/components/page-header";
@@ -282,28 +282,33 @@ function EmptyRecipes({ onAddStarters }: { onAddStarters: () => void }) {
   const { data: session } = useSession();
   const who = session?.user.name?.trim() || session?.user.email || null;
   return (
-    <div style={{ maxWidth: 420, margin: "40px auto 0", textAlign: "center" }}>
+    <div className="recipes-empty">
       {who && <p className="recipes-welcome">Welcome, {who}</p>}
-      <h3 style={{ fontWeight: 400 }}>No recipes yet</h3>
-      <p className="text-muted" style={{ fontSize: 14 }}>
-        Add your first recipe to start building this week&rsquo;s menu and shopping list.
+      <h3 style={{ fontWeight: 400, margin: "4px 0 6px" }}>Let&rsquo;s fill your kitchen</h3>
+      <p className="text-muted" style={{ fontSize: 14, margin: 0 }}>
+        Get going in seconds with a ready-made collection of everyday family meals.
       </p>
-      <div
-        style={{
-          display: "flex",
-          gap: 8,
-          justifyContent: "center",
-          flexWrap: "wrap",
-          marginTop: 8,
-        }}
-      >
-        <Link href="/recipes/new" className="btn btn-primary">
-          New recipe
-        </Link>
-        <button type="button" className="btn btn-secondary" onClick={onAddStarters}>
-          Add starter recipes
+
+      <div className="recipes-starter-cta">
+        <span className="recipes-starter-icon" aria-hidden>
+          <BookOpen size={22} />
+        </span>
+        <h4 className="recipes-starter-title">Add starter recipes</h4>
+        <p className="text-muted recipes-starter-desc">
+          Pick from 40 popular meals — complete with ingredients, quantities and macros. Edit or
+          delete any of them anytime.
+        </p>
+        <button type="button" className="btn btn-primary recipes-starter-btn" onClick={onAddStarters}>
+          Browse starter recipes
         </button>
       </div>
+
+      <p className="text-muted recipes-empty-alt">
+        Prefer to start fresh?{" "}
+        <Link href="/recipes/new" className="recipes-empty-link">
+          Add your own recipe
+        </Link>
+      </p>
     </div>
   );
 }

@@ -189,6 +189,46 @@ figcaption {
 .btn-icon { width: 36px; height: 36px; padding: 0; }
 .btn-block { width: 100%; margin-top: var(--space-2); }
 
+/* AI actions — a distinct "magic" treatment so LLM-powered buttons read as
+   special. A soft gold gradient + a gently pulsing sparkle. Accent stays a
+   stroke/glow, never a heavy fill (in keeping with the design system). */
+.btn-ai {
+  color: var(--color-accent-800);
+  border-color: var(--color-accent);
+  background: linear-gradient(
+    120deg,
+    color-mix(in srgb, var(--color-accent) 10%, var(--color-surface)),
+    color-mix(in srgb, var(--color-accent) 22%, var(--color-surface))
+  );
+}
+.btn-ai:hover:not(:disabled) {
+  background: linear-gradient(
+    120deg,
+    color-mix(in srgb, var(--color-accent) 16%, var(--color-surface)),
+    color-mix(in srgb, var(--color-accent) 32%, var(--color-surface))
+  );
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--color-accent) 40%, transparent);
+}
+.btn-ai:active:not(:disabled) {
+  background: linear-gradient(
+    120deg,
+    color-mix(in srgb, var(--color-accent) 24%, var(--color-surface)),
+    color-mix(in srgb, var(--color-accent) 40%, var(--color-surface))
+  );
+}
+.btn-ai svg { color: var(--color-accent); }
+.btn-ai .btn-ai-spark {
+  animation: btn-ai-spark 2.4s ease-in-out infinite;
+  transform-origin: center;
+}
+@keyframes btn-ai-spark {
+  0%, 100% { opacity: 0.6; transform: scale(0.85) rotate(0deg); }
+  50% { opacity: 1; transform: scale(1.12) rotate(8deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .btn-ai .btn-ai-spark { animation: none; }
+}
+
 /* — forms — */
 .field > label {
   display: block; font-size: 12px; margin-bottom: 5px;

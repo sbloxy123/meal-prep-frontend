@@ -74,11 +74,12 @@ export function GenerateBox({ onGenerated }: { onGenerated: (draft: RecipeFormIn
         </span>
         <button
           type="button"
-          className="btn btn-primary"
+          className="btn btn-ai"
           style={{ height: 34, flex: "none" }}
           onClick={submit}
           disabled={pending || !title.trim()}
         >
+          <Sparkles size={15} className="btn-ai-spark" aria-hidden />
           {pending ? "Generating…" : "Generate"}
         </button>
       </div>
