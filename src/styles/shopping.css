@@ -259,3 +259,29 @@
     display: none;
   }
 }
+
+/* Social import: the "we couldn't read that link — paste the caption" callout,
+   and the labelled caption field it points to. */
+.social-callout {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  padding: 10px 12px;
+  border: 1px solid var(--color-accent);
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--color-accent) 8%, var(--color-surface));
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--color-text);
+}
+.social-callout svg { color: var(--color-accent); flex: none; margin-top: 1px; }
+.social-caption-field { display: flex; flex-direction: column; gap: 4px; }
+.social-caption-label {
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  color: var(--color-neutral-600);
+}
+.social-caption-input--flag {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 16%, transparent);
+}

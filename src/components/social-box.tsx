@@ -1,15 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Share2, Sparkles } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Share2, Sparkles, AlertCircle } from "lucide-react";
 import { ApiError, apiFetch } from "@/lib/api";
 import type { RecipeFormInitial } from "@/components/recipe-form";
 
 // "Import from social" — pastes an Instagram/TikTok/YouTube post URL; the backend
 // reads the caption/description and returns a draft (not persisted) that prefills
 // the form. When the platform blocks the fetch (IG/TikTok login walls), the
-// backend replies { needsCaption: true } and we reveal a textarea so the user can
-// paste the caption directly — which always works. Mirrors ImportBox.
+// backend replies { needsCaption: true }; we surface a clear callout and reveal a
+// (focused) textarea so the user can paste the caption directly — which always
+// works. Mirrors ImportBox.
 export function SocialBox({
   onImported,
   initialUrl = "",
@@ -25,9 +26,10 @@ export function SocialBox({
   const [url, setUrl] = useState(initialUrl);
   const [caption, setCaption] = useState(initialText);
   const [showPaste, setShowPaste] = useState(Boolean(initialText));
+  const [needsCaption, setNeedsCaption] = useState(false);
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<{ message: string; retry: boolean } | null>(null);
-  const [notice, setNotice] = useState("");
+  const captionRef = useRef<HTMLTextAreaElement>(null);
 
   async function run(next?: { url?: string; caption?: string }) {
     const u = (next?.url ?? url).trim();
@@ -35,7 +37,7 @@ export function SocialBox({
     if (pending || (!u && !c)) return;
     setPending(true);
     setError(null);
-    setNotice("");
+    setNeedsCaption(false);
     try {
       const res = await apiFetch<RecipeFormInitial & { needsCaption?: boolean }>(
         "/recipes/import-social",
@@ -47,9 +49,7 @@ export function SocialBox({
       );
       if (res.needsCaption) {
         setShowPaste(true);
-        setNotice(
-          "Instagram and TikTok won’t share this one automatically — open the post, copy its caption and paste it here.",
-        );
+        setNeedsCaption(true);
         return;
       }
       onImported(res);
@@ -60,7 +60,10 @@ export function SocialBox({
       if (err instanceof ApiError && err.status === 429) {
         setError({ message: "Import limit reached — 20 per 6 hours. Try again later.", retry: false });
       } else if (err instanceof ApiError && err.status === 400) {
-        setError({ message: "Couldn’t read a recipe from that. Try pasting the caption.", retry: true });
+        setError({
+          message: "Couldn’t find a recipe in that caption — double-check you copied it all, then try again.",
+          retry: true,
+        });
         setShowPaste(true);
       } else {
         setError({ message: "Something went wrong. Please try again.", retry: true });
@@ -69,6 +72,11 @@ export function SocialBox({
       setPending(false);
     }
   }
+
+  // Move focus to the textarea when we ask for a caption, so it's obvious what to do next.
+  useEffect(() => {
+    if (needsCaption) captionRef.current?.focus();
+  }, [needsCaption]);
 
   // Android share-target: /recipes/new opened with a shared url/text → run once.
   useEffect(() => {
@@ -103,16 +111,32 @@ export function SocialBox({
         disabled={pending}
       />
 
+      {/* Prominent, actionable state when the link couldn't be read automatically. */}
+      {needsCaption && (
+        <div className="social-callout" role="status">
+          <AlertCircle size={16} aria-hidden />
+          <span>
+            <strong>Couldn’t read that link automatically.</strong> Instagram and
+            TikTok usually block it — open the post, copy its caption, and paste it
+            below. We’ll pull the recipe from that.
+          </span>
+        </div>
+      )}
+
       {showPaste ? (
-        <textarea
-          className="input"
-          style={{ minHeight: 90, whiteSpace: "pre-wrap" }}
-          value={caption}
-          onChange={(e) => setCaption(e.target.value)}
-          placeholder="Paste the post caption here"
-          aria-label="Post caption"
-          disabled={pending}
-        />
+        <label className="social-caption-field">
+          <span className="social-caption-label">Post caption</span>
+          <textarea
+            ref={captionRef}
+            className={`input${needsCaption ? " social-caption-input--flag" : ""}`}
+            style={{ minHeight: 90, whiteSpace: "pre-wrap" }}
+            value={caption}
+            onChange={(e) => setCaption(e.target.value)}
+            placeholder="Paste the post caption here"
+            aria-label="Post caption"
+            disabled={pending}
+          />
+        </label>
       ) : (
         <button
           type="button"
@@ -123,8 +147,6 @@ export function SocialBox({
           or paste the caption instead
         </button>
       )}
-
-      {notice && <p className="ai-hint text-muted" style={{ margin: 0 }}>{notice}</p>}
 
       {error && (
         <p className="ai-error" role="alert">
@@ -152,7 +174,7 @@ export function SocialBox({
           disabled={pending || (!url.trim() && !caption.trim())}
         >
           <Sparkles size={15} className="btn-ai-spark" aria-hidden />
-          {pending ? "Reading…" : "Import"}
+          {pending ? "Reading…" : needsCaption ? "Read caption" : "Import"}
         </button>
       </div>
     </div>
