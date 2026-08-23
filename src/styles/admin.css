@@ -1,0 +1,407 @@
+/* Admin "back of house" dashboard — read-only usage analytics.
+   Built on the design tokens (dark-mode-safe: uses var(--color-surface) etc.,
+   never a hardcoded #fff). Charts are hand-rolled bars — no chart dependency. */
+
+.admin {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 16px 16px 64px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+@media (min-width: 1024px) {
+  .admin {
+    padding: 28px 32px 48px;
+  }
+}
+
+/* Header: title + date-range segmented control. */
+.admin-top {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+.admin-title {
+  font-family: var(--font-heading);
+  font-weight: var(--font-heading-weight);
+  font-size: 26px;
+  color: var(--color-accent-700);
+  margin: 0;
+}
+.admin-sub {
+  font-size: 12px;
+  color: var(--color-neutral-600);
+  margin: 2px 0 0;
+}
+
+/* Reuse the account page's segmented-control look for the range picker. */
+.admin-range {
+  display: inline-flex;
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.admin-range button {
+  padding: 6px 12px;
+  background: none;
+  border: 0;
+  border-right: 1px solid var(--color-divider);
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  color: var(--color-neutral-700);
+}
+.admin-range button:last-child {
+  border-right: 0;
+}
+.admin-range button.is-active {
+  background: var(--color-accent-100);
+  color: var(--color-accent-800);
+}
+
+/* KPI strip. */
+.admin-kpis {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+@media (min-width: 720px) {
+  .admin-kpis {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+.admin-kpi {
+  background: var(--color-surface);
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.admin-kpi-label {
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-neutral-600);
+}
+.admin-kpi-value {
+  font-family: var(--font-heading);
+  font-size: 26px;
+  line-height: 1.1;
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+.admin-kpi-sub {
+  font-size: 12px;
+  color: var(--color-neutral-600);
+}
+
+/* Section card. */
+.admin-section {
+  background: var(--color-surface);
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-lg);
+  padding: 16px 16px 18px;
+}
+.admin-section > h2 {
+  font-size: 17px;
+  margin: 0 0 12px;
+}
+.admin-section-note {
+  font-size: 12px;
+  color: var(--color-neutral-600);
+  margin: -6px 0 12px;
+}
+
+/* Controls row (search + segment chips). */
+.admin-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.admin-search {
+  flex: 1;
+  min-width: 160px;
+}
+.admin-segments {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.admin-seg {
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 5px 10px;
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--color-neutral-700);
+}
+.admin-seg.is-active {
+  border-color: var(--color-accent);
+  color: var(--color-accent-800);
+  background: var(--color-accent-100);
+}
+
+/* Responsive show/hide: table on wide screens, stacked cards on narrow. */
+.admin-only-wide {
+  display: none;
+}
+@media (min-width: 1024px) {
+  .admin-only-wide {
+    display: block;
+  }
+  .admin-only-narrow {
+    display: none;
+  }
+}
+
+/* User table (desktop). */
+.admin-table-wrap {
+  overflow-x: auto;
+}
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+.admin-table th,
+.admin-table td {
+  text-align: left;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--color-divider);
+  white-space: nowrap;
+}
+.admin-table th {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-neutral-600);
+  cursor: pointer;
+  user-select: none;
+}
+.admin-table th.is-sorted {
+  color: var(--color-accent-700);
+}
+.admin-table td.admin-td-num {
+  text-align: right;
+}
+.admin-table .admin-user-email {
+  color: var(--color-neutral-600);
+  font-size: 12px;
+}
+.admin-empty {
+  color: var(--color-neutral-600);
+  font-size: 13px;
+  padding: 14px 4px;
+}
+
+/* Verified pill + generic count pill. */
+.admin-pill {
+  display: inline-block;
+  font-size: 11px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  border: 1px solid var(--color-divider);
+  color: var(--color-neutral-700);
+}
+.admin-pill.is-ok {
+  color: var(--color-accent-800);
+  border-color: var(--color-accent-300);
+  background: var(--color-accent-100);
+}
+
+/* On narrow screens the table becomes stacked cards. */
+.admin-user-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.admin-user-card {
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  background: var(--color-bg);
+}
+.admin-user-card-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: baseline;
+}
+.admin-user-card-name {
+  font-size: 14px;
+  color: var(--color-text);
+}
+.admin-user-card-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin-top: 8px;
+  font-size: 12px;
+  color: var(--color-neutral-700);
+  font-variant-numeric: tabular-nums;
+}
+.admin-user-card-stats b {
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+/* Charts — a row of proportional bars. */
+.admin-charts {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 720px) {
+  .admin-charts-2 {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+.admin-chart-title {
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-neutral-600);
+  margin: 0 0 8px;
+}
+.admin-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 96px;
+  border-bottom: 1px solid var(--color-divider);
+}
+.admin-bar {
+  flex: 1;
+  min-width: 2px;
+  display: flex;
+  flex-direction: column-reverse; /* stack segments from the baseline up */
+  border-radius: 1px 1px 0 0;
+  overflow: hidden;
+  background: transparent;
+}
+.admin-bar-seg {
+  width: 100%;
+}
+/* Single-series bars use the accent; stacked (AI) segments get a ramp. */
+.admin-bar-seg--solid {
+  background: var(--color-accent-400);
+}
+.admin-bar-seg--import {
+  background: var(--color-accent-300);
+}
+.admin-bar-seg--estimate {
+  background: var(--color-accent-500);
+}
+.admin-bar-seg--generate {
+  background: var(--color-accent-700);
+}
+.admin-bar-empty {
+  height: 1px;
+  background: var(--color-divider);
+}
+.admin-chart-foot {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--color-neutral-500);
+  margin-top: 4px;
+}
+.admin-legend {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  font-size: 12px;
+  color: var(--color-neutral-700);
+  margin-top: 8px;
+}
+.admin-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.admin-legend i {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  display: inline-block;
+}
+
+/* Horizontal breakdown bars (top households, tags, funnels). */
+.admin-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.admin-row {
+  display: grid;
+  grid-template-columns: minmax(90px, 34%) 1fr auto;
+  gap: 10px;
+  align-items: center;
+  font-size: 13px;
+}
+.admin-row-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--color-text);
+}
+.admin-row-track {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--color-neutral-200);
+  overflow: hidden;
+}
+.admin-row-fill {
+  height: 100%;
+  background: var(--color-accent-400);
+  border-radius: 999px;
+}
+.admin-row-value {
+  font-variant-numeric: tabular-nums;
+  color: var(--color-neutral-700);
+  font-size: 12px;
+}
+
+/* Two-up mini stat grid (WAU/MAU, funnels). */
+.admin-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+.admin-stat {
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+}
+.admin-stat-label {
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--color-neutral-600);
+}
+.admin-stat-value {
+  font-family: var(--font-heading);
+  font-size: 22px;
+  color: var(--color-text);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Full-page states. */
+.admin-loading {
+  display: grid;
+  place-items: center;
+  min-height: 60vh;
+  color: var(--color-neutral-600);
+}

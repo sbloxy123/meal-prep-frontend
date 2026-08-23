@@ -22,6 +22,8 @@ import "../styles/recipe-form.css";
 import "../styles/auth.css";
 // Account page (profile, password, delete).
 import "../styles/account.css";
+// Admin "back of house" dashboard (read-only usage analytics).
+import "../styles/admin.css";
 // Undo toasts.
 import "../styles/toast.css";
 
