@@ -127,6 +127,11 @@
 .rf-estimate {
   align-self: flex-start;
 }
+.rf-macro-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
 .rf-macros-tag {
   font-size: 10px;
   letter-spacing: 0.04em;

@@ -29,6 +29,33 @@ export function StockCheck({
 
   useModalA11y(dialogRef, onClose);
 
+  // Swipe-to-dismiss (mobile bottom sheet only). Drag starts from the grip/header
+  // region — the non-scrolling top of the sheet — so it never fights the list.
+  const dragStartY = useRef<number | null>(null);
+  const [dragY, setDragY] = useState(0);
+  const [dragging, setDragging] = useState(false);
+  const CLOSE_THRESHOLD = 90;
+
+  function onDragStart(e: React.TouchEvent) {
+    // Bottom sheet is only used below the desktop breakpoint.
+    if (window.matchMedia("(min-width: 1024px)").matches) return;
+    dragStartY.current = e.touches[0].clientY;
+    setDragging(true);
+  }
+  function onDragMove(e: React.TouchEvent) {
+    if (dragStartY.current == null) return;
+    const delta = e.touches[0].clientY - dragStartY.current;
+    setDragY(delta > 0 ? delta : 0);
+  }
+  function onDragEnd() {
+    if (dragStartY.current == null) return;
+    const shouldClose = dragY > CLOSE_THRESHOLD;
+    dragStartY.current = null;
+    setDragging(false);
+    if (shouldClose) onClose();
+    else setDragY(0);
+  }
+
   function toggle(name: string) {
     setSelected((prev) => {
       const next = new Set(prev);
@@ -77,20 +104,26 @@ export function StockCheck({
       }}
     >
       <div
-        className="sc"
+        className={`sc${dragging ? " sc--dragging" : ""}`}
         role="dialog"
         aria-modal="true"
         aria-labelledby="sc-title"
         ref={dialogRef}
+        style={dragY ? { transform: `translateY(${dragY}px)` } : undefined}
       >
         <div className="sc-photo">
           <RecipeImage src={recipe.image_url} alt={recipe.title} sizes="400px" iconSize={26} />
         </div>
 
         <div className="sc-inner">
-          <div className="sc-grip" aria-hidden />
-
-          <div>
+          <div
+            className="sc-draghandle"
+            onTouchStart={onDragStart}
+            onTouchMove={onDragMove}
+            onTouchEnd={onDragEnd}
+            onTouchCancel={onDragEnd}
+          >
+            <div className="sc-grip" aria-hidden />
             <div className="sc-kicker">Stock check</div>
             <h2 id="sc-title" className="sc-title">
               {recipe.title}

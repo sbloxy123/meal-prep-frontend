@@ -1,15 +1,22 @@
 // Curated common meals a new user can seed into their account (A1). A realistic
 // mix for busy families cooking 6–7 nights a week: proper cook-from-scratch
 // dinners AND quick oven/freezer/microwave assemblies (tagged "Easy"). Each has
-// a title, collection tags, the raw materials you'd shop for, a short method,
-// serving count and ballpark per-serving macros. Created via POST /recipes, so
-// the user can edit or delete them afterwards. Macros are rough estimates
-// (macros_source: "estimated"); no AI is involved in seeding.
+// a title, collection tags, the ingredients you'd shop for (with ballpark
+// quantities scaled to the serving count), a short method, serving count and
+// ballpark per-serving macros. Created via POST /recipes, so the user can edit
+// or delete them afterwards. Macros are rough estimates (macros_source:
+// "estimated"); no AI is involved in seeding.
+
+export interface StarterIngredient {
+  name: string;
+  quantity: number; // 0 = unspecified (shown blank)
+  unit: string; // "" for countable items, e.g. "1 Onion"
+}
 
 export interface StarterRecipe {
   title: string;
   tags: string[];
-  ingredients: string[];
+  ingredients: StarterIngredient[];
   instructions: string; // one step per line
   servings: number;
   // Per serving, ballpark.
@@ -19,21 +26,26 @@ export interface StarterRecipe {
   fat_g: number;
 }
 
+// Small helper to keep the ingredient lists terse and readable.
+function ing(name: string, quantity: number, unit = ""): StarterIngredient {
+  return { name, quantity, unit };
+}
+
 export const STARTER_RECIPES: StarterRecipe[] = [
   {
     title: "Spaghetti Bolognese",
     tags: ["Beef", "Pasta"],
     ingredients: [
-      "Beef mince",
-      "Spaghetti",
-      "Onion",
-      "Garlic",
-      "Carrot",
-      "Celery",
-      "Chopped tomatoes",
-      "Tomato purée",
-      "Beef stock",
-      "Olive oil",
+      ing("Beef mince", 500, "g"),
+      ing("Spaghetti", 400, "g"),
+      ing("Onion", 1),
+      ing("Garlic", 2, "cloves"),
+      ing("Carrot", 1),
+      ing("Celery", 1, "stick"),
+      ing("Chopped tomatoes", 400, "g"),
+      ing("Tomato purée", 2, "tbsp"),
+      ing("Beef stock", 1, "cube"),
+      ing("Olive oil", 2, "tbsp"),
     ],
     instructions:
       "Finely chop the onion, carrot and celery and soften in olive oil for 8–10 minutes.\n" +
@@ -43,26 +55,26 @@ export const STARTER_RECIPES: StarterRecipe[] = [
       "Meanwhile cook the spaghetti in salted boiling water until al dente.\n" +
       "Season the sauce, drain the pasta and serve together.",
     servings: 4,
-    calories: 600,
-    protein_g: 32,
-    carb_g: 70,
-    fat_g: 20,
+    calories: 735,
+    protein_g: 37,
+    carb_g: 79,
+    fat_g: 28,
   },
   {
     title: "Chilli Con Carne",
     tags: ["Beef", "Spicy"],
     ingredients: [
-      "Beef mince",
-      "Rice",
-      "Onion",
-      "Garlic",
-      "Red pepper",
-      "Kidney beans",
-      "Chopped tomatoes",
-      "Tomato purée",
-      "Cumin",
-      "Chilli powder",
-      "Beef stock",
+      ing("Beef mince", 500, "g"),
+      ing("Rice", 300, "g"),
+      ing("Onion", 1),
+      ing("Garlic", 2, "cloves"),
+      ing("Red pepper", 1),
+      ing("Kidney beans", 400, "g"),
+      ing("Chopped tomatoes", 400, "g"),
+      ing("Tomato purée", 2, "tbsp"),
+      ing("Cumin", 1, "tsp"),
+      ing("Chilli powder", 2, "tsp"),
+      ing("Beef stock", 1, "cube"),
     ],
     instructions:
       "Soften the chopped onion and pepper in a little oil, then add the garlic.\n" +
@@ -71,22 +83,22 @@ export const STARTER_RECIPES: StarterRecipe[] = [
       "Simmer for 30 minutes, then stir in the drained kidney beans and cook 10 more.\n" +
       "Cook the rice separately and serve alongside the chilli.",
     servings: 4,
-    calories: 550,
-    protein_g: 30,
-    carb_g: 65,
-    fat_g: 18,
+    calories: 650,
+    protein_g: 34,
+    carb_g: 79,
+    fat_g: 20,
   },
   {
     title: "Chicken Fajitas",
     tags: ["Chicken"],
     ingredients: [
-      "Chicken breast",
-      "Tortilla wraps",
-      "Onion",
-      "Red pepper",
-      "Green pepper",
-      "Fajita seasoning",
-      "Olive oil",
+      ing("Chicken breast", 600, "g"),
+      ing("Tortilla wraps", 8),
+      ing("Onion", 1),
+      ing("Red pepper", 1),
+      ing("Green pepper", 1),
+      ing("Fajita seasoning", 2, "tbsp"),
+      ing("Olive oil", 1, "tbsp"),
     ],
     instructions:
       "Slice the chicken and peppers and onion into strips.\n" +
@@ -95,23 +107,23 @@ export const STARTER_RECIPES: StarterRecipe[] = [
       "Fry the peppers and onion until charred and softened.\n" +
       "Return the chicken, warm the wraps, and serve for everyone to build their own.",
     servings: 4,
-    calories: 520,
-    protein_g: 38,
+    calories: 510,
+    protein_g: 43,
     carb_g: 55,
-    fat_g: 15,
+    fat_g: 13,
   },
   {
     title: "Cheeseburger & Chips",
     tags: ["Beef"],
     ingredients: [
-      "Beef mince",
-      "Burger buns",
-      "Cheddar cheese",
-      "Chips",
-      "Lettuce",
-      "Tomato",
-      "Onion",
-      "Ketchup",
+      ing("Beef mince", 500, "g"),
+      ing("Burger buns", 4),
+      ing("Cheddar cheese", 4, "slices"),
+      ing("Chips", 800, "g"),
+      ing("Lettuce", 4, "leaves"),
+      ing("Tomato", 1),
+      ing("Onion", 1),
+      ing("Ketchup", 4, "tbsp"),
     ],
     instructions:
       "Cook the oven chips per the pack.\n" +
@@ -120,22 +132,22 @@ export const STARTER_RECIPES: StarterRecipe[] = [
       "Toast the buns and slice the lettuce, tomato and onion.\n" +
       "Build the burgers and serve with the chips.",
     servings: 4,
-    calories: 750,
-    protein_g: 35,
-    carb_g: 60,
+    calories: 855,
+    protein_g: 39,
+    carb_g: 84,
     fat_g: 40,
   },
   {
     title: "Sausage Carbonara",
     tags: ["Pork", "Pasta"],
     ingredients: [
-      "Sausages",
-      "Spaghetti",
-      "Eggs",
-      "Parmesan",
-      "Garlic",
-      "Black pepper",
-      "Olive oil",
+      ing("Sausages", 6),
+      ing("Spaghetti", 400, "g"),
+      ing("Eggs", 4),
+      ing("Parmesan", 60, "g"),
+      ing("Garlic", 2, "cloves"),
+      ing("Black pepper", 1, "tsp"),
+      ing("Olive oil", 1, "tbsp"),
     ],
     instructions:
       "Squeeze the sausage meat from the skins and fry in pieces with the garlic until golden.\n" +
@@ -144,15 +156,21 @@ export const STARTER_RECIPES: StarterRecipe[] = [
       "Off the heat, toss the pasta with the sausage, then the egg mix, loosening with pasta water into a glossy sauce.\n" +
       "Serve straight away with extra parmesan.",
     servings: 4,
-    calories: 700,
-    protein_g: 30,
-    carb_g: 75,
-    fat_g: 30,
+    calories: 770,
+    protein_g: 37,
+    carb_g: 77,
+    fat_g: 34,
   },
   {
     title: "Steak & Chips",
     tags: ["Beef"],
-    ingredients: ["Steak", "Chips", "Garlic", "Butter", "Olive oil"],
+    ingredients: [
+      ing("Steak", 2),
+      ing("Chips", 500, "g"),
+      ing("Garlic", 2, "cloves"),
+      ing("Butter", 30, "g"),
+      ing("Olive oil", 1, "tbsp"),
+    ],
     instructions:
       "Cook the chips in the oven until crisp.\n" +
       "Bring the steaks to room temperature and season generously.\n" +
@@ -160,24 +178,24 @@ export const STARTER_RECIPES: StarterRecipe[] = [
       "Add butter and crushed garlic and baste for the last minute.\n" +
       "Rest the steak for 5 minutes, then serve with the chips.",
     servings: 2,
-    calories: 650,
-    protein_g: 45,
-    carb_g: 45,
-    fat_g: 32,
+    calories: 975,
+    protein_g: 62,
+    carb_g: 61,
+    fat_g: 55,
   },
   {
     title: "Chicken Gyros",
     tags: ["Chicken"],
     ingredients: [
-      "Chicken thighs",
-      "Flatbreads",
-      "Garlic",
-      "Lemon",
-      "Natural yogurt",
-      "Oregano",
-      "Tomato",
-      "Red onion",
-      "Cucumber",
+      ing("Chicken thighs", 800, "g"),
+      ing("Flatbreads", 4),
+      ing("Garlic", 3, "cloves"),
+      ing("Lemon", 1),
+      ing("Natural yogurt", 300, "g"),
+      ing("Oregano", 1, "tbsp"),
+      ing("Tomato", 2),
+      ing("Red onion", 1),
+      ing("Cucumber", 0.5),
     ],
     instructions:
       "Marinate the chicken thighs in yogurt, garlic, lemon and oregano for 20 minutes.\n" +
@@ -186,22 +204,22 @@ export const STARTER_RECIPES: StarterRecipe[] = [
       "Warm the flatbreads and slice the tomato and red onion.\n" +
       "Fill the flatbreads with chicken, salad and tzatziki.",
     servings: 4,
-    calories: 550,
-    protein_g: 40,
-    carb_g: 50,
-    fat_g: 20,
+    calories: 575,
+    protein_g: 47,
+    carb_g: 48,
+    fat_g: 23,
   },
   {
     title: "Jerk Chicken",
     tags: ["Chicken", "Spicy"],
     ingredients: [
-      "Chicken thighs",
-      "Jerk seasoning",
-      "Lime",
-      "Garlic",
-      "Spring onion",
-      "Rice",
-      "Kidney beans",
+      ing("Chicken thighs", 800, "g"),
+      ing("Jerk seasoning", 3, "tbsp"),
+      ing("Lime", 1),
+      ing("Garlic", 2, "cloves"),
+      ing("Spring onion", 3),
+      ing("Rice", 300, "g"),
+      ing("Kidney beans", 400, "g"),
     ],
     instructions:
       "Coat the chicken thighs in jerk seasoning, garlic and lime, and marinate if you have time.\n" +
@@ -209,15 +227,21 @@ export const STARTER_RECIPES: StarterRecipe[] = [
       "Cook the rice with the kidney beans and sliced spring onion for a simple rice and peas.\n" +
       "Serve the chicken over the rice with extra lime.",
     servings: 4,
-    calories: 520,
-    protein_g: 38,
-    carb_g: 55,
-    fat_g: 14,
+    calories: 645,
+    protein_g: 46,
+    carb_g: 73,
+    fat_g: 19,
   },
   {
     title: "Oven Pizza",
     tags: ["Vegetarian", "Easy"],
-    ingredients: ["Pizza base", "Passata", "Mozzarella", "Basil", "Olive oil"],
+    ingredients: [
+      ing("Pizza base", 2),
+      ing("Passata", 150, "g"),
+      ing("Mozzarella", 125, "g"),
+      ing("Basil", 1, "handful"),
+      ing("Olive oil", 1, "tbsp"),
+    ],
     instructions:
       "Heat the oven to 220°C.\n" +
       "Spread passata over the base and season.\n" +
@@ -225,21 +249,21 @@ export const STARTER_RECIPES: StarterRecipe[] = [
       "Bake for 10–12 minutes until the cheese is bubbling and the base is crisp.\n" +
       "Scatter with fresh basil to serve.",
     servings: 2,
-    calories: 600,
-    protein_g: 25,
-    carb_g: 70,
-    fat_g: 22,
+    calories: 515,
+    protein_g: 23,
+    carb_g: 51,
+    fat_g: 25,
   },
   {
     title: "Fish & Chips",
     tags: ["Fish"],
     ingredients: [
-      "Cod fillets",
-      "Potatoes",
-      "Plain flour",
-      "Sparkling water",
-      "Garden peas",
-      "Vegetable oil",
+      ing("Cod fillets", 2),
+      ing("Potatoes", 600, "g"),
+      ing("Plain flour", 120, "g"),
+      ing("Sparkling water", 150, "ml"),
+      ing("Garden peas", 200, "g"),
+      ing("Vegetable oil", 500, "ml"),
     ],
     instructions:
       "Cut the potatoes into chips and parboil for 5 minutes, then drain and dry.\n" +
@@ -248,23 +272,23 @@ export const STARTER_RECIPES: StarterRecipe[] = [
       "Coat the cod in batter and fry for 5–6 minutes until crisp and cooked.\n" +
       "Cook the peas and serve everything together.",
     servings: 2,
-    calories: 800,
-    protein_g: 35,
-    carb_g: 80,
-    fat_g: 38,
+    calories: 805,
+    protein_g: 42,
+    carb_g: 106,
+    fat_g: 24,
   },
   {
     title: "Chicken Pie",
     tags: ["Chicken"],
     ingredients: [
-      "Chicken breast",
-      "Puff pastry",
-      "Onion",
-      "Leek",
-      "Butter",
-      "Plain flour",
-      "Chicken stock",
-      "Double cream",
+      ing("Chicken breast", 600, "g"),
+      ing("Puff pastry", 320, "g"),
+      ing("Onion", 1),
+      ing("Leek", 1),
+      ing("Butter", 30, "g"),
+      ing("Plain flour", 2, "tbsp"),
+      ing("Chicken stock", 300, "ml"),
+      ing("Double cream", 100, "ml"),
     ],
     instructions:
       "Soften the sliced onion and leek in butter, then add diced chicken and brown lightly.\n" +
@@ -273,24 +297,24 @@ export const STARTER_RECIPES: StarterRecipe[] = [
       "Tip into a dish, top with puff pastry and brush with egg.\n" +
       "Bake at 200°C for 25–30 minutes until golden.",
     servings: 4,
-    calories: 650,
-    protein_g: 32,
-    carb_g: 55,
-    fat_g: 34,
+    calories: 670,
+    protein_g: 40,
+    carb_g: 33,
+    fat_g: 42,
   },
   {
     title: "Shepherd's Pie",
     tags: ["Lamb"],
     ingredients: [
-      "Lamb mince",
-      "Potatoes",
-      "Onion",
-      "Carrot",
-      "Garden peas",
-      "Tomato purée",
-      "Beef stock",
-      "Butter",
-      "Milk",
+      ing("Lamb mince", 500, "g"),
+      ing("Potatoes", 900, "g"),
+      ing("Onion", 1),
+      ing("Carrot", 2),
+      ing("Garden peas", 150, "g"),
+      ing("Tomato purée", 2, "tbsp"),
+      ing("Beef stock", 300, "ml"),
+      ing("Butter", 40, "g"),
+      ing("Milk", 50, "ml"),
     ],
     instructions:
       "Brown the lamb mince with the chopped onion and carrot.\n" +
@@ -299,21 +323,21 @@ export const STARTER_RECIPES: StarterRecipe[] = [
       "Spoon the mince into a dish and top with the mash, roughing up the surface.\n" +
       "Bake at 200°C for 25 minutes until golden on top.",
     servings: 4,
-    calories: 520,
+    calories: 660,
     protein_g: 30,
-    carb_g: 45,
-    fat_g: 22,
+    carb_g: 50,
+    fat_g: 39,
   },
   {
     title: "Roast Chicken Dinner",
     tags: ["Chicken"],
     ingredients: [
-      "Whole chicken",
-      "Potatoes",
-      "Carrots",
-      "Broccoli",
-      "Gravy granules",
-      "Olive oil",
+      ing("Whole chicken", 1.5, "kg"),
+      ing("Potatoes", 900, "g"),
+      ing("Carrots", 400, "g"),
+      ing("Broccoli", 1, "head"),
+      ing("Gravy granules", 4, "tbsp"),
+      ing("Olive oil", 2, "tbsp"),
     ],
     instructions:
       "Heat the oven to 190°C. Rub the chicken with oil and salt and roast (about 20 min per 500g plus 20).\n" +
@@ -322,23 +346,23 @@ export const STARTER_RECIPES: StarterRecipe[] = [
       "Rest the chicken for 15 minutes while you make the gravy.\n" +
       "Carve and serve with the roast potatoes, veg and gravy.",
     servings: 4,
-    calories: 600,
-    protein_g: 45,
-    carb_g: 45,
-    fat_g: 25,
+    calories: 535,
+    protein_g: 36,
+    carb_g: 53,
+    fat_g: 21,
   },
   {
     title: "Beef Stew",
     tags: ["Beef"],
     ingredients: [
-      "Stewing beef",
-      "Potatoes",
-      "Carrots",
-      "Onion",
-      "Celery",
-      "Beef stock",
-      "Plain flour",
-      "Bay leaves",
+      ing("Stewing beef", 600, "g"),
+      ing("Potatoes", 500, "g"),
+      ing("Carrots", 3),
+      ing("Onion", 1),
+      ing("Celery", 2, "sticks"),
+      ing("Beef stock", 700, "ml"),
+      ing("Plain flour", 2, "tbsp"),
+      ing("Bay leaves", 2),
     ],
     instructions:
       "Toss the beef in seasoned flour and brown in batches, then set aside.\n" +
@@ -347,21 +371,21 @@ export const STARTER_RECIPES: StarterRecipe[] = [
       "Cover and cook gently for 1.5–2 hours, adding chunks of potato for the last 40 minutes.\n" +
       "Season and serve.",
     servings: 4,
-    calories: 480,
-    protein_g: 38,
-    carb_g: 40,
-    fat_g: 18,
+    calories: 420,
+    protein_g: 36,
+    carb_g: 33,
+    fat_g: 17,
   },
   {
     title: "Mac & Cheese",
     tags: ["Vegetarian", "Pasta"],
     ingredients: [
-      "Macaroni",
-      "Cheddar cheese",
-      "Butter",
-      "Plain flour",
-      "Milk",
-      "Breadcrumbs",
+      ing("Macaroni", 400, "g"),
+      ing("Cheddar cheese", 200, "g"),
+      ing("Butter", 40, "g"),
+      ing("Plain flour", 40, "g"),
+      ing("Milk", 600, "ml"),
+      ing("Breadcrumbs", 50, "g"),
     ],
     instructions:
       "Cook the macaroni until just tender and drain.\n" +
@@ -370,23 +394,23 @@ export const STARTER_RECIPES: StarterRecipe[] = [
       "Mix in the pasta, tip into a dish and top with breadcrumbs and the rest of the cheese.\n" +
       "Bake at 200°C for 20 minutes until golden and bubbling.",
     servings: 4,
-    calories: 650,
-    protein_g: 26,
-    carb_g: 70,
-    fat_g: 30,
+    calories: 780,
+    protein_g: 32,
+    carb_g: 94,
+    fat_g: 29,
   },
   {
     title: "Fish Pie",
     tags: ["Fish"],
     ingredients: [
-      "White fish",
-      "Salmon fillets",
-      "Potatoes",
-      "Butter",
-      "Plain flour",
-      "Milk",
-      "Garden peas",
-      "Cheddar cheese",
+      ing("White fish", 300, "g"),
+      ing("Salmon fillets", 300, "g"),
+      ing("Potatoes", 900, "g"),
+      ing("Butter", 50, "g"),
+      ing("Plain flour", 40, "g"),
+      ing("Milk", 500, "ml"),
+      ing("Garden peas", 150, "g"),
+      ing("Cheddar cheese", 75, "g"),
     ],
     instructions:
       "Boil the potatoes and mash with butter and a splash of milk.\n" +
@@ -395,23 +419,23 @@ export const STARTER_RECIPES: StarterRecipe[] = [
       "Top with the mash and a little grated cheddar.\n" +
       "Bake at 200°C for 25–30 minutes until golden and piping hot.",
     servings: 4,
-    calories: 520,
-    protein_g: 35,
-    carb_g: 45,
-    fat_g: 20,
+    calories: 670,
+    protein_g: 45,
+    carb_g: 56,
+    fat_g: 30,
   },
   {
     title: "Chicken Curry & Rice",
     tags: ["Chicken", "Spicy"],
     ingredients: [
-      "Chicken breast",
-      "Rice",
-      "Onion",
-      "Garlic",
-      "Ginger",
-      "Curry paste",
-      "Chopped tomatoes",
-      "Coconut milk",
+      ing("Chicken breast", 600, "g"),
+      ing("Rice", 300, "g"),
+      ing("Onion", 1),
+      ing("Garlic", 2, "cloves"),
+      ing("Ginger", 20, "g"),
+      ing("Curry paste", 3, "tbsp"),
+      ing("Chopped tomatoes", 400, "g"),
+      ing("Coconut milk", 400, "ml"),
     ],
     instructions:
       "Fry the chopped onion until soft, then add the garlic, ginger and curry paste.\n" +
@@ -420,15 +444,22 @@ export const STARTER_RECIPES: StarterRecipe[] = [
       "Simmer for 20–25 minutes until the chicken is cooked and the sauce thickened.\n" +
       "Serve with steamed rice.",
     servings: 4,
-    calories: 600,
-    protein_g: 35,
+    calories: 675,
+    protein_g: 44,
     carb_g: 70,
-    fat_g: 20,
+    fat_g: 24,
   },
   {
     title: "Bangers & Mash",
     tags: ["Pork"],
-    ingredients: ["Sausages", "Potatoes", "Onion", "Gravy granules", "Butter", "Milk"],
+    ingredients: [
+      ing("Sausages", 8),
+      ing("Potatoes", 900, "g"),
+      ing("Onion", 1),
+      ing("Gravy granules", 4, "tbsp"),
+      ing("Butter", 40, "g"),
+      ing("Milk", 50, "ml"),
+    ],
     instructions:
       "Grill or bake the sausages until browned and cooked through.\n" +
       "Boil the potatoes and mash with butter and milk.\n" +
@@ -436,22 +467,22 @@ export const STARTER_RECIPES: StarterRecipe[] = [
       "Make up the gravy and stir in the onions.\n" +
       "Serve the sausages over the mash with plenty of gravy.",
     servings: 4,
-    calories: 620,
-    protein_g: 25,
-    carb_g: 60,
-    fat_g: 32,
+    calories: 605,
+    protein_g: 23,
+    carb_g: 51,
+    fat_g: 36,
   },
   {
     title: "Tuna Pasta Bake",
     tags: ["Fish", "Pasta"],
     ingredients: [
-      "Pasta",
-      "Tinned tuna",
-      "Sweetcorn",
-      "Cheddar cheese",
-      "Milk",
-      "Plain flour",
-      "Butter",
+      ing("Pasta", 400, "g"),
+      ing("Tinned tuna", 2, "tins"),
+      ing("Sweetcorn", 200, "g"),
+      ing("Cheddar cheese", 150, "g"),
+      ing("Milk", 500, "ml"),
+      ing("Plain flour", 40, "g"),
+      ing("Butter", 40, "g"),
     ],
     instructions:
       "Cook the pasta until just tender and drain.\n" +
@@ -460,15 +491,20 @@ export const STARTER_RECIPES: StarterRecipe[] = [
       "Tip into a dish and scatter with the remaining cheese.\n" +
       "Bake at 200°C for 20 minutes until golden.",
     servings: 4,
-    calories: 550,
-    protein_g: 32,
-    carb_g: 68,
-    fat_g: 16,
+    calories: 775,
+    protein_g: 41,
+    carb_g: 93,
+    fat_g: 26,
   },
   {
     title: "Oven Lasagne, Broccoli & Carrots",
     tags: ["Beef", "Pasta", "Easy"],
-    ingredients: ["Frozen lasagne", "Broccoli", "Carrots", "Garlic bread"],
+    ingredients: [
+      ing("Frozen lasagne", 1),
+      ing("Broccoli", 1, "head"),
+      ing("Carrots", 2),
+      ing("Garlic bread", 1),
+    ],
     instructions:
       "Heat the oven to 200°C.\n" +
       "Put the frozen lasagne in to bake per the pack (about 40–45 minutes).\n" +
@@ -476,22 +512,22 @@ export const STARTER_RECIPES: StarterRecipe[] = [
       "Steam or microwave the broccoli and carrots until tender.\n" +
       "Serve the lasagne with the veg and garlic bread.",
     servings: 2,
-    calories: 620,
-    protein_g: 24,
-    carb_g: 68,
-    fat_g: 26,
+    calories: 855,
+    protein_g: 40,
+    carb_g: 94,
+    fat_g: 37,
   },
   {
     title: "Spaghetti & Meatballs",
     tags: ["Beef", "Pasta"],
     ingredients: [
-      "Beef meatballs",
-      "Spaghetti",
-      "Passata",
-      "Onion",
-      "Garlic",
-      "Tomato purée",
-      "Parmesan",
+      ing("Beef meatballs", 400, "g"),
+      ing("Spaghetti", 400, "g"),
+      ing("Passata", 500, "g"),
+      ing("Onion", 1),
+      ing("Garlic", 2, "cloves"),
+      ing("Tomato purée", 2, "tbsp"),
+      ing("Parmesan", 40, "g"),
     ],
     instructions:
       "Brown the meatballs all over in a little oil, then set aside.\n" +
@@ -500,23 +536,23 @@ export const STARTER_RECIPES: StarterRecipe[] = [
       "Cook the spaghetti until al dente and drain.\n" +
       "Serve the meatballs and sauce over the pasta with grated parmesan.",
     servings: 4,
-    calories: 640,
-    protein_g: 34,
-    carb_g: 72,
-    fat_g: 22,
+    calories: 695,
+    protein_g: 33,
+    carb_g: 88,
+    fat_g: 21,
   },
   {
     title: "Chicken Katsu Curry",
     tags: ["Chicken"],
     ingredients: [
-      "Chicken breast",
-      "Breadcrumbs",
-      "Plain flour",
-      "Egg",
-      "Rice",
-      "Onion",
-      "Carrot",
-      "Katsu curry paste",
+      ing("Chicken breast", 600, "g"),
+      ing("Breadcrumbs", 100, "g"),
+      ing("Plain flour", 60, "g"),
+      ing("Egg", 2),
+      ing("Rice", 300, "g"),
+      ing("Onion", 1),
+      ing("Carrot", 1),
+      ing("Katsu curry paste", 3, "tbsp"),
     ],
     instructions:
       "Coat the chicken breasts in flour, beaten egg and breadcrumbs.\n" +
@@ -525,22 +561,22 @@ export const STARTER_RECIPES: StarterRecipe[] = [
       "Cook the rice.\n" +
       "Serve the sliced chicken over rice with the curry sauce poured over.",
     servings: 4,
-    calories: 620,
-    protein_g: 38,
-    carb_g: 72,
-    fat_g: 18,
+    calories: 715,
+    protein_g: 49,
+    carb_g: 97,
+    fat_g: 17,
   },
   {
     title: "Sweet & Sour Chicken",
     tags: ["Chicken"],
     ingredients: [
-      "Chicken breast",
-      "Rice",
-      "Pineapple",
-      "Red pepper",
-      "Onion",
-      "Sweet and sour sauce",
-      "Spring onion",
+      ing("Chicken breast", 600, "g"),
+      ing("Rice", 300, "g"),
+      ing("Pineapple", 200, "g"),
+      ing("Red pepper", 1),
+      ing("Onion", 1),
+      ing("Sweet and sour sauce", 300, "g"),
+      ing("Spring onion", 2),
     ],
     instructions:
       "Dice the chicken and stir-fry over high heat until cooked, then set aside.\n" +
@@ -549,22 +585,22 @@ export const STARTER_RECIPES: StarterRecipe[] = [
       "Bubble for a couple of minutes to heat through.\n" +
       "Serve over rice, scattered with spring onion.",
     servings: 4,
-    calories: 560,
-    protein_g: 34,
-    carb_g: 78,
-    fat_g: 10,
+    calories: 595,
+    protein_g: 41,
+    carb_g: 90,
+    fat_g: 7,
   },
   {
     title: "Beef Tacos",
     tags: ["Beef", "Spicy"],
     ingredients: [
-      "Beef mince",
-      "Taco shells",
-      "Taco seasoning",
-      "Cheddar cheese",
-      "Lettuce",
-      "Tomato",
-      "Soured cream",
+      ing("Beef mince", 500, "g"),
+      ing("Taco shells", 8),
+      ing("Taco seasoning", 2, "tbsp"),
+      ing("Cheddar cheese", 100, "g"),
+      ing("Lettuce", 4, "leaves"),
+      ing("Tomato", 2),
+      ing("Soured cream", 150, "g"),
     ],
     instructions:
       "Brown the mince, then stir in the taco seasoning and a splash of water.\n" +
@@ -573,15 +609,19 @@ export const STARTER_RECIPES: StarterRecipe[] = [
       "Shred the lettuce, dice the tomato and grate the cheese.\n" +
       "Fill the shells with the beef and toppings and finish with soured cream.",
     servings: 4,
-    calories: 540,
-    protein_g: 30,
-    carb_g: 45,
-    fat_g: 26,
+    calories: 580,
+    protein_g: 33,
+    carb_g: 19,
+    fat_g: 40,
   },
   {
     title: "Breaded Chicken, Chips & Beans",
     tags: ["Chicken", "Easy"],
-    ingredients: ["Breaded chicken", "Chips", "Baked beans"],
+    ingredients: [
+      ing("Breaded chicken", 4),
+      ing("Chips", 800, "g"),
+      ing("Baked beans", 400, "g"),
+    ],
     instructions:
       "Heat the oven to 200°C.\n" +
       "Spread the chips on a tray and the breaded chicken on another.\n" +
@@ -589,36 +629,41 @@ export const STARTER_RECIPES: StarterRecipe[] = [
       "Warm the baked beans in a pan or the microwave.\n" +
       "Serve together.",
     servings: 4,
-    calories: 560,
-    protein_g: 28,
-    carb_g: 62,
-    fat_g: 22,
+    calories: 630,
+    protein_g: 25,
+    carb_g: 75,
+    fat_g: 25,
   },
   {
     title: "Fish Fingers, Chips & Peas",
     tags: ["Fish", "Easy"],
-    ingredients: ["Fish fingers", "Chips", "Garden peas", "Tartare sauce"],
+    ingredients: [
+      ing("Fish fingers", 12),
+      ing("Chips", 800, "g"),
+      ing("Garden peas", 300, "g"),
+      ing("Tartare sauce", 4, "tbsp"),
+    ],
     instructions:
       "Heat the oven to 200°C and cook the chips per the pack.\n" +
       "Add the fish fingers for the last 12–15 minutes, turning once.\n" +
       "Cook the peas in boiling water or the microwave.\n" +
       "Serve with tartare sauce.",
     servings: 4,
-    calories: 520,
-    protein_g: 22,
-    carb_g: 60,
-    fat_g: 20,
+    calories: 605,
+    protein_g: 19,
+    carb_g: 69,
+    fat_g: 28,
   },
   {
     title: "Sausage & Bean Casserole",
     tags: ["Pork", "Easy"],
     ingredients: [
-      "Sausages",
-      "Baked beans",
-      "Chopped tomatoes",
-      "Onion",
-      "Mixed herbs",
-      "Crusty bread",
+      ing("Sausages", 8),
+      ing("Baked beans", 400, "g"),
+      ing("Chopped tomatoes", 400, "g"),
+      ing("Onion", 1),
+      ing("Mixed herbs", 1, "tsp"),
+      ing("Crusty bread", 1, "loaf"),
     ],
     instructions:
       "Brown the sausages, then slice into chunks.\n" +
@@ -627,21 +672,21 @@ export const STARTER_RECIPES: StarterRecipe[] = [
       "Return the sausages and simmer for 15–20 minutes.\n" +
       "Serve with crusty bread to mop up.",
     servings: 4,
-    calories: 540,
-    protein_g: 26,
-    carb_g: 55,
-    fat_g: 24,
+    calories: 690,
+    protein_g: 33,
+    carb_g: 74,
+    fat_g: 29,
   },
   {
     title: "Toad in the Hole",
     tags: ["Pork"],
     ingredients: [
-      "Sausages",
-      "Plain flour",
-      "Eggs",
-      "Milk",
-      "Vegetable oil",
-      "Gravy granules",
+      ing("Sausages", 8),
+      ing("Plain flour", 140, "g"),
+      ing("Eggs", 3),
+      ing("Milk", 200, "ml"),
+      ing("Vegetable oil", 2, "tbsp"),
+      ing("Gravy granules", 4, "tbsp"),
     ],
     instructions:
       "Whisk the flour, eggs and milk into a smooth batter and rest it.\n" +
@@ -649,24 +694,24 @@ export const STARTER_RECIPES: StarterRecipe[] = [
       "Pour the batter around the sausages and bake for 25–30 minutes until risen and golden — don't open the oven early.\n" +
       "Make up the gravy and serve.",
     servings: 4,
-    calories: 560,
-    protein_g: 22,
-    carb_g: 48,
-    fat_g: 30,
+    calories: 610,
+    protein_g: 28,
+    carb_g: 38,
+    fat_g: 39,
   },
   {
     title: "Cottage Pie",
     tags: ["Beef"],
     ingredients: [
-      "Beef mince",
-      "Potatoes",
-      "Onion",
-      "Carrot",
-      "Garden peas",
-      "Beef stock",
-      "Tomato purée",
-      "Butter",
-      "Milk",
+      ing("Beef mince", 500, "g"),
+      ing("Potatoes", 900, "g"),
+      ing("Onion", 1),
+      ing("Carrot", 2),
+      ing("Garden peas", 150, "g"),
+      ing("Beef stock", 300, "ml"),
+      ing("Tomato purée", 2, "tbsp"),
+      ing("Butter", 40, "g"),
+      ing("Milk", 50, "ml"),
     ],
     instructions:
       "Brown the mince with the chopped onion and carrot.\n" +
@@ -675,22 +720,22 @@ export const STARTER_RECIPES: StarterRecipe[] = [
       "Top the mince with the mash and fork the surface.\n" +
       "Bake at 200°C for 25 minutes until golden.",
     servings: 4,
-    calories: 520,
-    protein_g: 30,
-    carb_g: 46,
-    fat_g: 22,
+    calories: 580,
+    protein_g: 31,
+    carb_g: 50,
+    fat_g: 28,
   },
   {
     title: "Creamy Chicken & Bacon Pasta",
     tags: ["Chicken", "Pasta"],
     ingredients: [
-      "Chicken breast",
-      "Bacon",
-      "Pasta",
-      "Garlic",
-      "Double cream",
-      "Parmesan",
-      "Spinach",
+      ing("Chicken breast", 500, "g"),
+      ing("Bacon", 6, "rashers"),
+      ing("Pasta", 400, "g"),
+      ing("Garlic", 2, "cloves"),
+      ing("Double cream", 200, "ml"),
+      ing("Parmesan", 40, "g"),
+      ing("Spinach", 100, "g"),
     ],
     instructions:
       "Fry the diced chicken until golden, then add the chopped bacon and garlic.\n" +
@@ -699,51 +744,61 @@ export const STARTER_RECIPES: StarterRecipe[] = [
       "Toss through the pasta and parmesan, loosening with pasta water.\n" +
       "Season and serve.",
     servings: 4,
-    calories: 680,
-    protein_g: 36,
-    carb_g: 66,
-    fat_g: 30,
+    calories: 855,
+    protein_g: 54,
+    carb_g: 73,
+    fat_g: 37,
   },
   {
     title: "Tomato Soup & Cheese Toasties",
     tags: ["Vegetarian", "Easy"],
-    ingredients: ["Tomato soup", "Bread", "Cheddar cheese", "Butter"],
+    ingredients: [
+      ing("Tomato soup", 400, "g"),
+      ing("Bread", 4, "slices"),
+      ing("Cheddar cheese", 100, "g"),
+      ing("Butter", 30, "g"),
+    ],
     instructions:
       "Heat the tomato soup in a pan until steaming.\n" +
       "Butter the bread on the outside and fill with grated cheddar.\n" +
       "Toast in a pan or toastie maker until golden and melting.\n" +
       "Serve the toasties alongside the soup for dipping.",
     servings: 2,
-    calories: 480,
-    protein_g: 18,
-    carb_g: 52,
-    fat_g: 22,
+    calories: 580,
+    protein_g: 21,
+    carb_g: 46,
+    fat_g: 35,
   },
   {
     title: "Jacket Potatoes with Beans & Cheese",
     tags: ["Vegetarian", "Easy"],
-    ingredients: ["Baking potatoes", "Baked beans", "Cheddar cheese", "Butter"],
+    ingredients: [
+      ing("Baking potatoes", 4),
+      ing("Baked beans", 400, "g"),
+      ing("Cheddar cheese", 100, "g"),
+      ing("Butter", 30, "g"),
+    ],
     instructions:
       "Prick the potatoes and microwave for 8–10 minutes to soften.\n" +
       "Finish in a hot oven for 15–20 minutes for crisp skins (optional).\n" +
       "Warm the baked beans.\n" +
       "Split the potatoes, add butter, then top with beans and grated cheese.",
     servings: 4,
-    calories: 450,
-    protein_g: 18,
-    carb_g: 70,
-    fat_g: 12,
+    calories: 425,
+    protein_g: 16,
+    carb_g: 56,
+    fat_g: 15,
   },
   {
     title: "Vegetable Stir Fry with Noodles",
     tags: ["Vegetarian", "Easy"],
     ingredients: [
-      "Egg noodles",
-      "Stir fry vegetables",
-      "Garlic",
-      "Ginger",
-      "Soy sauce",
-      "Sesame oil",
+      ing("Egg noodles", 300, "g"),
+      ing("Stir fry vegetables", 500, "g"),
+      ing("Garlic", 2, "cloves"),
+      ing("Ginger", 20, "g"),
+      ing("Soy sauce", 3, "tbsp"),
+      ing("Sesame oil", 1, "tbsp"),
     ],
     instructions:
       "Cook the noodles per the pack and drain.\n" +
@@ -752,15 +807,20 @@ export const STARTER_RECIPES: StarterRecipe[] = [
       "Add the noodles, a good splash of soy and a little sesame oil.\n" +
       "Toss everything together and serve.",
     servings: 4,
-    calories: 420,
+    calories: 355,
     protein_g: 12,
-    carb_g: 72,
-    fat_g: 10,
+    carb_g: 64,
+    fat_g: 5,
   },
   {
     title: "Ham, Egg & Chips",
     tags: ["Pork", "Easy"],
-    ingredients: ["Gammon steaks", "Chips", "Eggs", "Garden peas"],
+    ingredients: [
+      ing("Gammon steaks", 4),
+      ing("Chips", 800, "g"),
+      ing("Eggs", 4),
+      ing("Garden peas", 200, "g"),
+    ],
     instructions:
       "Cook the chips in the oven until crisp.\n" +
       "Grill or fry the gammon steaks for a few minutes each side.\n" +
@@ -768,37 +828,43 @@ export const STARTER_RECIPES: StarterRecipe[] = [
       "Cook the peas.\n" +
       "Plate up the gammon, egg, chips and peas.",
     servings: 4,
-    calories: 620,
-    protein_g: 38,
-    carb_g: 50,
-    fat_g: 28,
+    calories: 725,
+    protein_g: 56,
+    carb_g: 54,
+    fat_g: 32,
   },
   {
     title: "Pesto Pasta",
     tags: ["Vegetarian", "Pasta", "Easy"],
-    ingredients: ["Pasta", "Pesto", "Cherry tomatoes", "Parmesan", "Pine nuts"],
+    ingredients: [
+      ing("Pasta", 400, "g"),
+      ing("Pesto", 150, "g"),
+      ing("Cherry tomatoes", 200, "g"),
+      ing("Parmesan", 30, "g"),
+      ing("Pine nuts", 30, "g"),
+    ],
     instructions:
       "Cook the pasta until al dente, keeping a splash of the water.\n" +
       "Drain and stir through the pesto, loosening with the pasta water.\n" +
       "Halve the cherry tomatoes and toss through.\n" +
       "Serve with grated parmesan and a few pine nuts.",
     servings: 4,
-    calories: 520,
-    protein_g: 16,
+    calories: 615,
+    protein_g: 18,
     carb_g: 74,
-    fat_g: 18,
+    fat_g: 25,
   },
   {
     title: "Beef Burritos",
     tags: ["Beef", "Spicy"],
     ingredients: [
-      "Beef mince",
-      "Tortilla wraps",
-      "Rice",
-      "Kidney beans",
-      "Fajita seasoning",
-      "Cheddar cheese",
-      "Soured cream",
+      ing("Beef mince", 500, "g"),
+      ing("Tortilla wraps", 4),
+      ing("Rice", 250, "g"),
+      ing("Kidney beans", 400, "g"),
+      ing("Fajita seasoning", 2, "tbsp"),
+      ing("Cheddar cheese", 100, "g"),
+      ing("Soured cream", 150, "g"),
     ],
     instructions:
       "Brown the mince and stir in the seasoning and the drained kidney beans.\n" +
@@ -807,30 +873,43 @@ export const STARTER_RECIPES: StarterRecipe[] = [
       "Fill each wrap with rice, beef, grated cheese and soured cream.\n" +
       "Fold into burritos and serve.",
     servings: 4,
-    calories: 640,
-    protein_g: 32,
-    carb_g: 72,
-    fat_g: 24,
+    calories: 955,
+    protein_g: 45,
+    carb_g: 98,
+    fat_g: 40,
   },
   {
     title: "Quiche, Chips & Salad",
     tags: ["Vegetarian", "Easy"],
-    ingredients: ["Quiche", "Chips", "Salad leaves", "Cherry tomatoes", "Cucumber"],
+    ingredients: [
+      ing("Quiche", 1),
+      ing("Chips", 800, "g"),
+      ing("Salad leaves", 100, "g"),
+      ing("Cherry tomatoes", 150, "g"),
+      ing("Cucumber", 0.5),
+    ],
     instructions:
       "Heat the quiche through in the oven per the pack.\n" +
       "Cook the chips alongside until crisp.\n" +
       "Toss the salad leaves, tomatoes and cucumber together.\n" +
       "Slice the quiche and serve with the chips and salad.",
     servings: 4,
-    calories: 520,
+    calories: 595,
     protein_g: 16,
-    carb_g: 52,
-    fat_g: 26,
+    carb_g: 67,
+    fat_g: 30,
   },
   {
     title: "Pork Chops, Mash & Veg",
     tags: ["Pork"],
-    ingredients: ["Pork chops", "Potatoes", "Broccoli", "Carrots", "Butter", "Gravy granules"],
+    ingredients: [
+      ing("Pork chops", 4),
+      ing("Potatoes", 900, "g"),
+      ing("Broccoli", 1, "head"),
+      ing("Carrots", 3),
+      ing("Butter", 40, "g"),
+      ing("Gravy granules", 4, "tbsp"),
+    ],
     instructions:
       "Season the pork chops and fry or grill for 4–5 minutes each side until cooked.\n" +
       "Boil and mash the potatoes with butter.\n" +
@@ -838,21 +917,21 @@ export const STARTER_RECIPES: StarterRecipe[] = [
       "Make up the gravy.\n" +
       "Serve the chops with mash, veg and gravy.",
     servings: 4,
-    calories: 560,
-    protein_g: 40,
-    carb_g: 42,
-    fat_g: 24,
+    calories: 635,
+    protein_g: 48,
+    carb_g: 50,
+    fat_g: 30,
   },
   {
     title: "Chicken Noodle Soup",
     tags: ["Chicken", "Easy"],
     ingredients: [
-      "Chicken breast",
-      "Egg noodles",
-      "Chicken stock",
-      "Carrot",
-      "Sweetcorn",
-      "Spring onion",
+      ing("Chicken breast", 300, "g"),
+      ing("Egg noodles", 200, "g"),
+      ing("Chicken stock", 1.2, "L"),
+      ing("Carrot", 2),
+      ing("Sweetcorn", 150, "g"),
+      ing("Spring onion", 2),
     ],
     instructions:
       "Bring the chicken stock to a simmer.\n" +
@@ -860,23 +939,29 @@ export const STARTER_RECIPES: StarterRecipe[] = [
       "Add the noodles and sweetcorn and cook until the noodles are tender.\n" +
       "Scatter with spring onion and serve.",
     servings: 4,
-    calories: 380,
-    protein_g: 30,
-    carb_g: 48,
-    fat_g: 6,
+    calories: 315,
+    protein_g: 25,
+    carb_g: 47,
+    fat_g: 3,
   },
   {
     title: "Omelette & Salad",
     tags: ["Vegetarian", "Easy"],
-    ingredients: ["Eggs", "Cheddar cheese", "Salad leaves", "Cherry tomatoes", "Bread"],
+    ingredients: [
+      ing("Eggs", 6),
+      ing("Cheddar cheese", 60, "g"),
+      ing("Salad leaves", 60, "g"),
+      ing("Cherry tomatoes", 100, "g"),
+      ing("Bread", 2, "slices"),
+    ],
     instructions:
       "Beat the eggs and season.\n" +
       "Pour into a hot buttered pan and cook until almost set.\n" +
       "Scatter over grated cheese, fold and slide onto a plate.\n" +
       "Serve with a simple salad and bread.",
     servings: 2,
-    calories: 420,
-    protein_g: 26,
+    calories: 450,
+    protein_g: 30,
     carb_g: 20,
     fat_g: 26,
   },

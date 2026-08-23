@@ -70,6 +70,8 @@ export function RecipeForm({ mode, recipeId, initial = {} }: RecipeFormProps) {
   const [macrosSource, setMacrosSource] = useState<MacrosSource | null>(initial.macros_source ?? null);
   const [estimating, setEstimating] = useState(false);
   const [estimateError, setEstimateError] = useState("");
+  const [improving, setImproving] = useState(false);
+  const [improveError, setImproveError] = useState("");
 
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState<Record<string, string[]>>({});
@@ -140,6 +142,77 @@ export function RecipeForm({ mode, recipeId, initial = {} }: RecipeFormProps) {
       );
     } finally {
       setEstimating(false);
+    }
+  }
+
+  // "Improve recipe" — an AI pass that fills in the gaps (sensible ingredient
+  // quantities/units, a fuller method/description, a serving count) and returns
+  // fresh per-serving macros. We only fill *blank* fields so the user's own
+  // entries are never overwritten; macros are always refreshed (the whole point).
+  async function improveRecipe() {
+    if (improving || !canEstimate) return;
+    setImproving(true);
+    setImproveError("");
+    const rows = ingredients.filter((r) => r.name.trim());
+    try {
+      const res = await apiFetch<{
+        description: string | null;
+        servings: number | null;
+        instructions: string | null;
+        ingredients: { name: string; quantity: number | string | null; unit: string | null }[];
+        calories: number | null;
+        protein_g: number | null;
+        carb_g: number | null;
+        fat_g: number | null;
+      }>("/recipes/improve", {
+        method: "POST",
+        body: JSON.stringify({
+          title: title.trim(),
+          servings: servings.trim() ? Number(servings) : undefined,
+          description: description.trim() || undefined,
+          instructions: instructions.trim() || undefined,
+          ingredients: rows.map((r) => ({
+            name: r.name.trim(),
+            quantity: r.quantity.trim() || undefined,
+            unit: r.unit.trim() || undefined,
+          })),
+        }),
+      });
+
+      if (!description.trim() && res.description) setDescription(res.description);
+      if (!servings.trim() && res.servings != null) setServings(String(res.servings));
+      if (!instructions.trim() && res.instructions) setInstructions(res.instructions);
+
+      // Response ingredients align, in order, with the named rows we sent.
+      setIngredients((prev) => {
+        let pos = -1;
+        return prev.map((row) => {
+          if (!row.name.trim()) return row;
+          pos += 1;
+          const imp = res.ingredients?.[pos];
+          if (!imp) return row;
+          const impQty = imp.quantity == null || imp.quantity === "" ? "" : String(imp.quantity);
+          return {
+            ...row,
+            quantity: row.quantity.trim() ? row.quantity : impQty,
+            unit: row.unit.trim() ? row.unit : imp.unit ?? "",
+          };
+        });
+      });
+
+      setCalories(numToInput(res.calories));
+      setProtein(numToInput(res.protein_g));
+      setCarb(numToInput(res.carb_g));
+      setFat(numToInput(res.fat_g));
+      setMacrosSource("estimated");
+    } catch (err) {
+      setImproveError(
+        err instanceof ApiError && err.status === 429
+          ? "Improve limit reached — 15 per 6 hours. Try again later."
+          : "Couldn’t improve this recipe. Please try again.",
+      );
+    } finally {
+      setImproving(false);
     }
   }
 
@@ -414,16 +487,34 @@ export function RecipeForm({ mode, recipeId, initial = {} }: RecipeFormProps) {
             />
           </div>
         </div>
-        <button
-          type="button"
-          className="btn btn-secondary rf-estimate"
-          onClick={estimateMacros}
-          disabled={estimating || !canEstimate}
-        >
-          {estimating ? "Estimating…" : "Estimate macros"}
-        </button>
+        <div className="rf-macro-actions">
+          <button
+            type="button"
+            className="btn btn-secondary rf-estimate"
+            onClick={estimateMacros}
+            disabled={estimating || improving || !canEstimate}
+          >
+            {estimating ? "Estimating…" : "Estimate macros"}
+          </button>
+          <button
+            type="button"
+            className="btn btn-secondary rf-improve"
+            onClick={improveRecipe}
+            disabled={estimating || improving || !canEstimate}
+          >
+            {improving ? "Improving…" : "Improve recipe"}
+          </button>
+        </div>
         {!canEstimate && (
-          <p className="rf-hint text-muted">Add a title and at least one ingredient to estimate.</p>
+          <p className="rf-hint text-muted">
+            Add a title and at least one ingredient to estimate or improve.
+          </p>
+        )}
+        {canEstimate && (
+          <p className="rf-hint text-muted">
+            Improve fills in missing amounts, method and serving size, then refreshes the macros —
+            your own entries are kept.
+          </p>
         )}
         {macrosSource === "estimated" && estimateIsRough && (
           <p className="rf-hint text-muted">
@@ -434,6 +525,11 @@ export function RecipeForm({ mode, recipeId, initial = {} }: RecipeFormProps) {
         {estimateError && (
           <p className="rf-error" role="alert">
             {estimateError}
+          </p>
+        )}
+        {improveError && (
+          <p className="rf-error" role="alert">
+            {improveError}
           </p>
         )}
 
