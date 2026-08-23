@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Search, BookOpen } from "lucide-react";
@@ -17,6 +17,10 @@ type Filter = { kind: "all" } | { kind: "favourites" } | { kind: "collection"; n
 type Sort = "newest" | "oldest" | "az";
 
 const PINNED = 4;
+// Lazy render: show a batch, reveal more as the sentinel scrolls into view. The
+// full set is still fetched once (search/filter/sort run client-side over all
+// recipes), so this is a render/UX win rather than a smaller request.
+const PAGE_SIZE = 15;
 
 export default function RecipesPage() {
   // useSearchParams needs a Suspense boundary in the App Router.
@@ -36,6 +40,8 @@ function RecipesPageInner() {
   const [showAllCollections, setShowAllCollections] = useState(false);
   const [sort, setSort] = useState<Sort>("newest");
   const [showStarters, setShowStarters] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
   const menu = useMenu();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -115,6 +121,32 @@ function RecipesPageInner() {
       return sort === "newest" ? b.id - a.id : a.id - b.id;
     });
   }, [recipes, filter, query, tagsByTitle, ingredientsByTitle, sort]);
+
+  const shown = visible.slice(0, visibleCount);
+  const hasMore = visibleCount < visible.length;
+
+  // Start each new search/filter/sort back at the top.
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setVisibleCount(PAGE_SIZE);
+  }, [query, filter, sort]);
+
+  // Reveal the next batch when the bottom sentinel scrolls into view.
+  useEffect(() => {
+    if (!hasMore) return;
+    const el = sentinelRef.current;
+    if (!el) return;
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setVisibleCount((c) => Math.min(c + PAGE_SIZE, visible.length));
+        }
+      },
+      { rootMargin: "400px" },
+    );
+    io.observe(el);
+    return () => io.disconnect();
+  }, [hasMore, visible.length]);
 
   function toggleFavorite(id: number, next: boolean) {
     // Optimistic — flip locally, then persist. Revert on failure.
@@ -239,20 +271,27 @@ function RecipesPageInner() {
         )}
 
         {!loading && !error && visible.length > 0 && (
-          <div className="recipes-list">
-            {visible.map((recipe) => (
-              <RecipeCard
-                key={recipe.id}
-                recipe={recipe}
-                tags={tagsByTitle.get(recipe.title) ?? []}
-                onToggleFavorite={toggleFavorite}
-                isOnMenu={menu.loaded ? menu.onMenuIds.has(recipe.id) : undefined}
-                onAddToWeek={(r) => menu.openStockCheck(r)}
-                onEditStockCheck={(r) => menu.openStockCheck(r)}
-                onRemoveFromWeek={(r) => menu.requestRemoveRecipe(r)}
-              />
-            ))}
-          </div>
+          <>
+            <div className="recipes-list">
+              {shown.map((recipe) => (
+                <RecipeCard
+                  key={recipe.id}
+                  recipe={recipe}
+                  tags={tagsByTitle.get(recipe.title) ?? []}
+                  onToggleFavorite={toggleFavorite}
+                  isOnMenu={menu.loaded ? menu.onMenuIds.has(recipe.id) : undefined}
+                  onAddToWeek={(r) => menu.openStockCheck(r)}
+                  onEditStockCheck={(r) => menu.openStockCheck(r)}
+                  onRemoveFromWeek={(r) => menu.requestRemoveRecipe(r)}
+                />
+              ))}
+            </div>
+            {hasMore && (
+              <div ref={sentinelRef} className="recipes-loadmore" aria-hidden>
+                Loading more…
+              </div>
+            )}
+          </>
         )}
       </div>
 
