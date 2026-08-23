@@ -310,6 +310,9 @@
 .admin-bar-seg--photo {
   background: var(--color-accent-800);
 }
+.admin-bar-seg--improve {
+  background: var(--color-accent-600);
+}
 .admin-bar-empty {
   height: 1px;
   background: var(--color-divider);
