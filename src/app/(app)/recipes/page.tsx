@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
 import { Search } from "lucide-react";
 import { apiFetch, apiSend } from "@/lib/api";
 import type { RecipesResponse } from "@/lib/types";
@@ -18,6 +19,15 @@ type Sort = "newest" | "oldest" | "az";
 const PINNED = 4;
 
 export default function RecipesPage() {
+  // useSearchParams needs a Suspense boundary in the App Router.
+  return (
+    <Suspense fallback={null}>
+      <RecipesPageInner />
+    </Suspense>
+  );
+}
+
+function RecipesPageInner() {
   const [data, setData] = useState<RecipesResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -27,6 +37,8 @@ export default function RecipesPage() {
   const [sort, setSort] = useState<Sort>("newest");
   const [showStarters, setShowStarters] = useState(false);
   const menu = useMenu();
+  const router = useRouter();
+  const searchParams = useSearchParams();
 
   const load = useCallback(
     () =>
@@ -40,6 +52,18 @@ export default function RecipesPage() {
   useEffect(() => {
     load();
   }, [load]);
+
+  // Entry points in the rail / Account link to /recipes?starters=1 to open the
+  // starter picker even when recipes already exist. Reactive on the param so a
+  // soft (client-side) navigation from the rail — same route, no remount — still
+  // opens it; then strip the param so a refresh doesn't reopen it.
+  useEffect(() => {
+    if (searchParams.get("starters") != null) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setShowStarters(true);
+      router.replace("/recipes", { scroll: false });
+    }
+  }, [searchParams, router]);
 
   // title → tag names, title → ingredient names (the list endpoint keys both
   // by recipe title).
@@ -240,7 +264,15 @@ export default function RecipesPage() {
       <ThisWeekColumn />
 
       {showStarters && (
-        <StarterRecipes onClose={() => setShowStarters(false)} onAdded={load} />
+        <StarterRecipes
+          onClose={() => setShowStarters(false)}
+          // Refresh both the recipe list AND the menu — the stock check reads its
+          // ingredient lists from the MenuProvider, so it needs the new recipes.
+          onAdded={async () => {
+            await Promise.all([load(), menu.refresh()]);
+          }}
+          existingTitles={new Set(recipes.map((r) => r.title.toLowerCase()))}
+        />
       )}
     </div>
   );

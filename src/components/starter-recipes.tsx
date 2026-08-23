@@ -11,15 +11,23 @@ import { STARTER_RECIPES, STARTER_IMAGES } from "@/lib/starter-recipes";
 export function StarterRecipes({
   onClose,
   onAdded,
+  existingTitles,
 }: {
   onClose: () => void;
   onAdded: () => Promise<void> | void;
+  // Lowercased titles the user already has — those starters are hidden so they
+  // can't be added twice. Defaults to none (empty-state entry point).
+  existingTitles?: Set<string>;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   useModalA11y(ref, onClose);
+  // Indices (into STARTER_RECIPES) the user doesn't already have.
+  const available = STARTER_RECIPES.map((_, i) => i).filter(
+    (i) => !existingTitles?.has(STARTER_RECIPES[i].title.toLowerCase()),
+  );
   // Start with nothing selected — the user ticks the ones they want.
   const [selected, setSelected] = useState<Set<number>>(() => new Set());
-  const allSelected = selected.size === STARTER_RECIPES.length;
+  const allSelected = available.length > 0 && selected.size === available.length;
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(false);
 
@@ -48,9 +56,9 @@ export function StarterRecipes({
             recipe_title: r.title,
             recipe_instructions: r.instructions,
             tags: r.tags,
-            ingredient_name: r.ingredients,
-            ingredient_quantity: r.ingredients.map(() => 0),
-            ingredient_unit: r.ingredients.map(() => ""),
+            ingredient_name: r.ingredients.map((i) => i.name),
+            ingredient_quantity: r.ingredients.map((i) => i.quantity),
+            ingredient_unit: r.ingredients.map((i) => i.unit),
             servings: r.servings,
             calories: r.calories,
             protein_g: r.protein_g,
@@ -92,37 +100,44 @@ export function StarterRecipes({
           Tick the meals you&rsquo;d like to add — you can edit or delete them anytime.
         </p>
 
-        <div className="starter-toolbar">
-          <button
-            type="button"
-            className="btn btn-ghost"
-            style={{ height: 30, fontSize: 13 }}
-            onClick={() =>
-              setSelected(allSelected ? new Set() : new Set(STARTER_RECIPES.map((_, i) => i)))
-            }
-            disabled={saving}
-          >
-            {allSelected ? "Clear all" : "Select all"}
-          </button>
-        </div>
+        {available.length > 0 && (
+          <div className="starter-toolbar">
+            <button
+              type="button"
+              className="btn btn-ghost"
+              style={{ height: 30, fontSize: 13 }}
+              onClick={() => setSelected(allSelected ? new Set() : new Set(available))}
+              disabled={saving}
+            >
+              {allSelected ? "Clear all" : "Select all"}
+            </button>
+          </div>
+        )}
 
-        <div className="starter-list">
-          {STARTER_RECIPES.map((r, i) => {
-            const on = selected.has(i);
-            return (
-              <label key={r.title} className={`starter-item ${on ? "is-on" : ""}`}>
-                <input type="checkbox" checked={on} onChange={() => toggle(i)} disabled={saving} />
-                <span className="starter-item-main">
-                  <span className="starter-item-title">{r.title}</span>
-                  <span className="starter-item-ings text-muted">
-                    {r.ingredients.slice(0, 5).join(" · ")}
-                    {r.ingredients.length > 5 ? " …" : ""}
+        {available.length > 0 ? (
+          <div className="starter-list">
+            {available.map((i) => {
+              const r = STARTER_RECIPES[i];
+              const on = selected.has(i);
+              return (
+                <label key={r.title} className={`starter-item ${on ? "is-on" : ""}`}>
+                  <input type="checkbox" checked={on} onChange={() => toggle(i)} disabled={saving} />
+                  <span className="starter-item-main">
+                    <span className="starter-item-title">{r.title}</span>
+                    <span className="starter-item-ings text-muted">
+                      {r.ingredients.slice(0, 5).map((i) => i.name).join(" · ")}
+                      {r.ingredients.length > 5 ? " …" : ""}
+                    </span>
                   </span>
-                </span>
-              </label>
-            );
-          })}
-        </div>
+                </label>
+              );
+            })}
+          </div>
+        ) : (
+          <p className="text-muted" style={{ fontSize: 14, margin: 0 }}>
+            You&rsquo;ve already added all the starter recipes.
+          </p>
+        )}
 
         {error && (
           <p className="sc-error" role="alert" style={{ margin: 0 }}>

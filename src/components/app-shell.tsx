@@ -130,6 +130,10 @@ function DesktopRail({
 
       {/* Pinned to the bottom of the rail: About sits directly above the user. */}
       <div style={{ marginTop: "auto" }}>
+        <Link href="/recipes?starters=1" className="rail-nav-item">
+          <span className="rail-nav-label">Add starter recipes</span>
+        </Link>
+
         <Link
           href="/about"
           className="rail-nav-item"

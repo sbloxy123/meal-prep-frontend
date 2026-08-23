@@ -62,7 +62,14 @@ export function RecipeCard({
 
         {recipe.calories != null && (
           <div className="recipe-macros">
-            {recipe.calories} kcal{recipe.servings != null ? "/serving" : ""}
+            {[
+              `${recipe.calories} kcal${recipe.servings != null ? "/serving" : ""}`,
+              recipe.protein_g != null ? `P ${recipe.protein_g}g` : null,
+              recipe.carb_g != null ? `C ${recipe.carb_g}g` : null,
+              recipe.fat_g != null ? `F ${recipe.fat_g}g` : null,
+            ]
+              .filter(Boolean)
+              .join(" · ")}
           </div>
         )}
 

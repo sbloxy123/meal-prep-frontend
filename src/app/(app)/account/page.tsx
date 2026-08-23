@@ -47,6 +47,7 @@ export default function AccountPage() {
             <ProfileCard key={user.id} name={user.name ?? ""} email={user.email} joined={formatJoined(user.createdAt)} />
             <PreferencesCard />
             <AboutCard />
+            <StarterRecipesCard />
             <HouseholdCard />
             <PasswordCard />
             <ResetRecipesCard />
@@ -123,6 +124,21 @@ function AboutCard() {
       </p>
       <Link href="/about" className="btn btn-secondary">
         View the guide
+      </Link>
+    </section>
+  );
+}
+
+function StarterRecipesCard() {
+  return (
+    <section className="account-card">
+      <h2>Starter recipes</h2>
+      <p className="text-muted" style={{ fontSize: 14, marginBottom: 12 }}>
+        Add a ready-made set of everyday meals to your collection — pick the ones
+        you want, edit or delete them anytime.
+      </p>
+      <Link href="/recipes?starters=1" className="btn btn-secondary">
+        Add starter recipes
       </Link>
     </section>
   );

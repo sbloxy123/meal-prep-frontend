@@ -106,8 +106,11 @@
 /* Starter-recipes picker (A1). */
 .starter-dialog {
   /* A definite width (not a bare 100%, which the grid backdrop resolves against
-     content and lets long ingredient lines push the dialog off-screen on mobile). */
+     content and lets long ingredient lines push the dialog off-screen on mobile).
+     max-width is viewport-based so it can't exceed the screen minus the
+     backdrop's padding, regardless of how the grid track sizes itself. */
   width: min(460px, 100%);
+  max-width: calc(100vw - 2 * var(--space-4));
 }
 .starter-toolbar {
   display: flex;
