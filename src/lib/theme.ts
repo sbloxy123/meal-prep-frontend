@@ -15,7 +15,7 @@ export function getThemePreference(): ThemePref {
   } catch {
     /* storage blocked */
   }
-  return "system";
+  return "light";
 }
 
 function resolve(pref: ThemePref): "light" | "dark" {
@@ -41,11 +41,12 @@ export function setThemePreference(pref: ThemePref) {
 
 // Inlined verbatim into a blocking <script> in the root layout <head>. Reads the
 // stored preference, applies data-theme before paint, and keeps following the OS
-// setting live while the preference is "system". Reads storage fresh on each
-// change so a preference update elsewhere is always respected.
+// setting live while the preference is "system". Defaults to light when nothing
+// is stored (not the OS setting). Reads storage fresh on each change so a
+// preference update elsewhere is always respected.
 export const THEME_INIT_SCRIPT = `(function(){try{
 var m=window.matchMedia('(prefers-color-scheme: dark)');
-function apply(){var p;try{p=localStorage.getItem('${THEME_KEY}')||'system'}catch(e){p='system'}
+function apply(){var p;try{p=localStorage.getItem('${THEME_KEY}')||'light'}catch(e){p='light'}
 var d=p==='dark'||(p==='system'&&m.matches);
 document.documentElement.setAttribute('data-theme',d?'dark':'light')}
 apply();m.addEventListener('change',apply)}catch(e){}})()`;
