@@ -26,6 +26,8 @@ import "../styles/account.css";
 import "../styles/admin.css";
 // Undo toasts.
 import "../styles/toast.css";
+// Public marketing homepage (/).
+import "../styles/home.css";
 
 export const metadata: Metadata = {
   title: "Fornetto",
