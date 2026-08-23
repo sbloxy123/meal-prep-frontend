@@ -45,6 +45,7 @@ export function StarterRecipes({
           method: "POST",
           body: JSON.stringify({
             recipe_title: r.title,
+            recipe_instructions: r.instructions,
             tags: r.tags,
             ingredient_name: r.ingredients,
             ingredient_quantity: r.ingredients.map(() => 0),

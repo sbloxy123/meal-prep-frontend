@@ -105,8 +105,9 @@
 
 /* Starter-recipes picker (A1). */
 .starter-dialog {
-  max-width: 460px;
-  width: 100%;
+  /* A definite width (not a bare 100%, which the grid backdrop resolves against
+     content and lets long ingredient lines push the dialog off-screen on mobile). */
+  width: min(460px, 100%);
 }
 .starter-list {
   display: flex;
@@ -124,6 +125,7 @@
   border: 1px solid var(--color-divider);
   border-radius: var(--radius-md);
   cursor: pointer;
+  min-width: 0;
 }
 .starter-item.is-on {
   border-color: var(--color-accent);

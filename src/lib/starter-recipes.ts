@@ -1,13 +1,16 @@
-// Curated common meals a new user can seed into their account (A1). Kept
-// deliberately minimal — title, a couple of collection tags, the standard raw
-// materials you'd shop for, plus ballpark per-serving macros. Each is created
-// as a normal recipe via POST /recipes, so the user can edit or delete them
-// afterwards. Macros are rough estimates (macros_source: "estimated").
+// Curated common meals a new user can seed into their account (A1). A realistic
+// mix for busy families cooking 6–7 nights a week: proper cook-from-scratch
+// dinners AND quick oven/freezer/microwave assemblies (tagged "Easy"). Each has
+// a title, collection tags, the raw materials you'd shop for, a short method,
+// serving count and ballpark per-serving macros. Created via POST /recipes, so
+// the user can edit or delete them afterwards. Macros are rough estimates
+// (macros_source: "estimated"); no AI is involved in seeding.
 
 export interface StarterRecipe {
   title: string;
   tags: string[];
   ingredients: string[];
+  instructions: string; // one step per line
   servings: number;
   // Per serving, ballpark.
   calories: number;
@@ -32,6 +35,13 @@ export const STARTER_RECIPES: StarterRecipe[] = [
       "Beef stock",
       "Olive oil",
     ],
+    instructions:
+      "Finely chop the onion, carrot and celery and soften in olive oil for 8–10 minutes.\n" +
+      "Add the garlic, then the beef mince, and brown well, breaking it up.\n" +
+      "Stir in the tomato purée, chopped tomatoes and a beef stock cube.\n" +
+      "Simmer gently for 30–45 minutes, topping up with a splash of water if needed.\n" +
+      "Meanwhile cook the spaghetti in salted boiling water until al dente.\n" +
+      "Season the sauce, drain the pasta and serve together.",
     servings: 4,
     calories: 600,
     protein_g: 32,
@@ -54,6 +64,12 @@ export const STARTER_RECIPES: StarterRecipe[] = [
       "Chilli powder",
       "Beef stock",
     ],
+    instructions:
+      "Soften the chopped onion and pepper in a little oil, then add the garlic.\n" +
+      "Add the mince and brown, then stir in the cumin and chilli powder.\n" +
+      "Add the tomato purée, chopped tomatoes and beef stock.\n" +
+      "Simmer for 30 minutes, then stir in the drained kidney beans and cook 10 more.\n" +
+      "Cook the rice separately and serve alongside the chilli.",
     servings: 4,
     calories: 550,
     protein_g: 30,
@@ -72,6 +88,12 @@ export const STARTER_RECIPES: StarterRecipe[] = [
       "Fajita seasoning",
       "Olive oil",
     ],
+    instructions:
+      "Slice the chicken and peppers and onion into strips.\n" +
+      "Toss the chicken with the fajita seasoning and a little oil.\n" +
+      "Fry the chicken over high heat until cooked through, then set aside.\n" +
+      "Fry the peppers and onion until charred and softened.\n" +
+      "Return the chicken, warm the wraps, and serve for everyone to build their own.",
     servings: 4,
     calories: 520,
     protein_g: 38,
@@ -91,6 +113,12 @@ export const STARTER_RECIPES: StarterRecipe[] = [
       "Onion",
       "Ketchup",
     ],
+    instructions:
+      "Cook the oven chips per the pack.\n" +
+      "Shape the mince into patties and season well.\n" +
+      "Fry or grill the burgers 3–4 minutes each side, adding cheese to melt near the end.\n" +
+      "Toast the buns and slice the lettuce, tomato and onion.\n" +
+      "Build the burgers and serve with the chips.",
     servings: 4,
     calories: 750,
     protein_g: 35,
@@ -109,6 +137,12 @@ export const STARTER_RECIPES: StarterRecipe[] = [
       "Black pepper",
       "Olive oil",
     ],
+    instructions:
+      "Squeeze the sausage meat from the skins and fry in pieces with the garlic until golden.\n" +
+      "Cook the spaghetti in salted water; whisk the eggs with grated parmesan and lots of pepper.\n" +
+      "Drain the pasta, keeping a mugful of the water.\n" +
+      "Off the heat, toss the pasta with the sausage, then the egg mix, loosening with pasta water into a glossy sauce.\n" +
+      "Serve straight away with extra parmesan.",
     servings: 4,
     calories: 700,
     protein_g: 30,
@@ -119,6 +153,12 @@ export const STARTER_RECIPES: StarterRecipe[] = [
     title: "Steak & Chips",
     tags: ["Beef"],
     ingredients: ["Steak", "Chips", "Garlic", "Butter", "Olive oil"],
+    instructions:
+      "Cook the chips in the oven until crisp.\n" +
+      "Bring the steaks to room temperature and season generously.\n" +
+      "Sear in a hot pan with a little oil, 2–3 minutes each side for medium.\n" +
+      "Add butter and crushed garlic and baste for the last minute.\n" +
+      "Rest the steak for 5 minutes, then serve with the chips.",
     servings: 2,
     calories: 650,
     protein_g: 45,
@@ -139,6 +179,12 @@ export const STARTER_RECIPES: StarterRecipe[] = [
       "Red onion",
       "Cucumber",
     ],
+    instructions:
+      "Marinate the chicken thighs in yogurt, garlic, lemon and oregano for 20 minutes.\n" +
+      "Griddle or grill the chicken until charred and cooked through, then slice.\n" +
+      "Mix a quick tzatziki with yogurt, grated cucumber and garlic.\n" +
+      "Warm the flatbreads and slice the tomato and red onion.\n" +
+      "Fill the flatbreads with chicken, salad and tzatziki.",
     servings: 4,
     calories: 550,
     protein_g: 40,
@@ -157,6 +203,11 @@ export const STARTER_RECIPES: StarterRecipe[] = [
       "Rice",
       "Kidney beans",
     ],
+    instructions:
+      "Coat the chicken thighs in jerk seasoning, garlic and lime, and marinate if you have time.\n" +
+      "Roast or grill the chicken for 30–35 minutes until sticky and cooked through.\n" +
+      "Cook the rice with the kidney beans and sliced spring onion for a simple rice and peas.\n" +
+      "Serve the chicken over the rice with extra lime.",
     servings: 4,
     calories: 520,
     protein_g: 38,
@@ -165,8 +216,14 @@ export const STARTER_RECIPES: StarterRecipe[] = [
   },
   {
     title: "Oven Pizza",
-    tags: ["Vegetarian"],
+    tags: ["Vegetarian", "Easy"],
     ingredients: ["Pizza base", "Passata", "Mozzarella", "Basil", "Olive oil"],
+    instructions:
+      "Heat the oven to 220°C.\n" +
+      "Spread passata over the base and season.\n" +
+      "Tear over the mozzarella and drizzle with a little oil.\n" +
+      "Bake for 10–12 minutes until the cheese is bubbling and the base is crisp.\n" +
+      "Scatter with fresh basil to serve.",
     servings: 2,
     calories: 600,
     protein_g: 25,
@@ -184,6 +241,12 @@ export const STARTER_RECIPES: StarterRecipe[] = [
       "Garden peas",
       "Vegetable oil",
     ],
+    instructions:
+      "Cut the potatoes into chips and parboil for 5 minutes, then drain and dry.\n" +
+      "Heat the oil and fry the chips until golden, then keep warm.\n" +
+      "Whisk the flour with cold sparkling water into a batter.\n" +
+      "Coat the cod in batter and fry for 5–6 minutes until crisp and cooked.\n" +
+      "Cook the peas and serve everything together.",
     servings: 2,
     calories: 800,
     protein_g: 35,
@@ -203,6 +266,12 @@ export const STARTER_RECIPES: StarterRecipe[] = [
       "Chicken stock",
       "Double cream",
     ],
+    instructions:
+      "Soften the sliced onion and leek in butter, then add diced chicken and brown lightly.\n" +
+      "Stir in the flour, then gradually add the stock to make a sauce.\n" +
+      "Add a splash of cream, season, and simmer until thick; cool slightly.\n" +
+      "Tip into a dish, top with puff pastry and brush with egg.\n" +
+      "Bake at 200°C for 25–30 minutes until golden.",
     servings: 4,
     calories: 650,
     protein_g: 32,
@@ -223,6 +292,12 @@ export const STARTER_RECIPES: StarterRecipe[] = [
       "Butter",
       "Milk",
     ],
+    instructions:
+      "Brown the lamb mince with the chopped onion and carrot.\n" +
+      "Stir in the tomato purée and stock and simmer 20 minutes, adding the peas near the end.\n" +
+      "Meanwhile boil the potatoes and mash with butter and milk.\n" +
+      "Spoon the mince into a dish and top with the mash, roughing up the surface.\n" +
+      "Bake at 200°C for 25 minutes until golden on top.",
     servings: 4,
     calories: 520,
     protein_g: 30,
@@ -240,6 +315,12 @@ export const STARTER_RECIPES: StarterRecipe[] = [
       "Gravy granules",
       "Olive oil",
     ],
+    instructions:
+      "Heat the oven to 190°C. Rub the chicken with oil and salt and roast (about 20 min per 500g plus 20).\n" +
+      "Parboil the potatoes, then roast in hot oil until crisp.\n" +
+      "Boil or steam the carrots and broccoli.\n" +
+      "Rest the chicken for 15 minutes while you make the gravy.\n" +
+      "Carve and serve with the roast potatoes, veg and gravy.",
     servings: 4,
     calories: 600,
     protein_g: 45,
@@ -259,6 +340,12 @@ export const STARTER_RECIPES: StarterRecipe[] = [
       "Plain flour",
       "Bay leaves",
     ],
+    instructions:
+      "Toss the beef in seasoned flour and brown in batches, then set aside.\n" +
+      "Soften the chopped onion, carrot and celery in the same pan.\n" +
+      "Return the beef, add the stock and bay leaves and bring to a simmer.\n" +
+      "Cover and cook gently for 1.5–2 hours, adding chunks of potato for the last 40 minutes.\n" +
+      "Season and serve.",
     servings: 4,
     calories: 480,
     protein_g: 38,
@@ -276,6 +363,12 @@ export const STARTER_RECIPES: StarterRecipe[] = [
       "Milk",
       "Breadcrumbs",
     ],
+    instructions:
+      "Cook the macaroni until just tender and drain.\n" +
+      "Melt the butter, stir in the flour, then whisk in the milk to make a smooth sauce.\n" +
+      "Stir in most of the grated cheddar and season.\n" +
+      "Mix in the pasta, tip into a dish and top with breadcrumbs and the rest of the cheese.\n" +
+      "Bake at 200°C for 20 minutes until golden and bubbling.",
     servings: 4,
     calories: 650,
     protein_g: 26,
@@ -295,6 +388,12 @@ export const STARTER_RECIPES: StarterRecipe[] = [
       "Garden peas",
       "Cheddar cheese",
     ],
+    instructions:
+      "Boil the potatoes and mash with butter and a splash of milk.\n" +
+      "Make a white sauce with butter, flour and milk; season well.\n" +
+      "Stir the chunks of fish and the peas into the sauce and tip into a dish.\n" +
+      "Top with the mash and a little grated cheddar.\n" +
+      "Bake at 200°C for 25–30 minutes until golden and piping hot.",
     servings: 4,
     calories: 520,
     protein_g: 35,
@@ -314,6 +413,12 @@ export const STARTER_RECIPES: StarterRecipe[] = [
       "Chopped tomatoes",
       "Coconut milk",
     ],
+    instructions:
+      "Fry the chopped onion until soft, then add the garlic, ginger and curry paste.\n" +
+      "Add the diced chicken and brown lightly.\n" +
+      "Stir in the chopped tomatoes and coconut milk.\n" +
+      "Simmer for 20–25 minutes until the chicken is cooked and the sauce thickened.\n" +
+      "Serve with steamed rice.",
     servings: 4,
     calories: 600,
     protein_g: 35,
@@ -324,6 +429,12 @@ export const STARTER_RECIPES: StarterRecipe[] = [
     title: "Bangers & Mash",
     tags: ["Pork"],
     ingredients: ["Sausages", "Potatoes", "Onion", "Gravy granules", "Butter", "Milk"],
+    instructions:
+      "Grill or bake the sausages until browned and cooked through.\n" +
+      "Boil the potatoes and mash with butter and milk.\n" +
+      "Slowly fry the sliced onion until soft and golden for onion gravy.\n" +
+      "Make up the gravy and stir in the onions.\n" +
+      "Serve the sausages over the mash with plenty of gravy.",
     servings: 4,
     calories: 620,
     protein_g: 25,
@@ -342,10 +453,431 @@ export const STARTER_RECIPES: StarterRecipe[] = [
       "Plain flour",
       "Butter",
     ],
+    instructions:
+      "Cook the pasta until just tender and drain.\n" +
+      "Make a cheese sauce with butter, flour, milk and most of the cheddar.\n" +
+      "Stir in the drained tuna, sweetcorn and pasta.\n" +
+      "Tip into a dish and scatter with the remaining cheese.\n" +
+      "Bake at 200°C for 20 minutes until golden.",
     servings: 4,
     calories: 550,
     protein_g: 32,
     carb_g: 68,
     fat_g: 16,
+  },
+  {
+    title: "Oven Lasagne, Broccoli & Carrots",
+    tags: ["Beef", "Pasta", "Easy"],
+    ingredients: ["Frozen lasagne", "Broccoli", "Carrots", "Garlic bread"],
+    instructions:
+      "Heat the oven to 200°C.\n" +
+      "Put the frozen lasagne in to bake per the pack (about 40–45 minutes).\n" +
+      "Add the garlic bread to the oven for the last 8–10 minutes.\n" +
+      "Steam or microwave the broccoli and carrots until tender.\n" +
+      "Serve the lasagne with the veg and garlic bread.",
+    servings: 2,
+    calories: 620,
+    protein_g: 24,
+    carb_g: 68,
+    fat_g: 26,
+  },
+  {
+    title: "Spaghetti & Meatballs",
+    tags: ["Beef", "Pasta"],
+    ingredients: [
+      "Beef meatballs",
+      "Spaghetti",
+      "Passata",
+      "Onion",
+      "Garlic",
+      "Tomato purée",
+      "Parmesan",
+    ],
+    instructions:
+      "Brown the meatballs all over in a little oil, then set aside.\n" +
+      "Soften the chopped onion and garlic, then add the passata and tomato purée.\n" +
+      "Return the meatballs and simmer for 20 minutes.\n" +
+      "Cook the spaghetti until al dente and drain.\n" +
+      "Serve the meatballs and sauce over the pasta with grated parmesan.",
+    servings: 4,
+    calories: 640,
+    protein_g: 34,
+    carb_g: 72,
+    fat_g: 22,
+  },
+  {
+    title: "Chicken Katsu Curry",
+    tags: ["Chicken"],
+    ingredients: [
+      "Chicken breast",
+      "Breadcrumbs",
+      "Plain flour",
+      "Egg",
+      "Rice",
+      "Onion",
+      "Carrot",
+      "Katsu curry paste",
+    ],
+    instructions:
+      "Coat the chicken breasts in flour, beaten egg and breadcrumbs.\n" +
+      "Fry or oven-bake until golden and cooked through, then slice.\n" +
+      "Soften the onion and carrot, stir in the katsu paste and a little water, and simmer into a sauce.\n" +
+      "Cook the rice.\n" +
+      "Serve the sliced chicken over rice with the curry sauce poured over.",
+    servings: 4,
+    calories: 620,
+    protein_g: 38,
+    carb_g: 72,
+    fat_g: 18,
+  },
+  {
+    title: "Sweet & Sour Chicken",
+    tags: ["Chicken"],
+    ingredients: [
+      "Chicken breast",
+      "Rice",
+      "Pineapple",
+      "Red pepper",
+      "Onion",
+      "Sweet and sour sauce",
+      "Spring onion",
+    ],
+    instructions:
+      "Dice the chicken and stir-fry over high heat until cooked, then set aside.\n" +
+      "Stir-fry the pepper and onion until just softened.\n" +
+      "Return the chicken, add the pineapple chunks and the sweet and sour sauce.\n" +
+      "Bubble for a couple of minutes to heat through.\n" +
+      "Serve over rice, scattered with spring onion.",
+    servings: 4,
+    calories: 560,
+    protein_g: 34,
+    carb_g: 78,
+    fat_g: 10,
+  },
+  {
+    title: "Beef Tacos",
+    tags: ["Beef", "Spicy"],
+    ingredients: [
+      "Beef mince",
+      "Taco shells",
+      "Taco seasoning",
+      "Cheddar cheese",
+      "Lettuce",
+      "Tomato",
+      "Soured cream",
+    ],
+    instructions:
+      "Brown the mince, then stir in the taco seasoning and a splash of water.\n" +
+      "Simmer for a few minutes until thickened.\n" +
+      "Warm the taco shells in the oven.\n" +
+      "Shred the lettuce, dice the tomato and grate the cheese.\n" +
+      "Fill the shells with the beef and toppings and finish with soured cream.",
+    servings: 4,
+    calories: 540,
+    protein_g: 30,
+    carb_g: 45,
+    fat_g: 26,
+  },
+  {
+    title: "Breaded Chicken, Chips & Beans",
+    tags: ["Chicken", "Easy"],
+    ingredients: ["Breaded chicken", "Chips", "Baked beans"],
+    instructions:
+      "Heat the oven to 200°C.\n" +
+      "Spread the chips on a tray and the breaded chicken on another.\n" +
+      "Bake both per the packs (about 20–25 minutes) until crisp and cooked through.\n" +
+      "Warm the baked beans in a pan or the microwave.\n" +
+      "Serve together.",
+    servings: 4,
+    calories: 560,
+    protein_g: 28,
+    carb_g: 62,
+    fat_g: 22,
+  },
+  {
+    title: "Fish Fingers, Chips & Peas",
+    tags: ["Fish", "Easy"],
+    ingredients: ["Fish fingers", "Chips", "Garden peas", "Tartare sauce"],
+    instructions:
+      "Heat the oven to 200°C and cook the chips per the pack.\n" +
+      "Add the fish fingers for the last 12–15 minutes, turning once.\n" +
+      "Cook the peas in boiling water or the microwave.\n" +
+      "Serve with tartare sauce.",
+    servings: 4,
+    calories: 520,
+    protein_g: 22,
+    carb_g: 60,
+    fat_g: 20,
+  },
+  {
+    title: "Sausage & Bean Casserole",
+    tags: ["Pork", "Easy"],
+    ingredients: [
+      "Sausages",
+      "Baked beans",
+      "Chopped tomatoes",
+      "Onion",
+      "Mixed herbs",
+      "Crusty bread",
+    ],
+    instructions:
+      "Brown the sausages, then slice into chunks.\n" +
+      "Soften the chopped onion in the same pan.\n" +
+      "Add the chopped tomatoes, baked beans and a pinch of herbs.\n" +
+      "Return the sausages and simmer for 15–20 minutes.\n" +
+      "Serve with crusty bread to mop up.",
+    servings: 4,
+    calories: 540,
+    protein_g: 26,
+    carb_g: 55,
+    fat_g: 24,
+  },
+  {
+    title: "Toad in the Hole",
+    tags: ["Pork"],
+    ingredients: [
+      "Sausages",
+      "Plain flour",
+      "Eggs",
+      "Milk",
+      "Vegetable oil",
+      "Gravy granules",
+    ],
+    instructions:
+      "Whisk the flour, eggs and milk into a smooth batter and rest it.\n" +
+      "Heat a little oil in a roasting tin with the sausages at 220°C until sizzling.\n" +
+      "Pour the batter around the sausages and bake for 25–30 minutes until risen and golden — don't open the oven early.\n" +
+      "Make up the gravy and serve.",
+    servings: 4,
+    calories: 560,
+    protein_g: 22,
+    carb_g: 48,
+    fat_g: 30,
+  },
+  {
+    title: "Cottage Pie",
+    tags: ["Beef"],
+    ingredients: [
+      "Beef mince",
+      "Potatoes",
+      "Onion",
+      "Carrot",
+      "Garden peas",
+      "Beef stock",
+      "Tomato purée",
+      "Butter",
+      "Milk",
+    ],
+    instructions:
+      "Brown the mince with the chopped onion and carrot.\n" +
+      "Stir in the tomato purée and stock and simmer 20 minutes, adding peas near the end.\n" +
+      "Boil and mash the potatoes with butter and milk.\n" +
+      "Top the mince with the mash and fork the surface.\n" +
+      "Bake at 200°C for 25 minutes until golden.",
+    servings: 4,
+    calories: 520,
+    protein_g: 30,
+    carb_g: 46,
+    fat_g: 22,
+  },
+  {
+    title: "Creamy Chicken & Bacon Pasta",
+    tags: ["Chicken", "Pasta"],
+    ingredients: [
+      "Chicken breast",
+      "Bacon",
+      "Pasta",
+      "Garlic",
+      "Double cream",
+      "Parmesan",
+      "Spinach",
+    ],
+    instructions:
+      "Fry the diced chicken until golden, then add the chopped bacon and garlic.\n" +
+      "Cook the pasta until al dente and drain, keeping a little water.\n" +
+      "Stir the cream into the pan and let it bubble, then add the spinach to wilt.\n" +
+      "Toss through the pasta and parmesan, loosening with pasta water.\n" +
+      "Season and serve.",
+    servings: 4,
+    calories: 680,
+    protein_g: 36,
+    carb_g: 66,
+    fat_g: 30,
+  },
+  {
+    title: "Tomato Soup & Cheese Toasties",
+    tags: ["Vegetarian", "Easy"],
+    ingredients: ["Tomato soup", "Bread", "Cheddar cheese", "Butter"],
+    instructions:
+      "Heat the tomato soup in a pan until steaming.\n" +
+      "Butter the bread on the outside and fill with grated cheddar.\n" +
+      "Toast in a pan or toastie maker until golden and melting.\n" +
+      "Serve the toasties alongside the soup for dipping.",
+    servings: 2,
+    calories: 480,
+    protein_g: 18,
+    carb_g: 52,
+    fat_g: 22,
+  },
+  {
+    title: "Jacket Potatoes with Beans & Cheese",
+    tags: ["Vegetarian", "Easy"],
+    ingredients: ["Baking potatoes", "Baked beans", "Cheddar cheese", "Butter"],
+    instructions:
+      "Prick the potatoes and microwave for 8–10 minutes to soften.\n" +
+      "Finish in a hot oven for 15–20 minutes for crisp skins (optional).\n" +
+      "Warm the baked beans.\n" +
+      "Split the potatoes, add butter, then top with beans and grated cheese.",
+    servings: 4,
+    calories: 450,
+    protein_g: 18,
+    carb_g: 70,
+    fat_g: 12,
+  },
+  {
+    title: "Vegetable Stir Fry with Noodles",
+    tags: ["Vegetarian", "Easy"],
+    ingredients: [
+      "Egg noodles",
+      "Stir fry vegetables",
+      "Garlic",
+      "Ginger",
+      "Soy sauce",
+      "Sesame oil",
+    ],
+    instructions:
+      "Cook the noodles per the pack and drain.\n" +
+      "Stir-fry the garlic and ginger briefly in hot oil.\n" +
+      "Add the stir-fry vegetables and toss over high heat until just tender.\n" +
+      "Add the noodles, a good splash of soy and a little sesame oil.\n" +
+      "Toss everything together and serve.",
+    servings: 4,
+    calories: 420,
+    protein_g: 12,
+    carb_g: 72,
+    fat_g: 10,
+  },
+  {
+    title: "Ham, Egg & Chips",
+    tags: ["Pork", "Easy"],
+    ingredients: ["Gammon steaks", "Chips", "Eggs", "Garden peas"],
+    instructions:
+      "Cook the chips in the oven until crisp.\n" +
+      "Grill or fry the gammon steaks for a few minutes each side.\n" +
+      "Fry the eggs to your liking.\n" +
+      "Cook the peas.\n" +
+      "Plate up the gammon, egg, chips and peas.",
+    servings: 4,
+    calories: 620,
+    protein_g: 38,
+    carb_g: 50,
+    fat_g: 28,
+  },
+  {
+    title: "Pesto Pasta",
+    tags: ["Vegetarian", "Pasta", "Easy"],
+    ingredients: ["Pasta", "Pesto", "Cherry tomatoes", "Parmesan", "Pine nuts"],
+    instructions:
+      "Cook the pasta until al dente, keeping a splash of the water.\n" +
+      "Drain and stir through the pesto, loosening with the pasta water.\n" +
+      "Halve the cherry tomatoes and toss through.\n" +
+      "Serve with grated parmesan and a few pine nuts.",
+    servings: 4,
+    calories: 520,
+    protein_g: 16,
+    carb_g: 74,
+    fat_g: 18,
+  },
+  {
+    title: "Beef Burritos",
+    tags: ["Beef", "Spicy"],
+    ingredients: [
+      "Beef mince",
+      "Tortilla wraps",
+      "Rice",
+      "Kidney beans",
+      "Fajita seasoning",
+      "Cheddar cheese",
+      "Soured cream",
+    ],
+    instructions:
+      "Brown the mince and stir in the seasoning and the drained kidney beans.\n" +
+      "Cook the rice.\n" +
+      "Warm the tortillas.\n" +
+      "Fill each wrap with rice, beef, grated cheese and soured cream.\n" +
+      "Fold into burritos and serve.",
+    servings: 4,
+    calories: 640,
+    protein_g: 32,
+    carb_g: 72,
+    fat_g: 24,
+  },
+  {
+    title: "Quiche, Chips & Salad",
+    tags: ["Vegetarian", "Easy"],
+    ingredients: ["Quiche", "Chips", "Salad leaves", "Cherry tomatoes", "Cucumber"],
+    instructions:
+      "Heat the quiche through in the oven per the pack.\n" +
+      "Cook the chips alongside until crisp.\n" +
+      "Toss the salad leaves, tomatoes and cucumber together.\n" +
+      "Slice the quiche and serve with the chips and salad.",
+    servings: 4,
+    calories: 520,
+    protein_g: 16,
+    carb_g: 52,
+    fat_g: 26,
+  },
+  {
+    title: "Pork Chops, Mash & Veg",
+    tags: ["Pork"],
+    ingredients: ["Pork chops", "Potatoes", "Broccoli", "Carrots", "Butter", "Gravy granules"],
+    instructions:
+      "Season the pork chops and fry or grill for 4–5 minutes each side until cooked.\n" +
+      "Boil and mash the potatoes with butter.\n" +
+      "Steam or boil the broccoli and carrots.\n" +
+      "Make up the gravy.\n" +
+      "Serve the chops with mash, veg and gravy.",
+    servings: 4,
+    calories: 560,
+    protein_g: 40,
+    carb_g: 42,
+    fat_g: 24,
+  },
+  {
+    title: "Chicken Noodle Soup",
+    tags: ["Chicken", "Easy"],
+    ingredients: [
+      "Chicken breast",
+      "Egg noodles",
+      "Chicken stock",
+      "Carrot",
+      "Sweetcorn",
+      "Spring onion",
+    ],
+    instructions:
+      "Bring the chicken stock to a simmer.\n" +
+      "Add the diced chicken and sliced carrot and cook for 10 minutes.\n" +
+      "Add the noodles and sweetcorn and cook until the noodles are tender.\n" +
+      "Scatter with spring onion and serve.",
+    servings: 4,
+    calories: 380,
+    protein_g: 30,
+    carb_g: 48,
+    fat_g: 6,
+  },
+  {
+    title: "Omelette & Salad",
+    tags: ["Vegetarian", "Easy"],
+    ingredients: ["Eggs", "Cheddar cheese", "Salad leaves", "Cherry tomatoes", "Bread"],
+    instructions:
+      "Beat the eggs and season.\n" +
+      "Pour into a hot buttered pan and cook until almost set.\n" +
+      "Scatter over grated cheese, fold and slide onto a plate.\n" +
+      "Serve with a simple salad and bread.",
+    servings: 2,
+    calories: 420,
+    protein_g: 26,
+    carb_g: 20,
+    fat_g: 26,
   },
 ];
