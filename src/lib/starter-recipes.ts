@@ -920,3 +920,53 @@ export const STARTER_IMAGES: Record<string, { image_url: string; image_public_id
   "Pork Chops, Mash & Veg": { image_url: "https://res.cloudinary.com/ipuvfjk4/image/upload/v1787471324/starter-recipes/wj0xvsjukkxrtmtaswcm.jpg", image_public_id: "starter-recipes/wj0xvsjukkxrtmtaswcm" },
   "Chicken Noodle Soup": { image_url: "https://res.cloudinary.com/ipuvfjk4/image/upload/v1787471326/starter-recipes/cuux5wsqyg983ukoksks.jpg", image_public_id: "starter-recipes/cuux5wsqyg983ukoksks" },
 };
+
+// Unsplash photographer credit for each seed photo, keyed by Cloudinary
+// public_id (parsed out of the image URL). Used to attribute stock photos and
+// to detect that a recipe is still using a stock image (so we blur it and nudge
+// the user to add their own).
+export const STOCK_PHOTO_CREDITS: Record<string, { name: string; link: string }> = {
+  "starter-recipes/juayha0vtgf8rx2xbohg": { name: "Homescreenify", link: "https://unsplash.com/photos/spaghetti-on-white-ceramic-plate-sA3wymYqyaI" },
+  "starter-recipes/pqryjjoxjbpg9avjvslw": { name: "Artur Kornakov", link: "https://unsplash.com/photos/cooked-food-on-black-bowl-kwJhh14nUcs" },
+  "starter-recipes/ca5uf3vmigbolxmkmxec": { name: "Thomas Park", link: "https://unsplash.com/photos/a-wooden-table-topped-with-plates-of-food-G3hZMCdLUdw" },
+  "starter-recipes/g92yha9vumo5sww399ob": { name: "Jonathan Borba", link: "https://unsplash.com/photos/burger-with-fries-8l8Yl2ruUsg" },
+  "starter-recipes/j8uqzhm4za1eqelixcqn": { name: "Rob Wicks", link: "https://unsplash.com/photos/a-white-plate-topped-with-spaghetti-and-bacon-fDLBn8X_IlU" },
+  "starter-recipes/jkudznwt8l1a1flakah2": { name: "Tim Toomey", link: "https://unsplash.com/photos/grilled-meat-on-white-ceramic-plate-pe9dvM1rQkM" },
+  "starter-recipes/jdoa50jirunmx72nf3ee": { name: "Mohammad Fahim", link: "https://unsplash.com/photos/grilled-chicken-leg-with-rice-and-stir-fried-vegetables-pvqcYluq7UI" },
+  "starter-recipes/zwcs8xkoy0awdyf4od1i": { name: "Ivan Torres", link: "https://unsplash.com/photos/cheese-pizza-with-tomatoes-and-rosemary-MQUqbmszGGM" },
+  "starter-recipes/av8d2qhoo9nqkg7jynjr": { name: "Meelan Bawjee", link: "https://unsplash.com/photos/cooked-meat-and-french-fries-in-white-disposable-plate-A_tPBct4tz8" },
+  "starter-recipes/cncbxsmrdgseyongkkkv": { name: "Rob Wicks", link: "https://unsplash.com/photos/a-plate-of-food-_Ei6W_L_2Ak" },
+  "starter-recipes/vsmi1f0stjsrc22h8zhj": { name: "Elena Leya", link: "https://unsplash.com/photos/chicken-breast-dinner-with-peas-DBVIb_rWUKw" },
+  "starter-recipes/gdpjkmq97l3f5j6jdseq": { name: "Laura Ohlman", link: "https://unsplash.com/photos/a-bowl-of-food-y_7KLDoPlAc" },
+  "starter-recipes/ypj9br2jonjvimrqbzgk": { name: "Giorgio Trovato", link: "https://unsplash.com/photos/mac-and-cheese-served-on-a-white-plate-DcjbDVkleqQ" },
+  "starter-recipes/ztm93v6fb1qspggf9jfo": { name: "Kelsey He", link: "https://unsplash.com/photos/a-wooden-table-topped-with-a-plate-of-food-GW1BUTVR5Po" },
+  "starter-recipes/nbgwm6md3q6hdxvqg98o": { name: "Jonathan Majam", link: "https://unsplash.com/photos/plate-of-mashed-potatoes-and-meatballs-on-a-wooden-table-4r-T1Hui-co" },
+  "starter-recipes/wdceat2rwiqdypkluczj": { name: "David Trinks", link: "https://unsplash.com/photos/a-casserole-dish-sitting-on-a-stove-top-UN1mx680neg" },
+  "starter-recipes/gqnvkqtckjexyyzmuxl0": { name: "joe boshra", link: "https://unsplash.com/photos/a-delicious-slice-of-lasagna-with-melted-cheese-JNCxXU3A0H0" },
+  "starter-recipes/w9gr3z0qz3ujhit5art8": { name: "Carolina Cossío", link: "https://unsplash.com/photos/spaghetti-on-white-ceramic-plate-Ucwd8w-JHwM" },
+  "starter-recipes/wlfb8jtnzt5uqva3b6rl": { name: "Janesca", link: "https://unsplash.com/photos/a-bowl-of-food-CteaqWgFq3M" },
+  "starter-recipes/ipmomqwh5wzc7sjnqtnq": { name: "Jeswin Thomas", link: "https://unsplash.com/photos/beef-tacos-with-onion-and-cilantro-z_PfaGzeN9E" },
+  "starter-recipes/owj3ett4othdjjzabq91": { name: "mahsa shamshiri fard", link: "https://unsplash.com/photos/a-plate-of-food-that-includes-fries-coleslaw-and-coleslaw--2p0aTN0vgM" },
+  "starter-recipes/j8zotbnnb7zbm7eoiaww": { name: "Nik", link: "https://unsplash.com/photos/a-white-plate-topped-with-fries-and-dipping-sauce-it8E1AV4td8" },
+  "starter-recipes/pfwzcgruxy4flhlvxf8s": { name: "Andy Kennedy", link: "https://unsplash.com/photos/golden-brown-yorkshire-puddings-in-a-glass-dish-YdoMntDbZwQ" },
+  "starter-recipes/x7qrip89reaw6iav3zne": { name: "The Fry Family Food Co.", link: "https://unsplash.com/photos/a-casserole-dish-on-a-plate-with-a-fork-next-to-it-LHr6EN-B8NQ" },
+  "starter-recipes/lkslbmr27nouteralmpg": { name: "Pixzolo Photography", link: "https://unsplash.com/photos/sauced-penne-pasta-dish-on-bowl-aeESmmFKH0M" },
+  "starter-recipes/fdc4hbtsdigdz1iwd73g": { name: "Orijit Chatterjee", link: "https://unsplash.com/photos/stir-fried-noodles-with-vegetables-wEBg_pYtynw" },
+  "starter-recipes/idggom4c3np0sbdqutwv": { name: "Gennady Zakharin", link: "https://unsplash.com/photos/sliced-ham-bread-and-boiled-eggs-on-a-plate-WE0aytJby7U" },
+  "starter-recipes/obgclyvksqkwl6ebqtlx": { name: "Nerfee Mirandilla", link: "https://unsplash.com/photos/white-ceramic-plate-with-food-o1EDsUFmuXQ" },
+  "starter-recipes/skklh636g75ndtpiuway": { name: "Ryan Concepcion", link: "https://unsplash.com/photos/wrapped-food-with-gravies-50KffXbjIOg" },
+  "starter-recipes/vz46fl6nvqjywaqzdd9p": { name: "Jasmin Schreiber", link: "https://unsplash.com/photos/selective-focus-photography-of-vegetable-salad-V2Kw-YC7Cls" },
+  "starter-recipes/wj0xvsjukkxrtmtaswcm": { name: "Nerfee Mirandilla", link: "https://unsplash.com/photos/cooked-food-on-ceramic-plate-UgKVWZuCxCk" },
+  "starter-recipes/cuux5wsqyg983ukoksks": { name: "Markus Winkler", link: "https://unsplash.com/photos/a-bowl-of-noodles-DXVG6Rld_dQ" },
+};
+
+// A recipe photo is a seed "stock" image if its Cloudinary URL is in the
+// starter-recipes folder. We blur those + nudge the user to add their own.
+export function isStockPhoto(src: string | null | undefined): boolean {
+  return !!src && src.includes("/starter-recipes/");
+}
+export function stockPhotoCredit(src: string | null | undefined): { name: string; link: string } | null {
+  if (!src) return null;
+  const m = src.match(/\/(starter-recipes\/[^/.]+)\./);
+  return m ? STOCK_PHOTO_CREDITS[m[1]] ?? null : null;
+}

@@ -17,9 +17,9 @@ export function StarterRecipes({
 }) {
   const ref = useRef<HTMLDivElement>(null);
   useModalA11y(ref, onClose);
-  const [selected, setSelected] = useState<Set<number>>(
-    () => new Set(STARTER_RECIPES.map((_, i) => i)),
-  );
+  // Start with nothing selected — the user ticks the ones they want.
+  const [selected, setSelected] = useState<Set<number>>(() => new Set());
+  const allSelected = selected.size === STARTER_RECIPES.length;
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(false);
 
@@ -89,8 +89,22 @@ export function StarterRecipes({
           Add starter recipes
         </h2>
         <p className="dialog-body" style={{ margin: 0 }}>
-          Pick a few common meals to get going — you can edit or delete them anytime.
+          Tick the meals you&rsquo;d like to add — you can edit or delete them anytime.
         </p>
+
+        <div className="starter-toolbar">
+          <button
+            type="button"
+            className="btn btn-ghost"
+            style={{ height: 30, fontSize: 13 }}
+            onClick={() =>
+              setSelected(allSelected ? new Set() : new Set(STARTER_RECIPES.map((_, i) => i)))
+            }
+            disabled={saving}
+          >
+            {allSelected ? "Clear all" : "Select all"}
+          </button>
+        </div>
 
         <div className="starter-list">
           {STARTER_RECIPES.map((r, i) => {
@@ -126,7 +140,11 @@ export function StarterRecipes({
             onClick={add}
             disabled={saving || selected.size === 0}
           >
-            {saving ? "Adding…" : `Add ${selected.size} recipe${selected.size === 1 ? "" : "s"}`}
+            {saving
+              ? "Adding…"
+              : selected.size === 0
+                ? "Add recipes"
+                : `Add ${selected.size} recipe${selected.size === 1 ? "" : "s"}`}
           </button>
         </div>
       </div>

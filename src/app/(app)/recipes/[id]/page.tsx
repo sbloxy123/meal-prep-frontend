@@ -175,6 +175,7 @@ export default function RecipeDetailPage() {
           alt={recipe.title}
           sizes="(min-width: 1024px) 1200px, 100vw"
           iconSize={30}
+          showStockHint
         />
       </div>
 
