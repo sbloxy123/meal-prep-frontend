@@ -1,15 +1,113 @@
-/* Marketing homepage (/) — the one public, signed-out page. Faithful port of
-   design/Fornetto Homepage.dc.html. Everything else on the page is inline styles
-   that mirror the design 1:1; this file holds only what inline styles can't:
-   the responsive @media block, the <details> burger rules, and link colour.
-   All scoped under .home so nothing leaks into the app. No new design tokens. */
+/* Marketing homepage (/ and /about) — a faithful port of
+   design/Fornetto Homepage.dc.html, styled with semantic classes on the app's
+   Classical tokens (matching the per-feature stylesheet convention). All scoped
+   under .home so nothing leaks into the app. No new design tokens.
+
+   Behavioural/state hooks stay as data-attributes: the <details> burger keeps
+   data-burger / data-burger-panel / data-burger-bars / data-burger-x (queried by
+   the JS in marketing-client.tsx and used for the [open] icon swap). Everything
+   else is a class. */
+
+/* ── Root ──────────────────────────────────────────────────────────────── */
+.home {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-body);
+  min-height: 100vh;
+}
 
 /* Links: accent-700, hover to accent. :not(.btn) so button text colours from
    .btn-primary / .btn-ghost keep winning. */
 .home a:not(.btn) { color: var(--color-accent-700); text-decoration: none; }
 .home a:not(.btn):hover { color: var(--color-accent); }
 
-/* Burger nav, built on <details>/<summary> so it works without JS. */
+/* Anchors that must stay ink rather than accent (override the rule above; equal
+   specificity, so these come after it in source order). */
+.home a.home-brand { color: var(--color-text); }
+.home a.home-panel-link { color: var(--color-text); }
+.home a.home-panel-link--accent { color: var(--color-accent-700); }
+
+/* ── Layout ────────────────────────────────────────────────────────────── */
+.home-container {
+  max-width: 1180px;
+  margin-inline: auto;
+  padding-inline: 32px;
+}
+.home-band { border-top: 1px solid var(--color-divider); }
+.home-band--surface { background: var(--color-surface); }
+
+/* ── Header ────────────────────────────────────────────────────────────── */
+.home-header {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: color-mix(in srgb, var(--color-bg) 92%, transparent);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--color-divider);
+}
+.home-header-row {
+  padding-block: 16px;
+  display: flex;
+  align-items: center;
+  gap: 32px;
+}
+.home-brand { display: flex; align-items: center; gap: 10px; }
+.home-wordmark {
+  font-family: var(--font-heading);
+  font-size: 22px;
+  letter-spacing: 0.01em;
+}
+.home-nav {
+  display: flex;
+  gap: 26px;
+  margin-left: auto;
+  align-items: center;
+  font-size: 14px;
+}
+.home-actions { display: flex; align-items: center; gap: 12px; }
+.home-signin { font-size: 14px; }
+
+/* Burger — static styling (behaviour/state via the data-* hooks below). */
+.home-burger { position: relative; }
+.home-burger-btn {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-sm);
+  color: var(--color-text);
+}
+.home-burger-panel {
+  position: absolute;
+  top: calc(100% + 13px);
+  right: -20px;
+  width: 240px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  z-index: 30;
+}
+.home-panel-link {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 12px;
+  border-radius: var(--radius-sm);
+  font-size: 15px;
+}
+.home-panel-divider {
+  height: 1px;
+  background: var(--color-divider);
+  margin: 6px 12px;
+}
+
+/* Burger behaviour + state (data-* hooks). Works without JS. */
 .home [data-burger] > summary { list-style: none; cursor: pointer; }
 .home [data-burger] > summary::-webkit-details-marker { display: none; }
 .home [data-burger] > summary::marker { content: ""; }
@@ -19,49 +117,370 @@
 .home [data-burger] [data-burger-bars] { display: block; }
 .home [data-burger] [data-burger-x] { display: none; }
 .home [data-burger-panel] a:hover { background: var(--color-accent-100); }
-@media (min-width: 901px) { .home [data-burger] { display: none !important; } }
 
+/* ── Shared type ───────────────────────────────────────────────────────── */
+.home-kicker {
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+}
+.home-section-head {
+  display: flex;
+  align-items: baseline;
+  gap: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--color-divider);
+  flex-wrap: wrap;
+}
+
+/* ── Hero ──────────────────────────────────────────────────────────────── */
+.home-hero {
+  padding-block: 76px 84px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 64px;
+  align-items: center;
+}
+.home-hero-copy { max-width: 520px; }
+.home-hero-title {
+  font-weight: 400;
+  font-size: 66px;
+  line-height: 1.02;
+  margin: 16px 0 0;
+  letter-spacing: -0.01em;
+}
+.home-hero-lead {
+  font-size: 19px;
+  line-height: 1.6;
+  margin: 24px 0 0;
+  color: color-mix(in srgb, var(--color-text) 80%, transparent);
+  text-wrap: pretty;
+}
+.home-hero-actions { display: flex; align-items: center; gap: 14px; margin-top: 34px; }
+.home-trust {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 22px;
+  margin-top: 30px;
+  padding-top: 22px;
+  border-top: 1px solid var(--color-divider);
+  font-size: 13px;
+  color: color-mix(in srgb, var(--color-text) 62%, transparent);
+}
+
+/* ── Phone frames ──────────────────────────────────────────────────────── */
+.home-phones { display: flex; align-items: flex-end; position: relative; }
+.home-phone { border: 1px solid var(--color-divider); background: var(--color-bg); }
+.home-phone-clip { overflow: hidden; }
+.home-shot { width: 100%; height: 100%; display: block; object-fit: cover; object-position: top; }
+.home-shot--center { object-position: center; }
+
+.home-phone-sm {
+  width: 252px;
+  border-radius: 28px;
+  padding: 7px;
+  box-shadow: var(--shadow-md);
+  position: relative;
+  z-index: 1;
+  margin-right: -34px;
+  margin-bottom: 34px;
+}
+.home-phone-sm > .home-phone-clip { border-radius: 22px; height: 428px; }
+
+.home-phone-lg {
+  width: 290px;
+  border-radius: 32px;
+  padding: 8px;
+  box-shadow: var(--shadow-lg);
+  position: relative;
+  z-index: 2;
+}
+.home-phone-lg > .home-phone-clip { border-radius: 25px; height: 562px; }
+
+.home-phone-step {
+  width: 100%;
+  max-width: 290px;
+  border-radius: 26px;
+  padding: 7px;
+  box-shadow: var(--shadow-sm);
+  margin-top: auto;
+}
+.home-phone-step > .home-phone-clip { border-radius: 20px; height: 340px; }
+
+.home-phone-shop {
+  width: 320px;
+  border-radius: 34px;
+  padding: 9px;
+  box-shadow: var(--shadow-lg);
+}
+.home-phone-shop > .home-phone-clip { border-radius: 26px; height: 600px; }
+
+.home-phone-macro {
+  width: 270px;
+  border-radius: 28px;
+  padding: 7px;
+  box-shadow: var(--shadow-md);
+}
+.home-phone-macro > .home-phone-clip { border-radius: 22px; height: 420px; }
+
+/* ── How it works ──────────────────────────────────────────────────────── */
+.home-how { padding-block: 78px; }
+.home-how-title { font-weight: 400; font-size: 42px; margin: 10px 0 0; }
+.home-how-note {
+  margin: 0 0 0 auto;
+  max-width: 340px;
+  font-size: 15px;
+  text-wrap: pretty;
+}
+.home-how-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 44px;
+  margin-top: 52px;
+}
+.home-step { display: flex; flex-direction: column; gap: 18px; }
+.home-step-head { display: flex; align-items: baseline; gap: 12px; }
+.home-step-num {
+  font-family: var(--font-heading);
+  font-size: 15px;
+  color: var(--color-accent);
+  font-variant-numeric: tabular-nums;
+}
+.home-step-title { font-weight: 400; font-size: 25px; margin: 0; }
+.home-step-body {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.65;
+  color: color-mix(in srgb, var(--color-text) 78%, transparent);
+  text-wrap: pretty;
+}
+
+/* ── In the shop ───────────────────────────────────────────────────────── */
+.home-shop {
+  padding-block: 84px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 72px;
+  align-items: center;
+}
+.home-shop-title { font-weight: 400; font-size: 44px; margin: 12px 0 0; line-height: 1.08; }
+.home-shop-lead {
+  font-size: 17px;
+  line-height: 1.6;
+  margin: 20px 0 0;
+  max-width: 540px;
+  color: color-mix(in srgb, var(--color-text) 80%, transparent);
+  text-wrap: pretty;
+}
+.home-shopfeat {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0 40px;
+  margin-top: 36px;
+}
+.home-shoppoint { padding: 20px 0; border-top: 1px solid var(--color-divider); }
+.home-shoppoint--span { border-bottom: 1px solid var(--color-divider); grid-column: 1 / -1; }
+.home-shoppoint-title { margin: 0; font-weight: 400; font-size: 19px; }
+.home-shoppoint-body { margin: 7px 0 0; font-size: 14px; line-height: 1.6; }
+.home-shoppoint--span .home-shoppoint-body { max-width: 620px; }
+
+/* ── Where the AI helps ────────────────────────────────────────────────── */
+.home-ai { padding-block: 80px; }
+.home-ai-intro { max-width: 640px; }
+.home-ai-title { font-weight: 400; font-size: 44px; margin: 12px 0 0; line-height: 1.08; }
+.home-ai-lead {
+  font-size: 17px;
+  line-height: 1.6;
+  margin: 20px 0 0;
+  color: color-mix(in srgb, var(--color-text) 80%, transparent);
+  text-wrap: pretty;
+}
+.home-ai-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 24px;
+  margin-top: 46px;
+}
+.home-aicard {
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-md);
+  padding: 26px;
+  background: var(--color-bg);
+}
+.home-aicard--accent { border-color: var(--color-accent-300); }
+.home-aicard-title { font-weight: 400; font-size: 22px; margin: 16px 0 0; }
+.home-aicard-body { margin: 9px 0 0; font-size: 14px; line-height: 1.65; }
+
+.home-macros-wrap {
+  margin-top: 56px;
+  padding-top: 44px;
+  border-top: 1px solid var(--color-divider);
+}
+.home-macros {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 56px;
+  align-items: center;
+  max-width: 920px;
+  margin-inline: auto;
+}
+.home-macros-copy { max-width: 520px; }
+.home-macros-title { font-weight: 400; font-size: 32px; margin: 0; }
+.home-macros-lead {
+  font-size: 16px;
+  line-height: 1.65;
+  margin: 16px 0 0;
+  color: color-mix(in srgb, var(--color-text) 78%, transparent);
+  text-wrap: pretty;
+}
+.home-tags { display: flex; gap: 10px; margin-top: 20px; }
+
+/* ── The rest of it ────────────────────────────────────────────────────── */
+.home-features { padding-block: 80px; }
+.home-features-title { font-weight: 400; font-size: 42px; margin: 10px 0 0; }
+.home-features-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0 40px;
+  margin-top: 8px;
+}
+.home-feature { padding: 26px 0; border-bottom: 1px solid var(--color-divider); }
+.home-feature-title { margin: 0; font-weight: 400; font-size: 20px; }
+.home-feature-body { margin: 8px 0 0; font-size: 14px; line-height: 1.6; }
+
+/* ── Install it like an app ─────────────────────────────────────────────── */
+.home-pwa {
+  max-width: 920px;
+  padding-block: 72px;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 56px;
+  align-items: center;
+}
+.home-pwa-copy { max-width: 560px; }
+.home-pwa-title { font-weight: 400; font-size: 40px; margin: 12px 0 0; line-height: 1.1; }
+.home-pwa-lead {
+  font-size: 17px;
+  line-height: 1.6;
+  margin: 18px 0 0;
+  color: color-mix(in srgb, var(--color-text) 80%, transparent);
+  text-wrap: pretty;
+}
+.home-pwa-mark {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 210px;
+  height: 210px;
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-md);
+  background: var(--color-bg);
+}
+.home-install { margin-top: 28px; }
+.home-install-row { display: flex; align-items: center; gap: 14px; }
+.home-install-sub { font-size: 13px; }
+.home-install-done { font-size: 14px; }
+.home-install-hint { margin: 12px 0 0; font-size: 13px; line-height: 1.55; max-width: 420px; }
+
+/* ── Questions ─────────────────────────────────────────────────────────── */
+.home-faq {
+  padding-block: 80px;
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 72px;
+}
+.home-faq-title { font-weight: 400; font-size: 38px; margin: 12px 0 0; line-height: 1.1; }
+.home-faq-item { padding: 24px 0; border-top: 1px solid var(--color-divider); }
+.home-faq-item--last { border-bottom: 1px solid var(--color-divider); }
+.home-faq-q { margin: 0; font-weight: 400; font-size: 21px; }
+.home-faq-a { margin: 10px 0 0; font-size: 15px; line-height: 1.65; max-width: 660px; }
+
+/* ── Closing CTA ───────────────────────────────────────────────────────── */
+.home-cta-band { padding-block: 88px; text-align: center; }
+.home-cta-title { font-weight: 400; font-size: 50px; margin: 0; line-height: 1.06; }
+.home-cta-lead {
+  font-size: 17px;
+  line-height: 1.6;
+  margin: 20px auto 0;
+  max-width: 520px;
+  color: color-mix(in srgb, var(--color-text) 78%, transparent);
+  text-wrap: pretty;
+}
+.home-cta-actions {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 14px;
+  margin-top: 32px;
+}
+
+/* ── Buttons (size modifiers on .btn; used from both component files) ────── */
+.home-btn-header { height: 44px; text-decoration: none; }
+.home-cta { height: 50px; padding-inline: 32px; font-size: 16px; text-decoration: none; }
+.home-cta-ghost { height: 50px; text-decoration: none; }
+.home-btn-install { height: 46px; padding-inline: 26px; }
+
+/* ── Footer ────────────────────────────────────────────────────────────── */
+.home-footer {
+  padding-block: 44px;
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  flex-wrap: wrap;
+}
+.home-footer-brand { display: flex; align-items: center; gap: 10px; }
+.home-footer-wordmark { font-family: var(--font-heading); font-size: 18px; }
+.home-footer-tagline { font-size: 13px; }
+.home-footer-links { display: flex; gap: 22px; margin-left: auto; font-size: 13px; }
+
+/* ── Headings — shared responsive size hooks (applied alongside a base
+   title class; media rules below win by source order). ─────────────────── */
+
+@media (min-width: 901px) {
+  .home [data-burger] { display: none !important; }
+}
 @media (max-width: 1080px) {
-  .home [data-grid="features"] { grid-template-columns: repeat(2, 1fr) !important; }
-  .home [data-grid="how"] { grid-template-columns: repeat(3, 1fr) !important; gap: 24px !important; }
-  .home [data-grid="ai"] { grid-template-columns: repeat(2, 1fr) !important; gap: 24px !important; }
+  .home-features-grid { grid-template-columns: repeat(2, 1fr) !important; }
+  .home-how-grid { grid-template-columns: repeat(3, 1fr) !important; gap: 24px !important; }
+  .home-ai-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 24px !important; }
 }
 @media (max-width: 1060px) {
-  .home [data-grid="hero"],
-  .home [data-grid="shop"],
-  .home [data-grid="macros"],
-  .home [data-grid="pwa"] { grid-template-columns: 1fr !important; gap: 44px !important; }
-  .home [data-phones] { justify-content: flex-start; }
-  .home [data-h1] { font-size: 54px !important; }
+  .home-hero,
+  .home-shop,
+  .home-macros,
+  .home-pwa { grid-template-columns: 1fr !important; gap: 44px !important; }
+  .home-phones { justify-content: flex-start; }
+  .home-h1 { font-size: 54px !important; }
 }
 @media (max-width: 900px) {
-  .home [data-nav],
-  .home [data-signin] { display: none !important; }
-  .home [data-actions] { margin-left: auto; }
-  .home [data-grid="faq"] { grid-template-columns: 1fr !important; gap: 32px !important; }
-  .home [data-grid="how"],
-  .home [data-grid="ai"] { grid-template-columns: 1fr !important; gap: 44px !important; }
+  .home-nav,
+  .home-signin { display: none !important; }
+  .home-actions { margin-left: auto; }
+  .home-faq { grid-template-columns: 1fr !important; gap: 32px !important; }
+  .home-how-grid,
+  .home-ai-grid { grid-template-columns: 1fr !important; gap: 44px !important; }
   /* Ways-in cards stack tighter than the how-it-works steps on mobile. */
-  .home [data-grid="ai"] { gap: 16px !important; }
-  .home [data-grid="shopfeat"] { grid-template-columns: 1fr !important; }
+  .home-ai-grid { gap: 16px !important; }
+  .home-shopfeat { grid-template-columns: 1fr !important; }
 }
 @media (max-width: 620px) {
-  .home [data-grid="features"] { grid-template-columns: 1fr !important; }
-  .home [data-pad] { padding-left: 20px !important; padding-right: 20px !important; }
-  .home [data-burger-panel] { right: -8px; }
-  .home [data-h1] { font-size: 40px !important; }
-  .home [data-h2] { font-size: 30px !important; }
-  .home [data-h2-lg] { font-size: 32px !important; }
-  .home [data-phones] { width: 100%; }
-  .home [data-phone-sm] { flex: 1 1 0; min-width: 0; width: auto !important; margin-right: -14% !important; border-radius: 20px !important; }
-  .home [data-phone-sm] > div { height: auto !important; aspect-ratio: 252 / 428; border-radius: 15px !important; }
-  .home [data-phone-lg] { flex: 1.25 1 0; min-width: 0; width: auto !important; border-radius: 24px !important; }
-  .home [data-phone-lg] > div { height: auto !important; aspect-ratio: 290 / 562; border-radius: 18px !important; }
-  .home [data-phone-shop] { width: 100% !important; max-width: 300px; }
-  .home [data-phone-shop] > div { height: auto !important; aspect-ratio: 300 / 600; }
-  .home [data-phone-macro] { width: 100% !important; max-width: 250px; }
-  .home [data-phone-macro] > div { height: auto !important; aspect-ratio: 270 / 420; }
+  .home-features-grid { grid-template-columns: 1fr !important; }
+  .home-container { padding-inline: 20px !important; }
+  .home-burger-panel { right: -8px; }
+  .home-h1 { font-size: 40px !important; }
+  .home-h2 { font-size: 30px !important; }
+  .home-h2-lg { font-size: 32px !important; }
+  .home-phones { width: 100%; }
+  .home-phone-sm { flex: 1 1 0; min-width: 0; width: auto !important; margin-right: -14% !important; border-radius: 20px !important; }
+  .home-phone-sm > .home-phone-clip { height: auto !important; aspect-ratio: 252 / 428; border-radius: 15px !important; }
+  .home-phone-lg { flex: 1.25 1 0; min-width: 0; width: auto !important; border-radius: 24px !important; }
+  .home-phone-lg > .home-phone-clip { height: auto !important; aspect-ratio: 290 / 562; border-radius: 18px !important; }
+  .home-phone-shop { width: 100% !important; max-width: 300px; }
+  .home-phone-shop > .home-phone-clip { height: auto !important; aspect-ratio: 300 / 600; }
+  .home-phone-macro { width: 100% !important; max-width: 250px; }
+  .home-phone-macro > .home-phone-clip { height: auto !important; aspect-ratio: 270 / 420; }
   /* Footer stacks and centres on mobile. */
-  .home [data-footer] { flex-direction: column; align-items: center; text-align: center; }
-  .home [data-footer] > div:last-child { margin-left: 0 !important; }
+  .home-footer { flex-direction: column; align-items: center; text-align: center; }
+  .home-footer-links { margin-left: 0 !important; }
 }
