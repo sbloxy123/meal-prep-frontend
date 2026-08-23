@@ -308,7 +308,6 @@
   padding: 26px;
   background: var(--color-bg);
 }
-.home-aicard--accent { border-color: var(--color-accent-300); }
 .home-aicard-title { font-weight: 400; font-size: 22px; margin: 16px 0 0; }
 .home-aicard-body { margin: 9px 0 0; font-size: 14px; line-height: 1.65; }
 
