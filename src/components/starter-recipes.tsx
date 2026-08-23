@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import { apiFetch } from "@/lib/api";
 import { useModalA11y } from "@/lib/use-modal";
-import { STARTER_RECIPES } from "@/lib/starter-recipes";
+import { STARTER_RECIPES, STARTER_IMAGES } from "@/lib/starter-recipes";
 
 // A1 — "Add starter recipes" picker. Pre-selects all; on confirm, creates each
 // selected recipe via the existing POST /recipes (parallel ingredient arrays,
@@ -41,6 +41,7 @@ export function StarterRecipes({
       // shared tag name across recipes.
       for (const i of selected) {
         const r = STARTER_RECIPES[i];
+        const img = STARTER_IMAGES[r.title];
         await apiFetch("/recipes", {
           method: "POST",
           body: JSON.stringify({
@@ -56,6 +57,8 @@ export function StarterRecipes({
             carb_g: r.carb_g,
             fat_g: r.fat_g,
             macros_source: "estimated",
+            image_url: img?.image_url,
+            image_public_id: img?.image_public_id,
           }),
         });
       }

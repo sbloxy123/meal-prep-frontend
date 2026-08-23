@@ -881,3 +881,42 @@ export const STARTER_RECIPES: StarterRecipe[] = [
     fat_g: 26,
   },
 ];
+
+// Seed recipe photos (Unsplash → our Cloudinary via the unsigned preset, so
+// next/image renders them). Recipes not listed here have no photo and fall back
+// to the placeholder — some niche UK dishes had no good Unsplash match. Keyed by
+// exact recipe title.
+export const STARTER_IMAGES: Record<string, { image_url: string; image_public_id: string }> = {
+  "Spaghetti Bolognese": { image_url: "https://res.cloudinary.com/ipuvfjk4/image/upload/v1787471274/starter-recipes/juayha0vtgf8rx2xbohg.jpg", image_public_id: "starter-recipes/juayha0vtgf8rx2xbohg" },
+  "Chilli Con Carne": { image_url: "https://res.cloudinary.com/ipuvfjk4/image/upload/v1787471275/starter-recipes/pqryjjoxjbpg9avjvslw.jpg", image_public_id: "starter-recipes/pqryjjoxjbpg9avjvslw" },
+  "Chicken Fajitas": { image_url: "https://res.cloudinary.com/ipuvfjk4/image/upload/v1787471276/starter-recipes/ca5uf3vmigbolxmkmxec.jpg", image_public_id: "starter-recipes/ca5uf3vmigbolxmkmxec" },
+  "Cheeseburger & Chips": { image_url: "https://res.cloudinary.com/ipuvfjk4/image/upload/v1787471277/starter-recipes/g92yha9vumo5sww399ob.jpg", image_public_id: "starter-recipes/g92yha9vumo5sww399ob" },
+  "Sausage Carbonara": { image_url: "https://res.cloudinary.com/ipuvfjk4/image/upload/v1787471279/starter-recipes/j8uqzhm4za1eqelixcqn.jpg", image_public_id: "starter-recipes/j8uqzhm4za1eqelixcqn" },
+  "Steak & Chips": { image_url: "https://res.cloudinary.com/ipuvfjk4/image/upload/v1787471280/starter-recipes/jkudznwt8l1a1flakah2.jpg", image_public_id: "starter-recipes/jkudznwt8l1a1flakah2" },
+  "Jerk Chicken": { image_url: "https://res.cloudinary.com/ipuvfjk4/image/upload/v1787471285/starter-recipes/jdoa50jirunmx72nf3ee.jpg", image_public_id: "starter-recipes/jdoa50jirunmx72nf3ee" },
+  "Oven Pizza": { image_url: "https://res.cloudinary.com/ipuvfjk4/image/upload/v1787471286/starter-recipes/zwcs8xkoy0awdyf4od1i.jpg", image_public_id: "starter-recipes/zwcs8xkoy0awdyf4od1i" },
+  "Fish & Chips": { image_url: "https://res.cloudinary.com/ipuvfjk4/image/upload/v1787471287/starter-recipes/av8d2qhoo9nqkg7jynjr.jpg", image_public_id: "starter-recipes/av8d2qhoo9nqkg7jynjr" },
+  "Chicken Pie": { image_url: "https://res.cloudinary.com/ipuvfjk4/image/upload/v1787471289/starter-recipes/cncbxsmrdgseyongkkkv.jpg", image_public_id: "starter-recipes/cncbxsmrdgseyongkkkv" },
+  "Roast Chicken Dinner": { image_url: "https://res.cloudinary.com/ipuvfjk4/image/upload/v1787471291/starter-recipes/vsmi1f0stjsrc22h8zhj.jpg", image_public_id: "starter-recipes/vsmi1f0stjsrc22h8zhj" },
+  "Beef Stew": { image_url: "https://res.cloudinary.com/ipuvfjk4/image/upload/v1787471293/starter-recipes/gdpjkmq97l3f5j6jdseq.jpg", image_public_id: "starter-recipes/gdpjkmq97l3f5j6jdseq" },
+  "Mac & Cheese": { image_url: "https://res.cloudinary.com/ipuvfjk4/image/upload/v1787471294/starter-recipes/ypj9br2jonjvimrqbzgk.jpg", image_public_id: "starter-recipes/ypj9br2jonjvimrqbzgk" },
+  "Chicken Curry & Rice": { image_url: "https://res.cloudinary.com/ipuvfjk4/image/upload/v1787471296/starter-recipes/ztm93v6fb1qspggf9jfo.jpg", image_public_id: "starter-recipes/ztm93v6fb1qspggf9jfo" },
+  "Bangers & Mash": { image_url: "https://res.cloudinary.com/ipuvfjk4/image/upload/v1787471298/starter-recipes/nbgwm6md3q6hdxvqg98o.jpg", image_public_id: "starter-recipes/nbgwm6md3q6hdxvqg98o" },
+  "Tuna Pasta Bake": { image_url: "https://res.cloudinary.com/ipuvfjk4/image/upload/v1787471300/starter-recipes/wdceat2rwiqdypkluczj.jpg", image_public_id: "starter-recipes/wdceat2rwiqdypkluczj" },
+  "Oven Lasagne, Broccoli & Carrots": { image_url: "https://res.cloudinary.com/ipuvfjk4/image/upload/v1787471301/starter-recipes/gqnvkqtckjexyyzmuxl0.jpg", image_public_id: "starter-recipes/gqnvkqtckjexyyzmuxl0" },
+  "Spaghetti & Meatballs": { image_url: "https://res.cloudinary.com/ipuvfjk4/image/upload/v1787471302/starter-recipes/w9gr3z0qz3ujhit5art8.jpg", image_public_id: "starter-recipes/w9gr3z0qz3ujhit5art8" },
+  "Sweet & Sour Chicken": { image_url: "https://res.cloudinary.com/ipuvfjk4/image/upload/v1787471305/starter-recipes/wlfb8jtnzt5uqva3b6rl.jpg", image_public_id: "starter-recipes/wlfb8jtnzt5uqva3b6rl" },
+  "Beef Tacos": { image_url: "https://res.cloudinary.com/ipuvfjk4/image/upload/v1787471306/starter-recipes/ipmomqwh5wzc7sjnqtnq.jpg", image_public_id: "starter-recipes/ipmomqwh5wzc7sjnqtnq" },
+  "Breaded Chicken, Chips & Beans": { image_url: "https://res.cloudinary.com/ipuvfjk4/image/upload/v1787471427/starter-recipes/owj3ett4othdjjzabq91.jpg", image_public_id: "starter-recipes/owj3ett4othdjjzabq91" },
+  "Fish Fingers, Chips & Peas": { image_url: "https://res.cloudinary.com/ipuvfjk4/image/upload/v1787471309/starter-recipes/j8zotbnnb7zbm7eoiaww.jpg", image_public_id: "starter-recipes/j8zotbnnb7zbm7eoiaww" },
+  "Toad in the Hole": { image_url: "https://res.cloudinary.com/ipuvfjk4/image/upload/v1787471425/starter-recipes/pfwzcgruxy4flhlvxf8s.jpg", image_public_id: "starter-recipes/pfwzcgruxy4flhlvxf8s" },
+  "Cottage Pie": { image_url: "https://res.cloudinary.com/ipuvfjk4/image/upload/v1787471313/starter-recipes/x7qrip89reaw6iav3zne.jpg", image_public_id: "starter-recipes/x7qrip89reaw6iav3zne" },
+  "Creamy Chicken & Bacon Pasta": { image_url: "https://res.cloudinary.com/ipuvfjk4/image/upload/v1787471314/starter-recipes/lkslbmr27nouteralmpg.jpg", image_public_id: "starter-recipes/lkslbmr27nouteralmpg" },
+  "Vegetable Stir Fry with Noodles": { image_url: "https://res.cloudinary.com/ipuvfjk4/image/upload/v1787471318/starter-recipes/fdc4hbtsdigdz1iwd73g.jpg", image_public_id: "starter-recipes/fdc4hbtsdigdz1iwd73g" },
+  "Ham, Egg & Chips": { image_url: "https://res.cloudinary.com/ipuvfjk4/image/upload/v1787471319/starter-recipes/idggom4c3np0sbdqutwv.jpg", image_public_id: "starter-recipes/idggom4c3np0sbdqutwv" },
+  "Pesto Pasta": { image_url: "https://res.cloudinary.com/ipuvfjk4/image/upload/v1787471321/starter-recipes/obgclyvksqkwl6ebqtlx.jpg", image_public_id: "starter-recipes/obgclyvksqkwl6ebqtlx" },
+  "Beef Burritos": { image_url: "https://res.cloudinary.com/ipuvfjk4/image/upload/v1787471322/starter-recipes/skklh636g75ndtpiuway.jpg", image_public_id: "starter-recipes/skklh636g75ndtpiuway" },
+  "Quiche, Chips & Salad": { image_url: "https://res.cloudinary.com/ipuvfjk4/image/upload/v1787471323/starter-recipes/vz46fl6nvqjywaqzdd9p.jpg", image_public_id: "starter-recipes/vz46fl6nvqjywaqzdd9p" },
+  "Pork Chops, Mash & Veg": { image_url: "https://res.cloudinary.com/ipuvfjk4/image/upload/v1787471324/starter-recipes/wj0xvsjukkxrtmtaswcm.jpg", image_public_id: "starter-recipes/wj0xvsjukkxrtmtaswcm" },
+  "Chicken Noodle Soup": { image_url: "https://res.cloudinary.com/ipuvfjk4/image/upload/v1787471326/starter-recipes/cuux5wsqyg983ukoksks.jpg", image_public_id: "starter-recipes/cuux5wsqyg983ukoksks" },
+};
