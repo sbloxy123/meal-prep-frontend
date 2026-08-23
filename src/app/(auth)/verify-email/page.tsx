@@ -33,6 +33,9 @@ function VerifyEmailInner() {
           We&rsquo;ve sent a verification link to {email ? <strong>{email}</strong> : "your inbox"}.
           Open it to confirm your address and you&rsquo;re in.
         </p>
+        <p className="auth-note text-muted">
+          Can&rsquo;t find it? Check your spam or junk folder.
+        </p>
 
         <hr className="auth-rule" />
 

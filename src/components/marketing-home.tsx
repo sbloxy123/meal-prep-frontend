@@ -39,11 +39,8 @@ function Logo({ size }: { size: number }) {
   );
 }
 
-const muted80 = "color-mix(in srgb, var(--color-text) 80%, transparent)";
-const muted78 = "color-mix(in srgb, var(--color-text) 78%, transparent)";
-
 /** A "How it works" step: number, title, paragraph, and a screenshot that
-    bottom-aligns with its siblings via marginTop:auto. */
+    bottom-aligns with its siblings. */
 function Step({
   num,
   title,
@@ -60,56 +57,22 @@ function Step({
   objectPosition?: "top" | "center";
 }) {
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-      <div style={{ display: "flex", alignItems: "baseline", gap: 12 }}>
-        <span
-          style={{
-            fontFamily: "var(--font-heading)",
-            fontSize: 15,
-            color: "var(--color-accent)",
-            fontVariantNumeric: "tabular-nums",
-          }}
-        >
-          {num}
-        </span>
-        <h3 style={{ fontWeight: 400, fontSize: 25, margin: 0 }}>{title}</h3>
+    <div className="home-step">
+      <div className="home-step-head">
+        <span className="home-step-num">{num}</span>
+        <h3 className="home-step-title">{title}</h3>
       </div>
-      <p
-        style={{
-          margin: 0,
-          fontSize: 15,
-          lineHeight: 1.65,
-          color: muted78,
-          textWrap: "pretty",
-        }}
-      >
-        {body}
-      </p>
-      <div
-        style={{
-          width: "100%",
-          maxWidth: 290,
-          border: "1px solid var(--color-divider)",
-          borderRadius: 26,
-          padding: 7,
-          background: "var(--color-bg)",
-          boxShadow: "var(--shadow-sm)",
-          marginTop: "auto",
-        }}
-      >
-        <div style={{ borderRadius: 20, overflow: "hidden", height: 340 }}>
+      <p className="home-step-body">{body}</p>
+      <div className="home-phone home-phone-step">
+        <div className="home-phone-clip">
           <Image
             src={src}
             alt={alt}
             width={552}
             height={680}
-            style={{
-              width: "100%",
-              height: "100%",
-              display: "block",
-              objectFit: "cover",
-              objectPosition,
-            }}
+            className={
+              objectPosition === "center" ? "home-shot home-shot--center" : "home-shot"
+            }
           />
         </div>
       </div>
@@ -118,7 +81,7 @@ function Step({
 }
 
 /** One of the four "ways in" cards. The accent-bordered variant is the
-    Photograph a page card. `icon` is the inline accent SVG. */
+    Photograph a page card. `children` is the inline accent SVG. */
 function AiCard({
   title,
   body,
@@ -131,26 +94,10 @@ function AiCard({
   children: React.ReactNode;
 }) {
   return (
-    <div
-      style={{
-        border: `1px solid ${
-          accentBorder ? "var(--color-accent-300)" : "var(--color-divider)"
-        }`,
-        borderRadius: "var(--radius-md)",
-        padding: 26,
-        background: "var(--color-bg)",
-      }}
-    >
+    <div className={accentBorder ? "home-aicard home-aicard--accent" : "home-aicard"}>
       {children}
-      <h3 style={{ fontWeight: 400, fontSize: 22, margin: "16px 0 0" }}>
-        {title}
-      </h3>
-      <p
-        className="text-muted"
-        style={{ margin: "9px 0 0", fontSize: 14, lineHeight: 1.65 }}
-      >
-        {body}
-      </p>
+      <h3 className="home-aicard-title">{title}</h3>
+      <p className="text-muted home-aicard-body">{body}</p>
     </div>
   );
 }
@@ -185,27 +132,9 @@ function ShopPoint({
   span?: boolean;
 }) {
   return (
-    <div
-      style={{
-        padding: "20px 0",
-        borderTop: "1px solid var(--color-divider)",
-        ...(span
-          ? { borderBottom: "1px solid var(--color-divider)", gridColumn: "1/-1" }
-          : {}),
-      }}
-    >
-      <h4 style={{ margin: 0, fontWeight: 400, fontSize: 19 }}>{title}</h4>
-      <p
-        className="text-muted"
-        style={{
-          margin: "7px 0 0",
-          fontSize: 14,
-          lineHeight: 1.6,
-          ...(span ? { maxWidth: 620 } : {}),
-        }}
-      >
-        {body}
-      </p>
+    <div className={span ? "home-shoppoint home-shoppoint--span" : "home-shoppoint"}>
+      <h4 className="home-shoppoint-title">{title}</h4>
+      <p className="text-muted home-shoppoint-body">{body}</p>
     </div>
   );
 }
@@ -213,16 +142,9 @@ function ShopPoint({
 /** A hairline-ruled item in the "The rest of it" feature list. */
 function Feature({ title, body }: { title: string; body: string }) {
   return (
-    <div
-      style={{ padding: "26px 0", borderBottom: "1px solid var(--color-divider)" }}
-    >
-      <h4 style={{ margin: 0, fontWeight: 400, fontSize: 20 }}>{title}</h4>
-      <p
-        className="text-muted"
-        style={{ margin: "8px 0 0", fontSize: 14, lineHeight: 1.6 }}
-      >
-        {body}
-      </p>
+    <div className="home-feature">
+      <h4 className="home-feature-title">{title}</h4>
+      <p className="text-muted home-feature-body">{body}</p>
     </div>
   );
 }
@@ -238,90 +160,25 @@ function Faq({
   last?: boolean;
 }) {
   return (
-    <div
-      style={{
-        padding: "24px 0",
-        borderTop: "1px solid var(--color-divider)",
-        ...(last ? { borderBottom: "1px solid var(--color-divider)" } : {}),
-      }}
-    >
-      <h4 style={{ margin: 0, fontWeight: 400, fontSize: 21 }}>{q}</h4>
-      <p
-        className="text-muted"
-        style={{ margin: "10px 0 0", fontSize: 15, lineHeight: 1.65, maxWidth: 660 }}
-      >
-        {a}
-      </p>
+    <div className={last ? "home-faq-item home-faq-item--last" : "home-faq-item"}>
+      <h4 className="home-faq-q">{q}</h4>
+      <p className="text-muted home-faq-a">{a}</p>
     </div>
   );
 }
 
 export function MarketingHome() {
   return (
-    <div
-      className="home"
-      style={{
-        background: "var(--color-bg)",
-        color: "var(--color-text)",
-        fontFamily: "var(--font-body)",
-        minHeight: "100vh",
-      }}
-    >
+    <div className="home">
       {/* ── Header ─────────────────────────────────────────────── */}
-      <header
-        style={{
-          position: "sticky",
-          top: 0,
-          zIndex: 20,
-          background: "color-mix(in srgb, var(--color-bg) 92%, transparent)",
-          backdropFilter: "blur(8px)",
-          WebkitBackdropFilter: "blur(8px)",
-          borderBottom: "1px solid var(--color-divider)",
-        }}
-      >
-        <div
-          data-header-row
-          data-pad
-          style={{
-            maxWidth: 1180,
-            margin: "0 auto",
-            padding: "16px 32px",
-            display: "flex",
-            alignItems: "center",
-            gap: 32,
-          }}
-        >
-          <a
-            href="#top"
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 10,
-              color: "var(--color-text)",
-            }}
-          >
+      <header className="home-header">
+        <div className="home-container home-header-row">
+          <a href="#top" className="home-brand">
             <Logo size={27} />
-            <span
-              style={{
-                fontFamily: "var(--font-heading)",
-                fontSize: 22,
-                letterSpacing: ".01em",
-              }}
-            >
-              Fornetto
-            </span>
+            <span className="home-wordmark">Fornetto</span>
           </a>
 
-          <nav
-            data-nav
-            style={{
-              display: "flex",
-              gap: 26,
-              marginLeft: "auto",
-              alignItems: "center",
-              fontSize: 14,
-            }}
-          >
+          <nav className="home-nav">
             <a href="#how">How it works</a>
             <a href="#shop">In the shop</a>
             <a href="#features">Features</a>
@@ -333,98 +190,28 @@ export function MarketingHome() {
       </header>
 
       {/* ── Hero ───────────────────────────────────────────────── */}
-      <section
-        id="top"
-        data-grid="hero"
-        data-pad
-        style={{
-          maxWidth: 1180,
-          margin: "0 auto",
-          padding: "76px 32px 84px",
-          display: "grid",
-          gridTemplateColumns: "1fr auto",
-          gap: 64,
-          alignItems: "center",
-        }}
-      >
-        <div style={{ maxWidth: 520 }}>
-          <div
-            style={{
-              fontSize: 11,
-              letterSpacing: ".18em",
-              textTransform: "uppercase",
-              color: "var(--color-accent)",
-            }}
-          >
-            Fornetto
-          </div>
-          <h1
-            data-h1
-            style={{
-              fontWeight: 400,
-              fontSize: 66,
-              lineHeight: 1.02,
-              margin: "16px 0 0",
-              letterSpacing: "-.01em",
-            }}
-          >
+      <section id="top" className="home-container home-hero">
+        <div className="home-hero-copy">
+          <div className="home-kicker">Fornetto</div>
+          <h1 className="home-hero-title home-h1">
             Plan the week.
             <br />
             <em style={{ fontStyle: "italic" }}>Shop it by aisle.</em>
           </h1>
-          <p
-            style={{
-              fontSize: 19,
-              lineHeight: 1.6,
-              margin: "24px 0 0",
-              color: muted80,
-              textWrap: "pretty",
-            }}
-          >
+          <p className="home-hero-lead">
             Pick a few recipes. Fornetto works out what you&rsquo;re actually
             missing, builds the shopping list for you, and sorts it into the
             order you walk the shop.
           </p>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 14,
-              marginTop: 34,
-            }}
-          >
-            <Link
-              href="/sign-up"
-              className="btn btn-primary"
-              style={{
-                height: 50,
-                paddingInline: 30,
-                fontSize: 16,
-                textDecoration: "none",
-              }}
-            >
+          <div className="home-hero-actions">
+            <Link href="/sign-up" className="btn btn-primary home-cta">
               Get started
             </Link>
-            <a
-              href="#how"
-              className="btn btn-ghost"
-              style={{ height: 50, textDecoration: "none" }}
-            >
+            <a href="#how" className="btn btn-ghost home-cta-ghost">
               See how it works
             </a>
           </div>
-          <div
-            style={{
-              display: "flex",
-              flexWrap: "wrap",
-              gap: "10px 22px",
-              marginTop: 30,
-              paddingTop: 22,
-              borderTop: "1px solid var(--color-divider)",
-              fontSize: 13,
-              color: "color-mix(in srgb, var(--color-text) 62%, transparent)",
-            }}
-          >
+          <div className="home-trust">
             <span>Free to use</span>
             <span>·</span>
             <span>Works in the shop with no signal</span>
@@ -433,77 +220,28 @@ export function MarketingHome() {
           </div>
         </div>
 
-        <div
-          data-phones
-          style={{
-            display: "flex",
-            alignItems: "flex-end",
-            position: "relative",
-          }}
-        >
-          <div
-            data-phone-sm
-            style={{
-              width: 252,
-              border: "1px solid var(--color-divider)",
-              borderRadius: 28,
-              padding: 7,
-              background: "var(--color-bg)",
-              boxShadow: "var(--shadow-md)",
-              position: "relative",
-              zIndex: 1,
-              marginRight: -34,
-              marginBottom: 34,
-            }}
-          >
-            <div
-              style={{ borderRadius: 22, overflow: "hidden", height: 428 }}
-            >
+        <div className="home-phones">
+          <div className="home-phone home-phone-sm">
+            <div className="home-phone-clip">
               <Image
                 src="/home-this-week.jpg"
                 alt="This week — four recipes chosen"
                 width={476}
                 height={856}
                 priority
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  display: "block",
-                  objectFit: "cover",
-                  objectPosition: "top",
-                }}
+                className="home-shot"
               />
             </div>
           </div>
-          <div
-            data-phone-lg
-            style={{
-              width: 290,
-              border: "1px solid var(--color-divider)",
-              borderRadius: 32,
-              padding: 8,
-              background: "var(--color-bg)",
-              boxShadow: "var(--shadow-lg)",
-              position: "relative",
-              zIndex: 2,
-            }}
-          >
-            <div
-              style={{ borderRadius: 25, overflow: "hidden", height: 562 }}
-            >
+          <div className="home-phone home-phone-lg">
+            <div className="home-phone-clip">
               <Image
                 src="/home-in-the-shop.jpg"
                 alt="In the shop — list sorted by aisle"
                 width={548}
                 height={1124}
                 priority
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  display: "block",
-                  objectFit: "cover",
-                  objectPosition: "top",
-                }}
+                className="home-shot"
               />
             </div>
           </div>
@@ -511,68 +249,20 @@ export function MarketingHome() {
       </section>
 
       {/* ── How it works ──────────────────────────────────────── */}
-      <section
-        id="how"
-        style={{
-          borderTop: "1px solid var(--color-divider)",
-          background: "var(--color-surface)",
-        }}
-      >
-        <div
-          data-pad
-          style={{ maxWidth: 1180, margin: "0 auto", padding: "78px 32px" }}
-        >
-          <div
-            style={{
-              display: "flex",
-              alignItems: "baseline",
-              gap: 20,
-              paddingBottom: 16,
-              borderBottom: "1px solid var(--color-divider)",
-              flexWrap: "wrap",
-            }}
-          >
+      <section id="how" className="home-band home-band--surface">
+        <div className="home-container home-how">
+          <div className="home-section-head">
             <div>
-              <div
-                style={{
-                  fontSize: 11,
-                  letterSpacing: ".18em",
-                  textTransform: "uppercase",
-                  color: "var(--color-accent)",
-                }}
-              >
-                How it works
-              </div>
-              <h2
-                data-h2-lg
-                style={{ fontWeight: 400, fontSize: 42, margin: "10px 0 0" }}
-              >
-                Three steps, once a week
-              </h2>
+              <div className="home-kicker">How it works</div>
+              <h2 className="home-how-title home-h2-lg">Three steps, once a week</h2>
             </div>
-            <p
-              className="text-muted"
-              style={{
-                margin: "0 0 0 auto",
-                maxWidth: 340,
-                fontSize: 15,
-                textWrap: "pretty",
-              }}
-            >
+            <p className="text-muted home-how-note">
               The whole loop takes a few minutes on a Sunday, and ends with a
               clean slate for next week.
             </p>
           </div>
 
-          <div
-            data-grid="how"
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(3,1fr)",
-              gap: 44,
-              marginTop: 52,
-            }}
-          >
+          <div className="home-how-grid">
             <Step
               num="01"
               title="Pick what you fancy"
@@ -606,95 +296,33 @@ export function MarketingHome() {
       </section>
 
       {/* ── In the shop ───────────────────────────────────────── */}
-      <section id="shop" style={{ borderTop: "1px solid var(--color-divider)" }}>
-        <div
-          data-grid="shop"
-          data-pad
-          style={{
-            maxWidth: 1180,
-            margin: "0 auto",
-            padding: "84px 32px",
-            display: "grid",
-            gridTemplateColumns: "auto 1fr",
-            gap: 72,
-            alignItems: "center",
-          }}
-        >
-          <div
-            data-phone-shop
-            style={{
-              width: 320,
-              border: "1px solid var(--color-divider)",
-              borderRadius: 34,
-              padding: 9,
-              background: "var(--color-bg)",
-              boxShadow: "var(--shadow-lg)",
-            }}
-          >
-            <div style={{ borderRadius: 26, overflow: "hidden", height: 600 }}>
+      <section id="shop" className="home-band">
+        <div className="home-container home-shop">
+          <div className="home-phone home-phone-shop">
+            <div className="home-phone-clip">
               <Image
                 src="/home-in-the-shop.jpg"
                 alt="In the shop mode"
                 width={604}
                 height={1200}
-                style={{
-                  width: "100%",
-                  height: "100%",
-                  display: "block",
-                  objectFit: "cover",
-                  objectPosition: "top",
-                }}
+                className="home-shot"
               />
             </div>
           </div>
           <div>
-            <div
-              style={{
-                fontSize: 11,
-                letterSpacing: ".18em",
-                textTransform: "uppercase",
-                color: "var(--color-accent)",
-              }}
-            >
-              In the shop
-            </div>
-            <h2
-              data-h2-lg
-              style={{
-                fontWeight: 400,
-                fontSize: 44,
-                margin: "12px 0 0",
-                lineHeight: 1.08,
-              }}
-            >
+            <div className="home-kicker">In the shop</div>
+            <h2 className="home-shop-title home-h2-lg">
               One hand, a trolley,
               <br />
               and no signal
             </h2>
-            <p
-              style={{
-                fontSize: 17,
-                lineHeight: 1.6,
-                margin: "20px 0 0",
-                maxWidth: 540,
-                color: muted80,
-                textWrap: "pretty",
-              }}
-            >
+            <p className="home-shop-lead">
               Most list apps stop being useful the moment you&rsquo;re standing
               in a supermarket holding a basket. This is the part we spent the
               longest on.
             </p>
 
-            <div
-              data-grid="shopfeat"
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
-                gap: "0 40px",
-                marginTop: 36,
-              }}
-            >
+            <div className="home-shopfeat">
               <ShopPoint
                 title="Aisles in your order"
                 body="Drag the sections to match the layout of your shop. Fornetto remembers it for next time."
@@ -722,62 +350,21 @@ export function MarketingHome() {
       </section>
 
       {/* ── Where the AI helps ────────────────────────────────── */}
-      <section
-        style={{
-          borderTop: "1px solid var(--color-divider)",
-          background: "var(--color-surface)",
-        }}
-      >
-        <div
-          data-pad
-          style={{ maxWidth: 1180, margin: "0 auto", padding: "80px 32px" }}
-        >
-          <div style={{ maxWidth: 640 }}>
-            <div
-              style={{
-                fontSize: 11,
-                letterSpacing: ".18em",
-                textTransform: "uppercase",
-                color: "var(--color-accent)",
-              }}
-            >
-              Where the AI helps
-            </div>
-            <h2
-              data-h2-lg
-              style={{
-                fontWeight: 400,
-                fontSize: 44,
-                margin: "12px 0 0",
-                lineHeight: 1.08,
-              }}
-            >
+      <section className="home-band home-band--surface">
+        <div className="home-container home-ai">
+          <div className="home-ai-intro">
+            <div className="home-kicker">Where the AI helps</div>
+            <h2 className="home-ai-title home-h2-lg">
               Getting recipes in shouldn&rsquo;t be admin
             </h2>
-            <p
-              style={{
-                fontSize: 17,
-                lineHeight: 1.6,
-                margin: "20px 0 0",
-                color: muted80,
-                textWrap: "pretty",
-              }}
-            >
+            <p className="home-ai-lead">
               Typing out a recipe is the reason most meal planners get abandoned
               in week two. There are four ways in, and none of them is typing it
               all out.
             </p>
           </div>
 
-          <div
-            data-grid="ai"
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(4,1fr)",
-              gap: 24,
-              marginTop: 46,
-            }}
-          >
+          <div className="home-ai-grid">
             <AiCard
               title="Paste a link"
               body="Drop in any recipe URL. It reads the page and fills in the title, ingredients, method and times for you to check over before saving."
@@ -821,133 +408,52 @@ export function MarketingHome() {
             </AiCard>
           </div>
 
-          <div
-            style={{
-              marginTop: 56,
-              paddingTop: 44,
-              borderTop: "1px solid var(--color-divider)",
-            }}
-          >
-            <div
-              data-grid="macros"
-              style={{
-                display: "grid",
-                gridTemplateColumns: "1fr auto",
-                gap: 56,
-                alignItems: "center",
-                maxWidth: 920,
-                marginInline: "auto",
-              }}
-            >
-            <div style={{ maxWidth: 520 }}>
-              <h3
-                data-h2
-                style={{ fontWeight: 400, fontSize: 32, margin: 0 }}
-              >
-                Know what&rsquo;s in it, before you commit
-              </h3>
-              <p
-                style={{
-                  fontSize: 16,
-                  lineHeight: 1.65,
-                  margin: "16px 0 0",
-                  color: muted78,
-                  textWrap: "pretty",
-                }}
-              >
-                Every recipe carries calories and protein, carbs and fat per
-                serving — on the card and on the page, so you can weigh a meal up
-                while you&rsquo;re choosing rather than after you&rsquo;ve eaten
-                it. Haven&rsquo;t got the numbers? One tap estimates them from
-                the ingredients, and says plainly when the estimate is rough.
-              </p>
-              <div style={{ display: "flex", gap: 10, marginTop: 20 }}>
-                <span className="tag tag-outline">722 kcal</span>
-                <span className="tag tag-neutral">P 31.6g</span>
-                <span className="tag tag-neutral">C 23.7g</span>
-                <span className="tag tag-neutral">F 53.8g</span>
+          <div className="home-macros-wrap">
+            <div className="home-macros">
+              <div className="home-macros-copy">
+                <h3 className="home-macros-title home-h2">
+                  Know what&rsquo;s in it, before you commit
+                </h3>
+                <p className="home-macros-lead">
+                  Every recipe carries calories and protein, carbs and fat per
+                  serving — on the card and on the page, so you can weigh a meal up
+                  while you&rsquo;re choosing rather than after you&rsquo;ve eaten
+                  it. Haven&rsquo;t got the numbers? One tap estimates them from
+                  the ingredients, and says plainly when the estimate is rough.
+                </p>
+                <div className="home-tags">
+                  <span className="tag tag-outline">722 kcal</span>
+                  <span className="tag tag-neutral">P 31.6g</span>
+                  <span className="tag tag-neutral">C 23.7g</span>
+                  <span className="tag tag-neutral">F 53.8g</span>
+                </div>
               </div>
-            </div>
-            <div
-              data-phone-macro
-              style={{
-                width: 270,
-                border: "1px solid var(--color-divider)",
-                borderRadius: 28,
-                padding: 7,
-                background: "var(--color-bg)",
-                boxShadow: "var(--shadow-md)",
-              }}
-            >
-              <div
-                style={{ borderRadius: 22, overflow: "hidden", height: 420 }}
-              >
-                <Image
-                  src="/home-recipe-detail.jpg"
-                  alt="Recipe detail with per-serving macros"
-                  width={512}
-                  height={840}
-                  style={{
-                    width: "100%",
-                    height: "100%",
-                    display: "block",
-                    objectFit: "cover",
-                    objectPosition: "top",
-                  }}
-                />
+              <div className="home-phone home-phone-macro">
+                <div className="home-phone-clip">
+                  <Image
+                    src="/home-recipe-detail.jpg"
+                    alt="Recipe detail with per-serving macros"
+                    width={512}
+                    height={840}
+                    className="home-shot"
+                  />
+                </div>
               </div>
-            </div>
             </div>
           </div>
         </div>
       </section>
 
       {/* ── The rest of it ────────────────────────────────────── */}
-      <section
-        id="features"
-        style={{ borderTop: "1px solid var(--color-divider)" }}
-      >
-        <div
-          data-pad
-          style={{ maxWidth: 1180, margin: "0 auto", padding: "80px 32px" }}
-        >
-          <div
-            style={{
-              display: "flex",
-              alignItems: "baseline",
-              gap: 20,
-              paddingBottom: 16,
-              borderBottom: "1px solid var(--color-divider)",
-            }}
-          >
+      <section id="features" className="home-band">
+        <div className="home-container home-features">
+          <div className="home-section-head">
             <div>
-              <div
-                style={{
-                  fontSize: 11,
-                  letterSpacing: ".18em",
-                  textTransform: "uppercase",
-                  color: "var(--color-accent)",
-                }}
-              >
-                Everything else
-              </div>
-              <h2
-                data-h2-lg
-                style={{ fontWeight: 400, fontSize: 42, margin: "10px 0 0" }}
-              >
-                The rest of it
-              </h2>
+              <div className="home-kicker">Everything else</div>
+              <h2 className="home-features-title home-h2-lg">The rest of it</h2>
             </div>
           </div>
-          <div
-            data-grid="features"
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(4,1fr)",
-              gap: "0 40px",
-              marginTop: 8,
-            }}
-          >
+          <div className="home-features-grid">
             <Feature
               title="One list for the household"
               body="Invite whoever you live with. Same recipes, same week, same list — updating live on everyone's phone."
@@ -987,115 +493,30 @@ export function MarketingHome() {
       </section>
 
       {/* ── Install it like an app ─────────────────────────────── */}
-      <section
-        style={{
-          borderTop: "1px solid var(--color-divider)",
-          background: "var(--color-surface)",
-        }}
-      >
-        <div
-          data-grid="pwa"
-          data-pad
-          style={{
-            maxWidth: 920,
-            margin: "0 auto",
-            padding: "72px 32px",
-            display: "grid",
-            gridTemplateColumns: "1fr auto",
-            gap: 56,
-            alignItems: "center",
-          }}
-        >
-          <div style={{ maxWidth: 560 }}>
-            <div
-              style={{
-                fontSize: 11,
-                letterSpacing: ".18em",
-                textTransform: "uppercase",
-                color: "var(--color-accent)",
-              }}
-            >
-              On your phone
-            </div>
-            <h2
-              data-h2-lg
-              style={{
-                fontWeight: 400,
-                fontSize: 40,
-                margin: "12px 0 0",
-                lineHeight: 1.1,
-              }}
-            >
-              Install it like an app
-            </h2>
-            <p
-              style={{
-                fontSize: 17,
-                lineHeight: 1.6,
-                margin: "18px 0 0",
-                color: muted80,
-                textWrap: "pretty",
-              }}
-            >
+      <section className="home-band home-band--surface">
+        <div className="home-container home-pwa">
+          <div className="home-pwa-copy">
+            <div className="home-kicker">On your phone</div>
+            <h2 className="home-pwa-title home-h2-lg">Install it like an app</h2>
+            <p className="home-pwa-lead">
               Add Fornetto to your home screen and it behaves like any other app
               — full screen, its own icon, and it opens even when the signal
               doesn&rsquo;t. Nothing to download from a store.
             </p>
             <MarketingInstallButton />
           </div>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              width: 210,
-              height: 210,
-              border: "1px solid var(--color-divider)",
-              borderRadius: "var(--radius-md)",
-              background: "var(--color-bg)",
-            }}
-          >
+          <div className="home-pwa-mark">
             <Logo size={88} />
           </div>
         </div>
       </section>
 
       {/* ── Questions ─────────────────────────────────────────── */}
-      <section id="faq" style={{ borderTop: "1px solid var(--color-divider)" }}>
-        <div
-          data-grid="faq"
-          data-pad
-          style={{
-            maxWidth: 1180,
-            margin: "0 auto",
-            padding: "80px 32px",
-            display: "grid",
-            gridTemplateColumns: "300px 1fr",
-            gap: 72,
-          }}
-        >
+      <section id="faq" className="home-band">
+        <div className="home-container home-faq">
           <div>
-            <div
-              style={{
-                fontSize: 11,
-                letterSpacing: ".18em",
-                textTransform: "uppercase",
-                color: "var(--color-accent)",
-              }}
-            >
-              Questions
-            </div>
-            <h2
-              data-h2-lg
-              style={{
-                fontWeight: 400,
-                fontSize: 38,
-                margin: "12px 0 0",
-                lineHeight: 1.1,
-              }}
-            >
-              Before you sign up
-            </h2>
+            <div className="home-kicker">Questions</div>
+            <h2 className="home-faq-title home-h2-lg">Before you sign up</h2>
           </div>
           <div>
             <Faq
@@ -1136,44 +557,14 @@ export function MarketingHome() {
       </section>
 
       {/* ── Closing CTA ───────────────────────────────────────── */}
-      <section
-        style={{
-          borderTop: "1px solid var(--color-divider)",
-          background: "var(--color-surface)",
-        }}
-      >
-        <div
-          data-pad
-          style={{
-            maxWidth: 1180,
-            margin: "0 auto",
-            padding: "88px 32px",
-            textAlign: "center",
-          }}
-        >
-          <h2
-            data-h1
-            style={{
-              fontWeight: 400,
-              fontSize: 50,
-              margin: 0,
-              lineHeight: 1.06,
-            }}
-          >
+      <section className="home-band home-band--surface">
+        <div className="home-container home-cta-band">
+          <h2 className="home-cta-title home-h1">
             Sunday&rsquo;s job, done
             <br />
             in a few minutes
           </h2>
-          <p
-            style={{
-              fontSize: 17,
-              lineHeight: 1.6,
-              margin: "20px auto 0",
-              maxWidth: 520,
-              color: muted78,
-              textWrap: "pretty",
-            }}
-          >
+          <p className="home-cta-lead">
             Pick the week&rsquo;s meals, get a list you can actually shop from,
             and stop buying a third jar of cumin.
           </p>
@@ -1182,39 +573,16 @@ export function MarketingHome() {
       </section>
 
       {/* ── Footer ─────────────────────────────────────────────── */}
-      <footer style={{ borderTop: "1px solid var(--color-divider)" }}>
-        <div
-          data-footer
-          data-pad
-          style={{
-            maxWidth: 1180,
-            margin: "0 auto",
-            padding: "44px 32px",
-            display: "flex",
-            alignItems: "center",
-            gap: 28,
-            flexWrap: "wrap",
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+      <footer className="home-band">
+        <div className="home-container home-footer">
+          <div className="home-footer-brand">
             <Logo size={23} />
-            <span
-              style={{ fontFamily: "var(--font-heading)", fontSize: 18 }}
-            >
-              Fornetto
-            </span>
+            <span className="home-footer-wordmark">Fornetto</span>
           </div>
-          <span className="text-muted" style={{ fontSize: 13 }}>
+          <span className="text-muted home-footer-tagline">
             Made for people who cook on weeknights.
           </span>
-          <div
-            style={{
-              display: "flex",
-              gap: 22,
-              marginLeft: "auto",
-              fontSize: 13,
-            }}
-          >
+          <div className="home-footer-links">
             <a href="#how">How it works</a>
             <a href="#features">Features</a>
             <a href="#faq">Questions</a>

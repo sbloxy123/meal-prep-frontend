@@ -8,7 +8,7 @@ import { useSession } from "@/lib/auth-client";
 /**
  * Client bits for the marketing page (used at `/` and `/about`). The page markup
  * itself is a server component (`MarketingHome`); only these interactive pieces
- * need the session or the browser.
+ * need the session or the browser. Styling lives in src/styles/home.css.
  *
  * The auth-dependent parts default to the signed-out state so the server-rendered
  * HTML is correct for the common (SEO / new-visitor) case; they swap to a
@@ -21,15 +21,6 @@ const BURGER_LINKS: [string, string][] = [
   ["Features", "#features"],
   ["Questions", "#faq"],
 ];
-
-const panelRow = {
-  display: "flex",
-  alignItems: "center",
-  minHeight: 44,
-  padding: "0 12px",
-  borderRadius: "var(--radius-sm)",
-  fontSize: 15,
-} as const;
 
 /** Header action cluster: adaptive CTAs + the <details> burger, plus the burger's
     progressive-enhancement listeners (outside-click / Escape / resize-close). */
@@ -74,42 +65,23 @@ export function MarketingHeaderActions() {
   }, []);
 
   return (
-    <div data-actions style={{ display: "flex", alignItems: "center", gap: 12 }}>
+    <div className="home-actions">
       {signedIn ? (
-        <Link
-          href="/recipes"
-          className="btn btn-primary"
-          style={{ height: 44, textDecoration: "none" }}
-        >
+        <Link href="/recipes" className="btn btn-primary home-btn-header">
           Back to app
         </Link>
       ) : (
         <>
-          <Link data-signin href="/sign-in" style={{ fontSize: 14 }}>
+          <Link href="/sign-in" className="home-signin">
             Sign in
           </Link>
-          <Link
-            href="/sign-up"
-            className="btn btn-primary"
-            style={{ height: 44, textDecoration: "none" }}
-          >
+          <Link href="/sign-up" className="btn btn-primary home-btn-header">
             Get started
           </Link>
         </>
       )}
-      <details data-burger style={{ position: "relative" }}>
-        <summary
-          aria-label="Menu"
-          style={{
-            width: 44,
-            height: 44,
-            display: "grid",
-            placeItems: "center",
-            border: "1px solid var(--color-divider)",
-            borderRadius: "var(--radius-sm)",
-            color: "var(--color-text)",
-          }}
-        >
+      <details data-burger className="home-burger">
+        <summary aria-label="Menu" className="home-burger-btn">
           <svg
             data-burger-bars
             width="20"
@@ -137,42 +109,16 @@ export function MarketingHeaderActions() {
             <path d="M6 6l12 12M18 6 6 18" />
           </svg>
         </summary>
-        <nav
-          data-burger-panel
-          style={{
-            position: "absolute",
-            top: "calc(100% + 13px)",
-            right: -20,
-            width: 240,
-            background: "var(--color-bg)",
-            border: "1px solid var(--color-divider)",
-            borderRadius: "var(--radius-md)",
-            boxShadow: "var(--shadow-lg)",
-            padding: 8,
-            display: "flex",
-            flexDirection: "column",
-            zIndex: 30,
-          }}
-        >
+        <nav data-burger-panel className="home-burger-panel">
           {BURGER_LINKS.map(([label, href]) => (
-            <a
-              key={href}
-              href={href}
-              style={{ ...panelRow, color: "var(--color-text)" }}
-            >
+            <a key={href} href={href} className="home-panel-link">
               {label}
             </a>
           ))}
-          <span
-            style={{
-              height: 1,
-              background: "var(--color-divider)",
-              margin: "6px 12px",
-            }}
-          />
+          <span className="home-panel-divider" />
           <Link
             href={signedIn ? "/recipes" : "/sign-in"}
-            style={{ ...panelRow, color: "var(--color-accent-700)" }}
+            className="home-panel-link home-panel-link--accent"
           >
             {signedIn ? "Back to app" : "Sign in"}
           </Link>
@@ -187,47 +133,17 @@ export function MarketingHeaderActions() {
 export function MarketingClosingCta() {
   const { data: session } = useSession();
   return (
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        gap: 14,
-        marginTop: 32,
-      }}
-    >
+    <div className="home-cta-actions">
       {session ? (
-        <Link
-          href="/recipes"
-          className="btn btn-primary"
-          style={{
-            height: 50,
-            paddingInline: 32,
-            fontSize: 16,
-            textDecoration: "none",
-          }}
-        >
+        <Link href="/recipes" className="btn btn-primary home-cta">
           Back to app
         </Link>
       ) : (
         <>
-          <Link
-            href="/sign-up"
-            className="btn btn-primary"
-            style={{
-              height: 50,
-              paddingInline: 32,
-              fontSize: 16,
-              textDecoration: "none",
-            }}
-          >
+          <Link href="/sign-up" className="btn btn-primary home-cta">
             Get started
           </Link>
-          <Link
-            href="/sign-in"
-            className="btn btn-ghost"
-            style={{ height: 50, textDecoration: "none" }}
-          >
+          <Link href="/sign-in" className="btn btn-ghost home-cta-ghost">
             Sign in
           </Link>
         </>
@@ -301,8 +217,8 @@ export function MarketingInstallButton() {
 
   if (installed) {
     return (
-      <div style={{ marginTop: 28 }}>
-        <span className="text-muted" style={{ fontSize: 14 }}>
+      <div className="home-install">
+        <span className="text-muted home-install-done">
           Fornetto is installed on this device — open it from your home screen.
         </span>
       </div>
@@ -310,25 +226,21 @@ export function MarketingInstallButton() {
   }
 
   return (
-    <div style={{ marginTop: 28 }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+    <div className="home-install">
+      <div className="home-install-row">
         <button
           type="button"
-          className="btn btn-primary"
-          style={{ height: 46, paddingInline: 26 }}
+          className="btn btn-primary home-btn-install"
           onClick={install}
         >
           Install app
         </button>
-        <span className="text-muted" style={{ fontSize: 13 }}>
+        <span className="text-muted home-install-sub">
           Works on iPhone and Android
         </span>
       </div>
       {hint && (
-        <p
-          className="text-muted"
-          style={{ margin: "12px 0 0", fontSize: 13, lineHeight: 1.55, maxWidth: 420 }}
-        >
+        <p className="text-muted home-install-hint">
           {hint === "ios"
             ? "On iPhone or iPad: tap the Share button in Safari, then choose “Add to Home Screen”."
             : "If nothing pops up, open your browser menu and choose “Install app” (or “Add to Home Screen”)."}
