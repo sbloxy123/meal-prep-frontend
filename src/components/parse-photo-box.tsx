@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Camera, Images, X } from "lucide-react";
+import { Camera, Images, X, Sparkles } from "lucide-react";
 import { ApiError, apiFetch } from "@/lib/api";
 import { fileToDownscaledBase64 } from "@/lib/image";
 import type { RecipeFormInitial } from "@/components/recipe-form";
@@ -178,11 +178,12 @@ export function ParsePhotoBox({
         </span>
         <button
           type="button"
-          className="btn btn-primary"
+          className="btn btn-ai"
           style={{ height: 34, flex: "none" }}
           onClick={submit}
           disabled={pending || photos.length === 0}
         >
+          <Sparkles size={15} className="btn-ai-spark" aria-hidden />
           {pending ? "Reading…" : "Extract"}
         </button>
       </div>

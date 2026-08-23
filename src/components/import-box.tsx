@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Link2 } from "lucide-react";
+import { Link2, Sparkles } from "lucide-react";
 import { ApiError, apiFetch } from "@/lib/api";
 import type { RecipeFormInitial } from "@/components/recipe-form";
 
@@ -80,11 +80,12 @@ export function ImportBox({ onImported }: { onImported: (draft: RecipeFormInitia
         </span>
         <button
           type="button"
-          className="btn btn-primary"
+          className="btn btn-ai"
           style={{ height: 34, flex: "none" }}
           onClick={submit}
           disabled={pending || !url.trim()}
         >
+          <Sparkles size={15} className="btn-ai-spark" aria-hidden />
           {pending ? "Reading…" : "Import"}
         </button>
       </div>

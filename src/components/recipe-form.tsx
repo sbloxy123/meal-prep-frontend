@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { X, Plus } from "lucide-react";
+import { X, Plus, Sparkles } from "lucide-react";
 import { ApiError, apiFetch, apiSend } from "@/lib/api";
 import { useMenu } from "@/lib/menu";
 import { ConfirmDialog } from "@/components/confirm-dialog";
@@ -106,34 +106,45 @@ export function RecipeForm({ mode, recipeId, initial = {} }: RecipeFormProps) {
   const estimateIsRough =
     servings.trim() === "" || (namedRows.length > 0 && missingQty / namedRows.length >= 0.5);
 
+  // Shared macro estimate call — used by the "Estimate macros" button and as
+  // the fallback after "Improve recipe" when the improve pass doesn't return
+  // macros of its own.
+  type Macros = {
+    calories: number | null;
+    protein_g: number | null;
+    carb_g: number | null;
+    fat_g: number | null;
+  };
+  async function requestEstimate(rows: IngredientRow[], servingsStr: string): Promise<Macros> {
+    return apiFetch<Macros>("/recipes/estimate-macros", {
+      method: "POST",
+      body: JSON.stringify({
+        title: title.trim(),
+        servings: servingsStr.trim() ? Number(servingsStr) : undefined,
+        ingredients: rows.map((r) => ({
+          name: r.name.trim(),
+          quantity: r.quantity.trim() || undefined,
+          unit: r.unit.trim() || undefined,
+        })),
+      }),
+    });
+  }
+
+  function applyMacros(m: Macros) {
+    setCalories(numToInput(m.calories));
+    setProtein(numToInput(m.protein_g));
+    setCarb(numToInput(m.carb_g));
+    setFat(numToInput(m.fat_g));
+    setMacrosSource("estimated");
+  }
+
   async function estimateMacros() {
     if (estimating || !canEstimate) return;
     setEstimating(true);
     setEstimateError("");
     const rows = ingredients.filter((r) => r.name.trim());
     try {
-      const res = await apiFetch<{
-        calories: number | null;
-        protein_g: number | null;
-        carb_g: number | null;
-        fat_g: number | null;
-      }>("/recipes/estimate-macros", {
-        method: "POST",
-        body: JSON.stringify({
-          title: title.trim(),
-          servings: servings.trim() ? Number(servings) : undefined,
-          ingredients: rows.map((r) => ({
-            name: r.name.trim(),
-            quantity: r.quantity.trim() || undefined,
-            unit: r.unit.trim() || undefined,
-          })),
-        }),
-      });
-      setCalories(numToInput(res.calories));
-      setProtein(numToInput(res.protein_g));
-      setCarb(numToInput(res.carb_g));
-      setFat(numToInput(res.fat_g));
-      setMacrosSource("estimated");
+      applyMacros(await requestEstimate(rows, servings));
     } catch (err) {
       setEstimateError(
         err instanceof ApiError && err.status === 429
@@ -180,31 +191,42 @@ export function RecipeForm({ mode, recipeId, initial = {} }: RecipeFormProps) {
       });
 
       if (!description.trim() && res.description) setDescription(res.description);
+      const resolvedServings =
+        servings.trim() || (res.servings != null ? String(res.servings) : "");
       if (!servings.trim() && res.servings != null) setServings(String(res.servings));
       if (!instructions.trim() && res.instructions) setInstructions(res.instructions);
 
-      // Response ingredients align, in order, with the named rows we sent.
-      setIngredients((prev) => {
-        let pos = -1;
-        return prev.map((row) => {
-          if (!row.name.trim()) return row;
-          pos += 1;
-          const imp = res.ingredients?.[pos];
-          if (!imp) return row;
-          const impQty = imp.quantity == null || imp.quantity === "" ? "" : String(imp.quantity);
-          return {
-            ...row,
-            quantity: row.quantity.trim() ? row.quantity : impQty,
-            unit: row.unit.trim() ? row.unit : imp.unit ?? "",
-          };
-        });
+      // Merge the improved amounts into the rows (response aligns, in order, with
+      // the named rows we sent) — only filling fields the user left blank. Build
+      // the new array up front so we can reuse it for the macro fallback below.
+      let pos = -1;
+      const improved = ingredients.map((row) => {
+        if (!row.name.trim()) return row;
+        pos += 1;
+        const imp = res.ingredients?.[pos];
+        if (!imp) return row;
+        const impQty = imp.quantity == null || imp.quantity === "" ? "" : String(imp.quantity);
+        return {
+          ...row,
+          quantity: row.quantity.trim() ? row.quantity : impQty,
+          unit: row.unit.trim() ? row.unit : imp.unit ?? "",
+        };
       });
+      setIngredients(improved);
 
-      setCalories(numToInput(res.calories));
-      setProtein(numToInput(res.protein_g));
-      setCarb(numToInput(res.carb_g));
-      setFat(numToInput(res.fat_g));
-      setMacrosSource("estimated");
+      // Prefer the macros the improve pass returned; if it didn't include any,
+      // estimate them from the freshly-improved quantities so the user never has
+      // to run "Estimate macros" as a second step.
+      const hasMacros = [res.calories, res.protein_g, res.carb_g, res.fat_g].some((v) => v != null);
+      if (hasMacros) {
+        applyMacros(res);
+      } else {
+        try {
+          applyMacros(await requestEstimate(improved.filter((r) => r.name.trim()), resolvedServings));
+        } catch {
+          // Quantities are already improved; a failed macro fallback is non-fatal.
+        }
+      }
     } catch (err) {
       setImproveError(
         err instanceof ApiError && err.status === 429
@@ -490,18 +512,20 @@ export function RecipeForm({ mode, recipeId, initial = {} }: RecipeFormProps) {
         <div className="rf-macro-actions">
           <button
             type="button"
-            className="btn btn-secondary rf-estimate"
+            className="btn btn-ai rf-estimate"
             onClick={estimateMacros}
             disabled={estimating || improving || !canEstimate}
           >
+            <Sparkles size={15} className="btn-ai-spark" aria-hidden />
             {estimating ? "Estimating…" : "Estimate macros"}
           </button>
           <button
             type="button"
-            className="btn btn-secondary rf-improve"
+            className="btn btn-ai rf-improve"
             onClick={improveRecipe}
             disabled={estimating || improving || !canEstimate}
           >
+            <Sparkles size={15} className="btn-ai-spark" aria-hidden />
             {improving ? "Improving…" : "Improve recipe"}
           </button>
         </div>
