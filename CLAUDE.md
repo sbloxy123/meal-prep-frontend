@@ -37,6 +37,7 @@ Next.js 16 App Router (React 19, TS, Turbopack). Pages under `src/app/`.
 - `(auth)` — sign-in, sign-up, verify-email, forgot-password, reset-password. No session needed.
 - `(app)` — authenticated pages. `(app)/layout.tsx` redirects to `/sign-in` when `useSession()` resolves to no session, and mounts `MenuProvider` → `ToastProvider` → `<PendingInvite/>` → `<AppShell>`.
 - `household/join/[token]` — standalone (outside both groups) so logged-out invitees can reach it.
+- `/` and `/about` — the public **marketing page** (outside both groups → root layout only, no auth gate, no data-API calls). Both render one shared server component `src/components/marketing-home.tsx`; the interactive bits live in `src/components/marketing-client.tsx`. On `/`, `<RedirectIfAuthed>` sends signed-in visitors to `/recipes`; `/about` never redirects, so existing users can revisit the tour (linked from the rail + Account as "How to use Fornetto"). Styling is class-based in `src/styles/home.css` (scoped under `.home`); the `<details>` burger keeps `data-burger*` hooks. Auth-adaptive CTAs default to signed-out (correct SSR) and swap to "Back to app" when a session is present.
 
 `AppShell` (`src/components/app-shell.tsx`): desktop left **rail** (≥1024px) with the Fornetto oven mark + wordmark (links to `/recipes`), nav, collections, user link; mobile **bottom tab bar** (Recipes / This week / List / Account) + a sticky **top brand header**.
 
@@ -67,6 +68,8 @@ Keeps cookies same-origin (avoids `SameSite=Lax`/Safari ITP):
 ### Pages
 
 | Route | File | Notes |
+|---|---|---|
+| `/` `/about` | `app/page.tsx`, `app/about/page.tsx` → `components/marketing-home.tsx` | public marketing page (see route-groups note); `/` redirects signed-in users to `/recipes`, `/about` doesn't. Install button uses `beforeinstallprompt` (iOS/generic hint fallback) |
 |---|---|---|
 | `/sign-in` `/sign-up` | `(auth)/…` | BetterAuth |
 | `/verify-email` `/forgot-password` `/reset-password` | `(auth)/…` | email-verification + reset flow |
