@@ -342,7 +342,7 @@ export default function HomePage() {
             <Link
               href="/sign-up"
               className="btn btn-primary"
-              style={{ height: 38, textDecoration: "none" }}
+              style={{ height: 44, textDecoration: "none" }}
             >
               Get started
             </Link>
@@ -942,17 +942,23 @@ export default function HomePage() {
           </div>
 
           <div
-            data-grid="macros"
             style={{
-              display: "grid",
-              gridTemplateColumns: "1fr auto",
-              gap: 56,
-              alignItems: "center",
               marginTop: 56,
               paddingTop: 44,
               borderTop: "1px solid var(--color-divider)",
             }}
           >
+            <div
+              data-grid="macros"
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr auto",
+                gap: 56,
+                alignItems: "center",
+                maxWidth: 920,
+                marginInline: "auto",
+              }}
+            >
             <div style={{ maxWidth: 520 }}>
               <h3
                 data-h2
@@ -1010,6 +1016,7 @@ export default function HomePage() {
                   }}
                 />
               </div>
+            </div>
             </div>
           </div>
         </div>
@@ -1110,7 +1117,7 @@ export default function HomePage() {
           data-grid="pwa"
           data-pad
           style={{
-            maxWidth: 1180,
+            maxWidth: 920,
             margin: "0 auto",
             padding: "72px 32px",
             display: "grid",
@@ -1347,6 +1354,8 @@ export default function HomePage() {
       {/* ── Footer ─────────────────────────────────────────────── */}
       <footer style={{ borderTop: "1px solid var(--color-divider)" }}>
         <div
+          data-footer
+          data-pad
           style={{
             maxWidth: 1180,
             margin: "0 auto",
