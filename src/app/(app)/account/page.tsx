@@ -11,6 +11,7 @@ import { useToast } from "@/lib/toast";
 import { PageHeader } from "@/components/page-header";
 import { HouseholdCard } from "@/components/household-card";
 import { PreferencesCard } from "@/components/preferences-card";
+import { MarketingInstallButton } from "@/components/marketing-client";
 import { useModalA11y } from "@/lib/use-modal";
 
 function formatJoined(value?: string | Date | null) {
@@ -46,6 +47,7 @@ export default function AccountPage() {
           <>
             <ProfileCard key={user.id} name={user.name ?? ""} email={user.email} joined={formatJoined(user.createdAt)} />
             <PreferencesCard />
+            <InstallAppCard />
             <AboutCard />
             <StarterRecipesCard />
             <HouseholdCard />
@@ -125,6 +127,19 @@ function AboutCard() {
       <Link href="/about" className="btn btn-secondary">
         View the guide
       </Link>
+    </section>
+  );
+}
+
+function InstallAppCard() {
+  return (
+    <section className="account-card">
+      <h2>Install the app</h2>
+      <p className="text-muted" style={{ fontSize: 14, marginBottom: 12 }}>
+        Add Fornetto to your home screen for a full-screen app with its own icon
+        that opens even when the signal doesn&rsquo;t.
+      </p>
+      <MarketingInstallButton />
     </section>
   );
 }
