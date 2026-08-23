@@ -85,16 +85,14 @@ function Step({
 function AiCard({
   title,
   body,
-  accentBorder = false,
   children,
 }: {
   title: string;
   body: string;
-  accentBorder?: boolean;
   children: React.ReactNode;
 }) {
   return (
-    <div className={accentBorder ? "home-aicard home-aicard--accent" : "home-aicard"}>
+    <div className="home-aicard">
       {children}
       <h3 className="home-aicard-title">{title}</h3>
       <p className="text-muted home-aicard-body">{body}</p>
@@ -375,7 +373,6 @@ export function MarketingHome() {
               </AiIcon>
             </AiCard>
             <AiCard
-              accentBorder
               title="Photograph a page"
               body="The good recipes are usually in a battered cookbook on the shelf. Take a photo of the page and it reads the ingredients and method straight off it."
             >
