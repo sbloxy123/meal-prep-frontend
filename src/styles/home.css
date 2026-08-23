@@ -1,0 +1,67 @@
+/* Marketing homepage (/) — the one public, signed-out page. Faithful port of
+   design/Fornetto Homepage.dc.html. Everything else on the page is inline styles
+   that mirror the design 1:1; this file holds only what inline styles can't:
+   the responsive @media block, the <details> burger rules, and link colour.
+   All scoped under .home so nothing leaks into the app. No new design tokens. */
+
+/* Links: accent-700, hover to accent. :not(.btn) so button text colours from
+   .btn-primary / .btn-ghost keep winning. */
+.home a:not(.btn) { color: var(--color-accent-700); text-decoration: none; }
+.home a:not(.btn):hover { color: var(--color-accent); }
+
+/* Burger nav, built on <details>/<summary> so it works without JS. */
+.home [data-burger] > summary { list-style: none; cursor: pointer; }
+.home [data-burger] > summary::-webkit-details-marker { display: none; }
+.home [data-burger] > summary::marker { content: ""; }
+.home [data-burger] > summary:focus-visible { outline: 2px solid var(--color-accent); outline-offset: 2px; }
+.home [data-burger][open] [data-burger-bars] { display: none; }
+.home [data-burger][open] [data-burger-x] { display: block; }
+.home [data-burger] [data-burger-bars] { display: block; }
+.home [data-burger] [data-burger-x] { display: none; }
+.home [data-burger-panel] a:hover { background: var(--color-accent-100); }
+@media (min-width: 901px) { .home [data-burger] { display: none !important; } }
+
+@media (max-width: 1080px) {
+  .home [data-grid="features"] { grid-template-columns: repeat(2, 1fr) !important; }
+  .home [data-grid="how"] { grid-template-columns: repeat(3, 1fr) !important; gap: 24px !important; }
+  .home [data-grid="ai"] { grid-template-columns: repeat(2, 1fr) !important; gap: 24px !important; }
+}
+@media (max-width: 1060px) {
+  .home [data-grid="hero"],
+  .home [data-grid="shop"],
+  .home [data-grid="macros"],
+  .home [data-grid="pwa"] { grid-template-columns: 1fr !important; gap: 44px !important; }
+  .home [data-phones] { justify-content: flex-start; }
+  .home [data-h1] { font-size: 54px !important; }
+}
+@media (max-width: 900px) {
+  .home [data-nav],
+  .home [data-signin] { display: none !important; }
+  .home [data-actions] { margin-left: auto; }
+  .home [data-grid="faq"] { grid-template-columns: 1fr !important; gap: 32px !important; }
+  .home [data-grid="how"],
+  .home [data-grid="ai"] { grid-template-columns: 1fr !important; gap: 44px !important; }
+  /* Ways-in cards stack tighter than the how-it-works steps on mobile. */
+  .home [data-grid="ai"] { gap: 16px !important; }
+  .home [data-grid="shopfeat"] { grid-template-columns: 1fr !important; }
+}
+@media (max-width: 620px) {
+  .home [data-grid="features"] { grid-template-columns: 1fr !important; }
+  .home [data-pad] { padding-left: 20px !important; padding-right: 20px !important; }
+  .home [data-burger-panel] { right: -8px; }
+  .home [data-h1] { font-size: 40px !important; }
+  .home [data-h2] { font-size: 30px !important; }
+  .home [data-h2-lg] { font-size: 32px !important; }
+  .home [data-phones] { width: 100%; }
+  .home [data-phone-sm] { flex: 1 1 0; min-width: 0; width: auto !important; margin-right: -14% !important; border-radius: 20px !important; }
+  .home [data-phone-sm] > div { height: auto !important; aspect-ratio: 252 / 428; border-radius: 15px !important; }
+  .home [data-phone-lg] { flex: 1.25 1 0; min-width: 0; width: auto !important; border-radius: 24px !important; }
+  .home [data-phone-lg] > div { height: auto !important; aspect-ratio: 290 / 562; border-radius: 18px !important; }
+  .home [data-phone-shop] { width: 100% !important; max-width: 300px; }
+  .home [data-phone-shop] > div { height: auto !important; aspect-ratio: 300 / 600; }
+  .home [data-phone-macro] { width: 100% !important; max-width: 250px; }
+  .home [data-phone-macro] > div { height: auto !important; aspect-ratio: 270 / 420; }
+  /* Footer stacks and centres on mobile. */
+  .home [data-footer] { flex-direction: column; align-items: center; text-align: center; }
+  .home [data-footer] > div:last-child { margin-left: 0 !important; }
+}

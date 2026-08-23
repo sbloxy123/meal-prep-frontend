@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+/* Smooth in-page scrolling (anchor links between homepage sections, etc.). */
+html {
+  scroll-behavior: smooth;
+}
+
 /* Design tokens, type, and component classes come from the vendored design
    system (src/styles/classical.css), imported once in the root layout.
    Tailwind here is for layout utilities only — colour, type, radius and shadow
