@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef, useState, type FormEvent } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { authClient, signOut, useSession } from "@/lib/auth-client";
 import { apiFetch, apiSend } from "@/lib/api";
@@ -45,6 +46,7 @@ export default function AccountPage() {
           <>
             <ProfileCard key={user.id} name={user.name ?? ""} email={user.email} joined={formatJoined(user.createdAt)} />
             <PreferencesCard />
+            <AboutCard />
             <HouseholdCard />
             <PasswordCard />
             <ResetRecipesCard />
@@ -107,6 +109,21 @@ function ProfileCard({ name, email, joined }: { name: string; email: string; joi
           <span className="account-readonly-value">{joined}</span>
         </div>
       )}
+    </section>
+  );
+}
+
+function AboutCard() {
+  return (
+    <section className="account-card">
+      <h2>How to use Fornetto</h2>
+      <p className="text-muted" style={{ fontSize: 14, marginBottom: 12 }}>
+        A quick tour of what Fornetto does — handy to revisit, or to share with
+        anyone thinking of joining.
+      </p>
+      <Link href="/about" className="btn btn-secondary">
+        View the guide
+      </Link>
     </section>
   );
 }

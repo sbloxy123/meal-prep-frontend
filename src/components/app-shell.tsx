@@ -128,12 +128,23 @@ function DesktopRail({
         )}
       </div>
 
-      <Link href="/account" className="rail-user">
-        <span className="rail-user-avatar" aria-hidden>
-          {initial}
-        </span>
-        <span className="rail-user-name">{name}</span>
-      </Link>
+      {/* Pinned to the bottom of the rail: About sits directly above the user. */}
+      <div style={{ marginTop: "auto" }}>
+        <Link
+          href="/about"
+          className="rail-nav-item"
+          style={{ color: "var(--color-accent)" }}
+        >
+          <span className="rail-nav-label">How to use Fornetto</span>
+        </Link>
+
+        <Link href="/account" className="rail-user">
+          <span className="rail-user-avatar" aria-hidden>
+            {initial}
+          </span>
+          <span className="rail-user-name">{name}</span>
+        </Link>
+      </div>
     </aside>
   );
 }
