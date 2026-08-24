@@ -285,3 +285,8 @@
   border-color: var(--color-accent);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-accent) 16%, transparent);
 }
+
+/* Spinner for the social-import "fetching…" callout. */
+.social-spin { animation: social-spin 0.9s linear infinite; }
+@keyframes social-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .social-spin { animation: none; } }

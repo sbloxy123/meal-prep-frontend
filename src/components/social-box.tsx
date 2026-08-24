@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Share2, Sparkles, AlertCircle } from "lucide-react";
+import { Share2, Sparkles, AlertCircle, Loader2 } from "lucide-react";
 import { ApiError, apiFetch } from "@/lib/api";
 import type { RecipeFormInitial } from "@/components/recipe-form";
 
@@ -111,8 +111,25 @@ export function SocialBox({
         disabled={pending}
       />
 
+      {/* Reassure the user while we fetch — Instagram in particular is slow. */}
+      {pending && (
+        <div className="social-callout" role="status">
+          <Loader2 size={16} className="social-spin" aria-hidden />
+          <span>
+            {/instagram\.com/i.test(url) && !caption.trim() ? (
+              <>
+                Fetching from Instagram — this can take <strong>up to a minute</strong>. Hang
+                tight, we’ll fill everything in.
+              </>
+            ) : (
+              "Reading the post…"
+            )}
+          </span>
+        </div>
+      )}
+
       {/* Prominent, actionable state when the link couldn't be read automatically. */}
-      {needsCaption && (
+      {!pending && needsCaption && (
         <div className="social-callout" role="status">
           <AlertCircle size={16} aria-hidden />
           <span>
