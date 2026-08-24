@@ -225,16 +225,10 @@
 }
 
 /* Inspiration (A2) — "Give me inspiration" entry + suggestion picker. */
-.recipes-inspire-cta {
-  align-self: flex-start;
-  margin: 14px 0 4px;
+/* Pin the two header actions (Inspiration + New recipe) to one height so the
+   sparkle icon on the AI button can't make it taller than New recipe. */
+.recipes-main .page-header-actions .btn {
   height: 38px;
-}
-.recipes-empty-inspire {
-  margin-top: 8px;
-  width: 100%;
-  max-width: 260px;
-  height: 40px;
 }
 .inspire-kicker {
   display: inline-flex;

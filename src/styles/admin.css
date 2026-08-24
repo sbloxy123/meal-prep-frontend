@@ -313,6 +313,9 @@
 .admin-bar-seg--improve {
   background: var(--color-accent-600);
 }
+.admin-bar-seg--suggest {
+  background: var(--color-accent-2-500);
+}
 .admin-bar-empty {
   height: 1px;
   background: var(--color-divider);

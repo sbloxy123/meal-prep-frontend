@@ -24,13 +24,14 @@ const RANGES = [7, 30, 90, 365] as const;
 type Range = (typeof RANGES)[number];
 const RANGE_LABEL: Record<Range, string> = { 7: "7d", 30: "30d", 90: "90d", 365: "1y" };
 
-const AI_ACTIONS = ["import", "estimate", "generate", "photo", "improve"] as const;
+const AI_ACTIONS = ["import", "estimate", "generate", "photo", "improve", "suggest"] as const;
 const AI_LABEL: Record<(typeof AI_ACTIONS)[number], string> = {
   import: "Import",
   estimate: "Estimate",
   generate: "Generate",
   photo: "Photo",
   improve: "Improve",
+  suggest: "Suggest",
 };
 
 type Segment = "all" | "active" | "inactive" | "unverified" | "recipes";
@@ -490,7 +491,7 @@ function AiSection({
     <section className="admin-section">
       <h2>AI usage</h2>
       <p className="admin-section-note">
-        Limits are 20 imports / 20 estimates / 15 generations / 15 photo scans / 15 improvements per household per rolling 6&nbsp;hours.
+        Limits are 20 imports / 20 estimates / 15 generations / 15 photo scans / 15 improvements / 15 suggestions per household per rolling 6&nbsp;hours.
       </p>
       <Chart title={`Calls by type · ${RANGE_LABEL[days]}`} points={series.aiCalls} stacked={AI_ACTIONS} />
       <div className="admin-legend">
@@ -574,7 +575,7 @@ function Chart({
 }: {
   title: string;
   points?: AdminSeriesPoint[];
-  stacked?: readonly ("import" | "estimate" | "generate" | "photo" | "improve")[];
+  stacked?: readonly ("import" | "estimate" | "generate" | "photo" | "improve" | "suggest")[];
 }) {
   if (!points || points.length === 0) {
     return (
