@@ -224,6 +224,51 @@
   white-space: nowrap;
 }
 
+/* Inspiration (A2) — "Give me inspiration" entry + suggestion picker. */
+.recipes-inspire-cta {
+  align-self: flex-start;
+  margin: 14px 0 4px;
+  height: 38px;
+}
+.recipes-empty-inspire {
+  margin-top: 8px;
+  width: 100%;
+  max-width: 260px;
+  height: 40px;
+}
+.inspire-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.inspire-kicker svg {
+  color: var(--color-accent);
+}
+.inspire-hintrow {
+  display: flex;
+  gap: 8px;
+  margin-top: 2px;
+}
+.inspire-hintrow .input {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.inspire-hintrow .btn-ai {
+  flex: none;
+}
+.inspire-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.inspire-item-tags {
+  font-size: 12px;
+  color: var(--color-accent-700);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* List container: stacked hairline-separated rows on mobile, 3-up grid on
    desktop. */
 .recipes-list {

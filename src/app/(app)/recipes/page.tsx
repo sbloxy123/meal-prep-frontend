@@ -3,12 +3,13 @@
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Search, BookOpen } from "lucide-react";
+import { Search, BookOpen, Sparkles } from "lucide-react";
 import { apiFetch, apiSend } from "@/lib/api";
 import type { RecipesResponse } from "@/lib/types";
 import { PageHeader } from "@/components/page-header";
 import { RecipeCard } from "@/components/recipe-card";
 import { StarterRecipes } from "@/components/starter-recipes";
+import { RecipeInspiration } from "@/components/recipe-inspiration";
 import { ThisWeekColumn, ThisWeekTray } from "@/components/this-week";
 import { useMenu, buildCollections } from "@/lib/menu";
 import { useSession } from "@/lib/auth-client";
@@ -40,6 +41,7 @@ function RecipesPageInner() {
   const [showAllCollections, setShowAllCollections] = useState(false);
   const [sort, setSort] = useState<Sort>("newest");
   const [showStarters, setShowStarters] = useState(false);
+  const [showInspire, setShowInspire] = useState(false);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const menu = useMenu();
@@ -258,12 +260,26 @@ function RecipesPageInner() {
         </div>
       )}
 
+      {!loading && !error && recipes.length > 0 && (
+        <button
+          type="button"
+          className="btn btn-ai recipes-inspire-cta"
+          onClick={() => setShowInspire(true)}
+        >
+          <Sparkles size={15} className="btn-ai-spark" aria-hidden />
+          Give me inspiration
+        </button>
+      )}
+
       <div className="page-body">
         {loading && <p className="text-muted">Loading recipes…</p>}
         {error && !loading && <p style={{ color: "var(--color-accent-700)" }}>{error}</p>}
 
         {!loading && !error && recipes.length === 0 && (
-          <EmptyRecipes onAddStarters={() => setShowStarters(true)} />
+          <EmptyRecipes
+            onAddStarters={() => setShowStarters(true)}
+            onInspire={() => setShowInspire(true)}
+          />
         )}
 
         {!loading && !error && recipes.length > 0 && visible.length === 0 && (
@@ -313,11 +329,29 @@ function RecipesPageInner() {
           existingTitles={new Set(recipes.map((r) => r.title.toLowerCase()))}
         />
       )}
+
+      {showInspire && (
+        <RecipeInspiration
+          onClose={() => setShowInspire(false)}
+          // Refresh both the recipe list AND the menu — the stock check reads its
+          // ingredient lists from the MenuProvider, so it needs the new recipes.
+          onAdded={async () => {
+            await Promise.all([load(), menu.refresh()]);
+          }}
+          existingTitles={new Set(recipes.map((r) => r.title.toLowerCase()))}
+        />
+      )}
     </div>
   );
 }
 
-function EmptyRecipes({ onAddStarters }: { onAddStarters: () => void }) {
+function EmptyRecipes({
+  onAddStarters,
+  onInspire,
+}: {
+  onAddStarters: () => void;
+  onInspire: () => void;
+}) {
   const { data: session } = useSession();
   const who = session?.user.name?.trim() || session?.user.email || null;
   return (
@@ -339,6 +373,10 @@ function EmptyRecipes({ onAddStarters }: { onAddStarters: () => void }) {
         </p>
         <button type="button" className="btn btn-primary recipes-starter-btn" onClick={onAddStarters}>
           Browse starter recipes
+        </button>
+        <button type="button" className="btn btn-ai recipes-empty-inspire" onClick={onInspire}>
+          <Sparkles size={15} className="btn-ai-spark" aria-hidden />
+          Or get AI inspiration
         </button>
       </div>
 
