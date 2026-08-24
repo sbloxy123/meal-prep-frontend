@@ -24,6 +24,11 @@ export default function ShoppingListPage() {
   const [generateError, setGenerateError] = useState(false);
   const [confirmClear, setConfirmClear] = useState(false);
   const [confirmRegen, setConfirmRegen] = useState(false);
+  // Ticked ("collected") items captured when the regen guard fires, so we can
+  // remove them from the draft before rebuilding the aisle list.
+  const [collectedToRemove, setCollectedToRemove] = useState<
+    { id: number; product_name: string }[]
+  >([]);
   // Whether an aisle list already exists, and a fingerprint of the draft it was
   // generated from — so we can offer "Show list by aisle" (just navigate) when
   // the draft is unchanged, and "Generate list by aisle" when it's moved on.
@@ -132,17 +137,28 @@ export default function ShoppingListPage() {
       ? "Show list by aisle"
       : "Generate list by aisle";
 
+  // Delete a generated item from both the aisle list and the draft (the endpoint
+  // keys off the body, not the :id) — mirrors the shop page's deleteGenItem.
+  function deleteCollected(item: { id: number; product_name: string }) {
+    return apiSend(`/generated-shopping-list/item/${item.id}`, {
+      method: "DELETE",
+      body: JSON.stringify({ productId: item.id, productName: item.product_name }),
+    });
+  }
+
   async function generate() {
     if (generating || items.length === 0) return;
     setGenerating(true);
     setGenerateError(false);
     try {
       // §8.2b — if a generated list already has collected items, regenerating
-      // would wipe that progress; confirm first.
-      const gen = await apiFetch<{ generatedShoppingItems: { is_collected: boolean }[] }>(
-        "/generated-shopping-list",
-      );
-      if (gen.generatedShoppingItems?.some((i) => i.is_collected)) {
+      // will remove those (already-got) items from the list; confirm first.
+      const gen = await apiFetch<{
+        generatedShoppingItems: { id: number; product_name: string; is_collected: boolean }[];
+      }>("/generated-shopping-list");
+      const collected = gen.generatedShoppingItems?.filter((i) => i.is_collected) ?? [];
+      if (collected.length > 0) {
+        setCollectedToRemove(collected.map((i) => ({ id: i.id, product_name: i.product_name })));
         setGenerating(false);
         setConfirmRegen(true);
         return;
@@ -330,10 +346,20 @@ export default function ShoppingListPage() {
 
       {confirmRegen && (
         <ConfirmDialog
-          title="Regenerate the list?"
-          body="You've already collected some items in the shop. Regenerating rebuilds the aisle list from scratch and loses that progress."
-          confirmLabel="Regenerate"
-          onConfirm={organiseAndGo}
+          title="Remove ticked items and regenerate?"
+          body={`You've ticked ${collectedToRemove.length} item${
+            collectedToRemove.length === 1 ? "" : "s"
+          } as already got. Regenerating will remove ${
+            collectedToRemove.length === 1 ? "it" : "them"
+          } from your list and rebuild the by-aisle list from what's left.`}
+          confirmLabel="Remove & regenerate"
+          onConfirm={async () => {
+            // Delete the ticked items from the draft first, so the rebuilt aisle
+            // list leaves them out entirely (§8.2b). Swallow individual failures
+            // like the shop page's clearCollected does.
+            await Promise.all(collectedToRemove.map((i) => deleteCollected(i).catch(() => {})));
+            await organiseAndGo();
+          }}
           onClose={() => setConfirmRegen(false)}
         />
       )}
