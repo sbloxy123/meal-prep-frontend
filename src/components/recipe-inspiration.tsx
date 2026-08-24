@@ -30,6 +30,7 @@ export function RecipeInspiration({
   existingTitles?: Set<string>;
 }) {
   const ref = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   useModalA11y(ref, onClose);
 
   const [hint, setHint] = useState("");
@@ -44,10 +45,16 @@ export function RecipeInspiration({
     .map((s, i) => i)
     .filter((i) => !existingTitles?.has(suggestions[i].title.toLowerCase()));
 
-  async function suggest(overrideHint?: string) {
+  // Preset steer → just fill the field; the user reviews it and clicks Suggest.
+  // (Keeps quick chips from each spending an AI call.)
+  function fillHint(h: string) {
+    setHint(h);
+    inputRef.current?.focus();
+  }
+
+  async function suggest() {
     if (pending) return;
-    const h = (overrideHint ?? hint).trim();
-    if (overrideHint != null) setHint(overrideHint);
+    const h = hint.trim();
     setPending(true);
     setError(null);
     setAddError(false);
@@ -136,6 +143,7 @@ export function RecipeInspiration({
 
         <div className="inspire-hintrow">
           <input
+            ref={inputRef}
             className="input"
             type="text"
             value={hint}
@@ -150,7 +158,7 @@ export function RecipeInspiration({
             aria-label="What kind of recipes?"
             disabled={busy}
           />
-          <button type="button" className="btn btn-ai" onClick={() => suggest()} disabled={busy}>
+          <button type="button" className="btn btn-ai" onClick={suggest} disabled={busy}>
             <Sparkles size={14} className="btn-ai-spark" aria-hidden />
             {pending ? "Thinking…" : suggestions.length ? "Again" : "Suggest"}
           </button>
@@ -162,7 +170,7 @@ export function RecipeInspiration({
               key={h}
               type="button"
               className="tag chip tag-neutral"
-              onClick={() => suggest(h)}
+              onClick={() => fillHint(h)}
               disabled={busy}
             >
               {h}

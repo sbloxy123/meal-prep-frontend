@@ -239,15 +239,17 @@
 .inspire-kicker {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
+  white-space: nowrap;
 }
 .inspire-kicker svg {
+  flex: none;
   color: var(--color-accent);
 }
 .inspire-hintrow {
   display: flex;
-  gap: 8px;
-  margin-top: 2px;
+  align-items: center;
+  gap: 10px;
 }
 .inspire-hintrow .input {
   flex: 1 1 auto;
@@ -259,7 +261,7 @@
 .inspire-chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 10px;
 }
 .inspire-item-tags {
   font-size: 12px;
