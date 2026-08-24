@@ -15,6 +15,10 @@ export default function NewRecipePage() {
   const [draftVersion, setDraftVersion] = useState(0);
   // Android share-target payload (manifest points share_target at this page).
   const [shared, setShared] = useState<Shared | null>(null);
+  // The AI panel leads (open); the manual form is a collapsed fallback. A
+  // successful import flips both: collapse the panel, expand the populated form.
+  const [aiOpen, setAiOpen] = useState(true);
+  const [formOpen, setFormOpen] = useState(false);
 
   useEffect(() => {
     const sp = new URLSearchParams(window.location.search);
@@ -36,6 +40,8 @@ export default function NewRecipePage() {
   function handleImported(next: RecipeFormInitial) {
     setDraft(next);
     setDraftVersion((v) => v + 1);
+    setAiOpen(false);
+    setFormOpen(true);
     // Bring the now-populated form into view once it's re-rendered.
     requestAnimationFrame(() =>
       document.getElementById("recipe-details")?.scrollIntoView({ behavior: "smooth", block: "start" }),
@@ -49,10 +55,19 @@ export default function NewRecipePage() {
           key={shared ? "shared" : "empty"}
           onImported={handleImported}
           shared={shared}
+          collapsed={!aiOpen}
+          onToggle={() => setAiOpen((v) => !v)}
         />
       </div>
       <div id="recipe-details">
-        <RecipeForm mode="create" initial={draft ?? undefined} key={draftVersion} />
+        <RecipeForm
+          mode="create"
+          initial={draft ?? undefined}
+          key={draftVersion}
+          collapsible
+          open={formOpen}
+          onToggle={() => setFormOpen((v) => !v)}
+        />
       </div>
     </>
   );

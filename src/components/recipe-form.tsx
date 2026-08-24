@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { X, Plus, Sparkles } from "lucide-react";
+import { X, Plus, Sparkles, ChevronDown } from "lucide-react";
 import { ApiError, apiFetch, apiSend } from "@/lib/api";
 import { useMenu } from "@/lib/menu";
 import { ConfirmDialog } from "@/components/confirm-dialog";
@@ -34,6 +34,11 @@ interface RecipeFormProps {
   mode: "create" | "edit";
   recipeId?: number;
   initial?: RecipeFormInitial;
+  // Collapsible mode (used on /recipes/new so the manual form is a fallback).
+  // Omitted on the edit page → always expanded, no toggle.
+  collapsible?: boolean;
+  open?: boolean;
+  onToggle?: () => void;
 }
 
 type IngredientRow = { name: string; quantity: string; unit: string };
@@ -43,7 +48,16 @@ function numToInput(n: number | null | undefined): string {
   return n == null ? "" : String(n);
 }
 
-export function RecipeForm({ mode, recipeId, initial = {} }: RecipeFormProps) {
+export function RecipeForm({
+  mode,
+  recipeId,
+  initial = {},
+  collapsible = false,
+  open = true,
+  onToggle,
+}: RecipeFormProps) {
+  // Collapsed only applies in collapsible mode; otherwise always shown.
+  const expanded = !collapsible || open;
   const router = useRouter();
   const menu = useMenu();
 
@@ -311,24 +325,49 @@ export function RecipeForm({ mode, recipeId, initial = {} }: RecipeFormProps) {
   return (
     <div className="rf">
       <header className="rf-head">
-        <div>
-          <div className="rf-kicker">{mode === "edit" ? "Editing" : "New recipe"}</div>
-          <h1 className="rf-title">Recipe details</h1>
-        </div>
-        <Link href={cancelHref} className="btn btn-ghost">
-          Cancel
-        </Link>
+        {collapsible ? (
+          <button
+            type="button"
+            className="rf-head-toggle"
+            aria-expanded={expanded}
+            aria-controls="rf-body"
+            onClick={onToggle}
+          >
+            <span className="rf-kicker">New recipe</span>
+            <span className="rf-title rf-title--toggle">
+              <span className="rf-title-text">Recipe details</span>
+              <span className="rf-head-toggle-cue">
+                {!expanded && <span className="rf-head-open">Open</span>}
+                <span className="rf-toggle-chevron">
+                  <ChevronDown
+                    size={18}
+                    className={`rf-chevron${expanded ? " is-open" : ""}`}
+                    aria-hidden
+                  />
+                </span>
+              </span>
+            </span>
+            {!expanded && (
+              <span className="rf-head-hint">Write it by hand, or generate one above.</span>
+            )}
+          </button>
+        ) : (
+          <div>
+            <div className="rf-kicker">{mode === "edit" ? "Editing" : "New recipe"}</div>
+            <h1 className="rf-title">Recipe details</h1>
+          </div>
+        )}
       </header>
 
       <form
+        id="rf-body"
         className="rf-body"
+        hidden={!expanded}
         onSubmit={(e) => {
           e.preventDefault();
           submit();
         }}
       >
-        <ImageDrop value={photo} onChange={setPhoto} />
-
         <div className="field">
           <label htmlFor="rf-title">Title</label>
           <input
@@ -340,6 +379,8 @@ export function RecipeForm({ mode, recipeId, initial = {} }: RecipeFormProps) {
           />
           {titleError && <p className="rf-error">{titleError}</p>}
         </div>
+
+        <ImageDrop value={photo} onChange={setPhoto} />
 
         <div className="field">
           <label htmlFor="rf-desc">Description</label>
@@ -509,35 +550,18 @@ export function RecipeForm({ mode, recipeId, initial = {} }: RecipeFormProps) {
             />
           </div>
         </div>
-        <div className="rf-macro-actions">
-          <button
-            type="button"
-            className="btn btn-ai rf-estimate"
-            onClick={estimateMacros}
-            disabled={estimating || improving || !canEstimate}
-          >
-            <Sparkles size={15} className="btn-ai-spark" aria-hidden />
-            {estimating ? "Estimating…" : "Estimate macros"}
-          </button>
-          <button
-            type="button"
-            className="btn btn-ai rf-improve"
-            onClick={improveRecipe}
-            disabled={estimating || improving || !canEstimate}
-          >
-            <Sparkles size={15} className="btn-ai-spark" aria-hidden />
-            {improving ? "Improving…" : "Improve recipe"}
-          </button>
-        </div>
+        <button
+          type="button"
+          className="btn btn-ai rf-estimate"
+          onClick={estimateMacros}
+          disabled={estimating || improving || !canEstimate}
+        >
+          <Sparkles size={15} className="btn-ai-spark" aria-hidden />
+          {estimating ? "Estimating…" : "Estimate macros"}
+        </button>
         {!canEstimate && (
           <p className="rf-hint text-muted">
-            Add a title and at least one ingredient to estimate or improve.
-          </p>
-        )}
-        {canEstimate && (
-          <p className="rf-hint text-muted">
-            Improve fills in missing amounts, method and serving size, then refreshes the macros —
-            your own entries are kept.
+            Add a title and at least one ingredient to estimate.
           </p>
         )}
         {macrosSource === "estimated" && estimateIsRough && (
@@ -549,11 +573,6 @@ export function RecipeForm({ mode, recipeId, initial = {} }: RecipeFormProps) {
         {estimateError && (
           <p className="rf-error" role="alert">
             {estimateError}
-          </p>
-        )}
-        {improveError && (
-          <p className="rf-error" role="alert">
-            {improveError}
           </p>
         )}
 
@@ -613,24 +632,49 @@ export function RecipeForm({ mode, recipeId, initial = {} }: RecipeFormProps) {
         {formError && <p className="rf-form-error" role="alert">{formError}</p>}
       </form>
 
-      <div className="rf-foot">
-        {mode === "edit" && (
+      <div className="rf-foot" hidden={!expanded}>
+        {improveError ? (
+          <p className="rf-error rf-foot-note" role="alert">
+            {improveError}
+          </p>
+        ) : (
+          canEstimate && (
+            <p className="rf-hint text-muted rf-foot-note">
+              Improve fills in missing amounts, method and macros — your own entries are kept.
+            </p>
+          )
+        )}
+        <div className="rf-foot-actions">
+          {mode === "edit" && (
+            <button
+              type="button"
+              className="btn btn-ghost rf-delete"
+              onClick={() => setConfirmDelete(true)}
+            >
+              Delete
+            </button>
+          )}
           <button
             type="button"
-            className="btn btn-ghost rf-delete"
-            onClick={() => setConfirmDelete(true)}
+            className="btn btn-ai rf-improve"
+            onClick={improveRecipe}
+            disabled={estimating || improving || !canEstimate}
           >
-            Delete
+            <Sparkles size={15} className="btn-ai-spark" aria-hidden />
+            {improving ? "Improving…" : "Improve recipe"}
           </button>
-        )}
-        <button
-          type="button"
-          className="btn btn-primary rf-save"
-          onClick={submit}
-          disabled={saving || !title.trim()}
-        >
-          {saving ? "Saving…" : mode === "edit" ? "Save changes" : "Create recipe"}
-        </button>
+          <button
+            type="button"
+            className="btn btn-primary rf-save"
+            onClick={submit}
+            disabled={saving || !title.trim()}
+          >
+            {saving ? "Saving…" : mode === "edit" ? "Save changes" : "Create recipe"}
+          </button>
+        </div>
+        <Link href={cancelHref} className="btn btn-ghost rf-cancel">
+          Cancel
+        </Link>
       </div>
 
       {confirmDelete && (

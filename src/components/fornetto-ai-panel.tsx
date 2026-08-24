@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Sparkles, Link2, Share2, Camera, Images, X, Loader2, AlertCircle } from "lucide-react";
+import { Sparkles, Link2, Share2, Camera, Images, X, Loader2, AlertCircle, ChevronDown } from "lucide-react";
 import { ApiError, apiFetch } from "@/lib/api";
 import { fileToDownscaledBase64 } from "@/lib/image";
 import type { RecipeFormInitial } from "@/components/recipe-form";
@@ -49,13 +49,6 @@ const ROUTES: Record<
   },
 };
 
-const ROUTE_DONE: Record<Route, string> = {
-  link: "Drafted from the link",
-  social: "Drafted from the post",
-  title: "Drafted from your title",
-  photo: "Drafted from your photos",
-};
-
 interface Photo {
   file: File;
   url: string;
@@ -64,10 +57,15 @@ interface Photo {
 export function FornettoAiPanel({
   onImported,
   shared,
+  collapsed = false,
+  onToggle,
 }: {
   onImported: (draft: RecipeFormInitial) => void;
   // Android share-target payload from /recipes/new (?url / ?text).
   shared?: { route: Route; value: string } | null;
+  // Collapse is controlled by the page (collapses after a successful import).
+  collapsed?: boolean;
+  onToggle?: () => void;
 }) {
   const [route, setRoute] = useState<Route>(shared?.route ?? "title");
   const [value, setValue] = useState(shared?.value ?? "");
@@ -77,7 +75,6 @@ export function FornettoAiPanel({
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<{ message: string; retry: boolean } | null>(null);
   const [photos, setPhotos] = useState<Photo[]>([]);
-  const [done, setDone] = useState<Route | null>(null);
   const captionRef = useRef<HTMLTextAreaElement>(null);
 
   const cfg = ROUTES[route];
@@ -179,8 +176,10 @@ export function FornettoAiPanel({
       }
 
       onImported(draft);
-      // Collapse the panel + reset transient state now it's done its job.
-      setDone(route);
+      // Clear transient inputs so a reopened panel is fresh. The page collapses
+      // the panel + expands the form in its onImported handler.
+      setValue("");
+      setCaption("");
       setPhotos((prev) => {
         prev.forEach((p) => URL.revokeObjectURL(p.url));
         return [];
@@ -228,26 +227,21 @@ export function FornettoAiPanel({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // ── Collapsed confirmation ──────────────────────────────────────────────
-  if (done) {
+  // ── Collapsed bar (a draft was made, or the user collapsed it) ───────────
+  if (collapsed) {
     return (
-      <div className="card ai-panel ai-panel--done">
+      <button type="button" className="card ai-panel ai-panel--done" onClick={onToggle} aria-expanded={false}>
         <span className="ai-panel-doneline">
           <Sparkles size={15} aria-hidden />
-          {ROUTE_DONE[done]} — review it below.
+          Draft a recipe with Fornetto AI
         </span>
-        <button
-          type="button"
-          className="btn btn-ghost ai-panel-again"
-          onClick={() => {
-            setDone(null);
-            setValue("");
-            setCaption("");
-          }}
-        >
-          Import another
-        </button>
-      </div>
+        <span className="rf-head-toggle-cue">
+          <span className="rf-head-open">Open</span>
+          <span className="rf-toggle-chevron">
+            <ChevronDown size={18} className="rf-chevron" aria-hidden />
+          </span>
+        </span>
+      </button>
     );
   }
 
@@ -263,6 +257,17 @@ export function FornettoAiPanel({
         <span className="card-kicker">Fornetto AI</span>
         {/* Allowance tag + "Go premium" row deferred until premium ships —
             see design/README.md "Allowance row" + design/Add Recipe - AI Panel.dc.html */}
+        {onToggle && (
+          <button
+            type="button"
+            className="rf-toggle-chevron ai-panel-collapse-btn"
+            aria-expanded
+            aria-label="Collapse Fornetto AI"
+            onClick={onToggle}
+          >
+            <ChevronDown size={18} className="rf-chevron is-open" aria-hidden />
+          </button>
+        )}
       </div>
 
       <div>
