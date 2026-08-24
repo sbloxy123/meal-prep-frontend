@@ -192,9 +192,19 @@ function RecipesPageInner() {
         title="Recipes"
         kicker={loading ? undefined : `${recipes.length} recipe${recipes.length === 1 ? "" : "s"}`}
         actions={
-          <Link href="/recipes/new" className="btn btn-secondary">
-            New recipe
-          </Link>
+          <>
+            <button
+              type="button"
+              className="btn btn-ai"
+              onClick={() => setShowInspire(true)}
+            >
+              <Sparkles size={15} className="btn-ai-spark" aria-hidden />
+              Inspiration
+            </button>
+            <Link href="/recipes/new" className="btn btn-secondary">
+              New recipe
+            </Link>
+          </>
         }
       />
 
@@ -260,26 +270,12 @@ function RecipesPageInner() {
         </div>
       )}
 
-      {!loading && !error && recipes.length > 0 && (
-        <button
-          type="button"
-          className="btn btn-ai recipes-inspire-cta"
-          onClick={() => setShowInspire(true)}
-        >
-          <Sparkles size={15} className="btn-ai-spark" aria-hidden />
-          Give me inspiration
-        </button>
-      )}
-
       <div className="page-body">
         {loading && <p className="text-muted">Loading recipes…</p>}
         {error && !loading && <p style={{ color: "var(--color-accent-700)" }}>{error}</p>}
 
         {!loading && !error && recipes.length === 0 && (
-          <EmptyRecipes
-            onAddStarters={() => setShowStarters(true)}
-            onInspire={() => setShowInspire(true)}
-          />
+          <EmptyRecipes onAddStarters={() => setShowStarters(true)} />
         )}
 
         {!loading && !error && recipes.length > 0 && visible.length === 0 && (
@@ -345,13 +341,7 @@ function RecipesPageInner() {
   );
 }
 
-function EmptyRecipes({
-  onAddStarters,
-  onInspire,
-}: {
-  onAddStarters: () => void;
-  onInspire: () => void;
-}) {
+function EmptyRecipes({ onAddStarters }: { onAddStarters: () => void }) {
   const { data: session } = useSession();
   const who = session?.user.name?.trim() || session?.user.email || null;
   return (
@@ -373,10 +363,6 @@ function EmptyRecipes({
         </p>
         <button type="button" className="btn btn-primary recipes-starter-btn" onClick={onAddStarters}>
           Browse starter recipes
-        </button>
-        <button type="button" className="btn btn-ai recipes-empty-inspire" onClick={onInspire}>
-          <Sparkles size={15} className="btn-ai-spark" aria-hidden />
-          Or get AI inspiration
         </button>
       </div>
 
