@@ -5,14 +5,111 @@
   display: flex;
   flex-direction: column;
 }
-/* "Import from a link" / "Generate from a title" / "Take a photo" boxes above
-   the new-recipe form; aligns to the form gutters. The bottom padding gives the
-   "New recipe" header some breathing room below the boxes. */
-.rf-import {
+/* Consolidated "Fornetto AI" panel above the new-recipe form (one card with a
+   Title/Link/Social/Photo segmented control). Replaces the four peer boxes. */
+.ai-panel-region {
+  padding: 16px 20px 20px;
+  max-width: 680px;
+  margin-inline: auto;
+}
+.ai-panel {
+  gap: var(--space-3);
+}
+.ai-panel-head {
   display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding: 16px 20px 24px;
+  align-items: center;
+  gap: 7px;
+}
+.ai-panel-spark {
+  color: var(--color-accent);
+  flex: none;
+}
+.ai-panel-title {
+  font-family: var(--font-heading);
+  font-weight: 400;
+  font-size: 24px;
+  line-height: 1.15;
+  margin: 0;
+}
+.ai-panel-pitch {
+  margin: 4px 0 0;
+  font-size: 12.5px;
+  line-height: 1.55;
+  color: color-mix(in srgb, var(--color-text) 62%, transparent);
+  text-wrap: pretty;
+}
+/* Full-width equal segments. */
+.ai-seg {
+  display: flex;
+  width: 100%;
+}
+.ai-seg .seg-opt {
+  flex: 1;
+  justify-content: center;
+  padding-inline: 6px;
+}
+.ai-panel-inputrow {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+}
+.ai-panel-inputrow .input {
+  flex: 1;
+  min-width: 0;
+}
+.ai-panel-action {
+  flex: none;
+}
+.ai-panel-photobtns {
+  display: flex;
+  gap: var(--space-2);
+}
+.ai-panel-photobtns .btn {
+  flex: 1;
+  cursor: pointer;
+}
+/* A <label> can't be natively disabled; mirror the input's disabled state. */
+.ai-panel-photobtns .btn[data-disabled] {
+  opacity: 0.5;
+  pointer-events: none;
+}
+.ai-panel-help {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: color-mix(in srgb, var(--color-text) 60%, transparent);
+}
+.ai-panel-error {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--color-accent-700);
+}
+.ai-panel-pastetoggle {
+  align-self: flex-start;
+  height: 28px;
+  font-size: 13px;
+}
+/* Collapsed confirmation once a draft has populated the form. */
+.ai-panel--done {
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+.ai-panel-doneline {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 13px;
+  color: var(--color-text);
+}
+.ai-panel-doneline svg {
+  color: var(--color-accent);
+  flex: none;
+}
+.ai-panel-again {
+  flex: none;
 }
 .rf-head {
   display: flex;
@@ -272,6 +369,10 @@
 }
 
 @media (min-width: 1024px) {
+  /* Wider gutters on desktop to match the form (cap/centre set on the base rule). */
+  .ai-panel-region {
+    padding: 22px 32px 8px;
+  }
   .rf-head {
     padding: 26px 32px 18px;
   }
