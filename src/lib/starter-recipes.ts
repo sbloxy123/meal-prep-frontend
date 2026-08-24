@@ -1004,6 +1004,14 @@ export const STARTER_IMAGES: Record<string, { image_url: string; image_public_id
   "Quiche, Chips & Salad": { image_url: "https://res.cloudinary.com/ipuvfjk4/image/upload/v1787471323/starter-recipes/vz46fl6nvqjywaqzdd9p.jpg", image_public_id: "starter-recipes/vz46fl6nvqjywaqzdd9p" },
   "Pork Chops, Mash & Veg": { image_url: "https://res.cloudinary.com/ipuvfjk4/image/upload/v1787471324/starter-recipes/wj0xvsjukkxrtmtaswcm.jpg", image_public_id: "starter-recipes/wj0xvsjukkxrtmtaswcm" },
   "Chicken Noodle Soup": { image_url: "https://res.cloudinary.com/ipuvfjk4/image/upload/v1787471326/starter-recipes/cuux5wsqyg983ukoksks.jpg", image_public_id: "starter-recipes/cuux5wsqyg983ukoksks" },
+  "Chicken Gyros": { image_url: "https://res.cloudinary.com/ipuvfjk4/image/upload/v1787608767/starter-recipes/vvglysg7tn1fb9eyzql0.jpg", image_public_id: "starter-recipes/vvglysg7tn1fb9eyzql0" },
+  "Shepherd's Pie": { image_url: "https://res.cloudinary.com/ipuvfjk4/image/upload/v1787608781/starter-recipes/ofcmq0et25liaogfolgm.jpg", image_public_id: "starter-recipes/ofcmq0et25liaogfolgm" },
+  "Fish Pie": { image_url: "https://res.cloudinary.com/ipuvfjk4/image/upload/v1787608782/starter-recipes/g1esxk81ilmtvkvxa9is.jpg", image_public_id: "starter-recipes/g1esxk81ilmtvkvxa9is" },
+  "Chicken Katsu Curry": { image_url: "https://res.cloudinary.com/ipuvfjk4/image/upload/v1787608783/starter-recipes/fvpforj3sztbtsuexgdz.jpg", image_public_id: "starter-recipes/fvpforj3sztbtsuexgdz" },
+  "Sausage & Bean Casserole": { image_url: "https://res.cloudinary.com/ipuvfjk4/image/upload/v1787608785/starter-recipes/n55jdf9wsow003okjm9m.jpg", image_public_id: "starter-recipes/n55jdf9wsow003okjm9m" },
+  "Tomato Soup & Cheese Toasties": { image_url: "https://res.cloudinary.com/ipuvfjk4/image/upload/v1787608787/starter-recipes/arlmuaeapqs5jgfwiljj.jpg", image_public_id: "starter-recipes/arlmuaeapqs5jgfwiljj" },
+  "Jacket Potatoes with Beans & Cheese": { image_url: "https://res.cloudinary.com/ipuvfjk4/image/upload/v1787608789/starter-recipes/z5wr6tkfaklvrlchyqyu.jpg", image_public_id: "starter-recipes/z5wr6tkfaklvrlchyqyu" },
+  "Omelette & Salad": { image_url: "https://res.cloudinary.com/ipuvfjk4/image/upload/v1787608790/starter-recipes/nnkgbievlgkranhiu18j.jpg", image_public_id: "starter-recipes/nnkgbievlgkranhiu18j" },
 };
 
 // Unsplash photographer credit for each seed photo, keyed by Cloudinary
@@ -1043,6 +1051,14 @@ export const STOCK_PHOTO_CREDITS: Record<string, { name: string; link: string }>
   "starter-recipes/vz46fl6nvqjywaqzdd9p": { name: "Jasmin Schreiber", link: "https://unsplash.com/photos/selective-focus-photography-of-vegetable-salad-V2Kw-YC7Cls" },
   "starter-recipes/wj0xvsjukkxrtmtaswcm": { name: "Nerfee Mirandilla", link: "https://unsplash.com/photos/cooked-food-on-ceramic-plate-UgKVWZuCxCk" },
   "starter-recipes/cuux5wsqyg983ukoksks": { name: "Markus Winkler", link: "https://unsplash.com/photos/a-bowl-of-noodles-DXVG6Rld_dQ" },
+  "starter-recipes/vvglysg7tn1fb9eyzql0": { name: "Orkun Orcan", link: "https://unsplash.com/photos/a-burrito-with-a-side-of-pickles-and-a-small-bowl-of-ranch-dressing-C7ESFm-638Q" },
+  "starter-recipes/ofcmq0et25liaogfolgm": { name: "Curated Lifestyle", link: "https://unsplash.com/photos/homemade-lasagna-food-photography-recipe-idea-SH2WezmP2eI" },
+  "starter-recipes/g1esxk81ilmtvkvxa9is": { name: "Natalia Y.", link: "https://unsplash.com/photos/pizza-on-black-round-plate-cHgnxl9Gl5c" },
+  "starter-recipes/fvpforj3sztbtsuexgdz": { name: "Anna Jakutajc-Wojtalik", link: "https://unsplash.com/photos/two-bowls-of-food-on-a-table-with-chopsticks-Jp6LI-LbA_c" },
+  "starter-recipes/n55jdf9wsow003okjm9m": { name: "Fellipe Ditadi", link: "https://unsplash.com/photos/a-table-topped-with-bowls-of-food-and-a-wooden-spoon-8Vn3n1U6kwc" },
+  "starter-recipes/arlmuaeapqs5jgfwiljj": { name: "Julia Kicova", link: "https://unsplash.com/photos/brown-soup-on-white-and-blue-ceramic-bowl-Qct8v6wdyRs" },
+  "starter-recipes/z5wr6tkfaklvrlchyqyu": { name: "Will Ma", link: "https://unsplash.com/photos/a-sandwich-with-meat-and-vegetables-ZxAo9hnRo40" },
+  "starter-recipes/nnkgbievlgkranhiu18j": { name: "JSB Co.", link: "https://unsplash.com/photos/a-white-plate-topped-with-an-omelet-next-to-a-salad-RntvjdTs-j0" },
 };
 
 // A recipe photo is a seed "stock" image if its Cloudinary URL is in the
