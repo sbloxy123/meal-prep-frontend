@@ -167,21 +167,7 @@
   font-size: 12px;
   color: var(--color-accent-700);
 }
-/* "Take a photo" recipe extractor: camera + library triggers, then thumbnails. */
-.ai-photo-triggers {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-.ai-photo-triggers .btn {
-  height: 34px;
-  cursor: pointer;
-}
-/* A <label> can't be natively disabled; mirror the input's disabled state. */
-.ai-photo-triggers .btn[data-disabled] {
-  opacity: 0.5;
-  pointer-events: none;
-}
+/* Recipe-photo thumbnails (shared by the Fornetto AI panel's Photo route). */
 .ai-thumbs {
   display: flex;
   flex-wrap: wrap;
