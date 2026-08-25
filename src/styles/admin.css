@@ -220,6 +220,16 @@
   border-color: var(--color-accent-300);
   background: var(--color-accent-100);
 }
+.admin-pill.is-premium {
+  color: var(--color-accent-800);
+  border-color: var(--color-accent);
+  background: var(--color-accent-100);
+  font-weight: 600;
+}
+.admin-muted {
+  color: var(--color-neutral-500);
+  font-size: 12px;
+}
 
 /* On narrow screens the table becomes stacked cards. */
 .admin-user-cards {
