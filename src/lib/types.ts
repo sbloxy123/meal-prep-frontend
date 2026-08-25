@@ -84,6 +84,9 @@ export interface AdminTotals {
   shares?: number;
   households?: number;
   multiMemberHouseholds?: number;
+  premiumHouseholds?: number;
+  paidHouseholds?: number;
+  compedHouseholds?: number;
   // Invite funnel + adoption (secondary section).
   invitesSent?: number;
   invitesAccepted?: number;
@@ -118,6 +121,8 @@ export interface AdminUserRow {
   household_id?: string | null;
   household_name?: string | null;
   household_member_count?: number | null;
+  plan?: "free" | "premium";
+  paid?: boolean; // premium via a real Stripe subscription (vs a comp)
   recipe_count?: number;
   ai_usage?: { import?: number; estimate?: number; generate?: number; photo?: number; improve?: number; suggest?: number; total?: number } | null;
   shares_created?: number | null;

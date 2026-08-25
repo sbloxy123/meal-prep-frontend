@@ -34,8 +34,8 @@ const AI_LABEL: Record<(typeof AI_ACTIONS)[number], string> = {
   suggest: "Suggest",
 };
 
-type Segment = "all" | "active" | "inactive" | "unverified" | "recipes";
-type SortKey = "name" | "joined" | "active" | "recipes" | "ai" | "household";
+type Segment = "all" | "active" | "inactive" | "unverified" | "recipes" | "premium";
+type SortKey = "name" | "joined" | "active" | "recipes" | "ai" | "household" | "plan";
 
 const SEGMENTS: { key: Segment; label: string }[] = [
   { key: "all", label: "All" },
@@ -43,7 +43,14 @@ const SEGMENTS: { key: Segment; label: string }[] = [
   { key: "inactive", label: "Inactive" },
   { key: "unverified", label: "Unverified" },
   { key: "recipes", label: "Has recipes" },
+  { key: "premium", label: "Premium" },
 ];
+
+/** How a user's plan reads in the table: comped, paid, or free. */
+function planLabel(u: AdminUserRow): { text: string; premium: boolean } {
+  if (u.plan === "premium") return { text: u.paid ? "Premium" : "Comp", premium: true };
+  return { text: "Free", premium: false };
+}
 
 function sum(points: AdminSeriesPoint[] | undefined, keys?: readonly string[]): number {
   if (!points) return 0;
@@ -213,6 +220,11 @@ function Dashboard({
       <div className="admin-kpis">
         <Kpi label="Users" value={totals.users ?? users.length} sub={`+${newInRange} in ${RANGE_LABEL[days]}`} />
         <Kpi label="Active" value={totals.activeUsers7d} sub={`${totals.activeUsers30d ?? "—"} in 30d`} />
+        <Kpi
+          label="Premium"
+          value={totals.premiumHouseholds}
+          sub={`${totals.paidHouseholds ?? 0} paid · ${totals.compedHouseholds ?? 0} comp`}
+        />
         <Kpi label={`AI calls · ${RANGE_LABEL[days]}`} value={aiInRange} sub={aiSubtitle(series.aiCalls)} />
         <Kpi label="Recipes" value={totals.recipes} />
         <Kpi label="Shares" value={totals.shares} />
@@ -396,6 +408,8 @@ function UsersSection({ users }: { users: AdminUserRow[] }) {
           return !u.email_verified;
         case "recipes":
           return (u.recipe_count ?? 0) > 0;
+        case "premium":
+          return u.plan === "premium";
         default:
           return true;
       }
@@ -421,6 +435,7 @@ function UsersSection({ users }: { users: AdminUserRow[] }) {
     { key: "active", label: "Last active" },
     { key: "recipes", label: "Recipes", num: true },
     { key: "ai", label: "AI", num: true },
+    { key: "plan", label: "Plan" },
     { key: "household", label: "Household" },
   ];
 
@@ -485,6 +500,13 @@ function UsersSection({ users }: { users: AdminUserRow[] }) {
                     <td className="admin-td-num">{u.recipe_count ?? 0}</td>
                     <td className="admin-td-num">{u.ai_usage?.total ?? 0}</td>
                     <td>
+                      {planLabel(u).premium ? (
+                        <span className="admin-pill is-premium">{planLabel(u).text}</span>
+                      ) : (
+                        <span className="admin-muted">Free</span>
+                      )}
+                    </td>
+                    <td>
                       {u.household_name || "—"}
                       {(u.household_member_count ?? 1) > 1 && (
                         <span className="admin-pill is-ok" style={{ marginLeft: 6 }}>
@@ -504,6 +526,9 @@ function UsersSection({ users }: { users: AdminUserRow[] }) {
               <div key={u.id} className="admin-user-card">
                 <div className="admin-user-card-head">
                   <span className="admin-user-card-name">{u.name || u.email}</span>
+                  {planLabel(u).premium && (
+                    <span className="admin-pill is-premium">{planLabel(u).text}</span>
+                  )}
                   <span className="admin-pill">{relative(u.last_active)}</span>
                 </div>
                 <div className="admin-user-email">{u.email}</div>
@@ -537,6 +562,11 @@ function cmp(a: AdminUserRow, b: AdminUserRow, key: SortKey): number {
       return (a.recipe_count ?? 0) - (b.recipe_count ?? 0);
     case "ai":
       return (a.ai_usage?.total ?? 0) - (b.ai_usage?.total ?? 0);
+    case "plan": {
+      // free < comped premium < paid premium
+      const rank = (u: AdminUserRow) => (u.plan === "premium" ? (u.paid ? 2 : 1) : 0);
+      return rank(a) - rank(b);
+    }
     default:
       return 0;
   }
@@ -613,7 +643,10 @@ function AiSection({
     <section className="admin-section">
       <h2>AI usage</h2>
       <p className="admin-section-note">
-        Limits are 20 imports / 20 estimates / 15 generations / 15 photo scans / 15 improvements / 15 suggestions per household per rolling 6&nbsp;hours.
+        Free households share <strong>15 AI actions per week</strong> (all types combined); Premium
+        is unlimited. A per-action 6-hour burst ceiling (20 imports / 20 estimates / 15 generations /
+        15 photo scans / 15 improvements / 15 suggestions) still applies to everyone as an abuse
+        guard.
       </p>
       <Chart title={`Calls by type · ${RANGE_LABEL[days]}`} points={series.aiCalls} stacked={AI_ACTIONS} />
       <div className="admin-legend">
@@ -657,6 +690,18 @@ function GrowthSection({ totals }: { totals: NonNullable<AdminOverview["totals"]
         <Stat label="Households" value={totals.households} />
         <Stat label="Shared households" value={totals.multiMemberHouseholds} />
       </div>
+
+      {(totals.premiumHouseholds ?? 0) > 0 && (
+        <>
+          <p className="admin-chart-title" style={{ marginTop: 16 }}>Premium households</p>
+          <Breakdown
+            items={[
+              { label: "Paid", value: totals.paidHouseholds ?? 0 },
+              { label: "Comped", value: totals.compedHouseholds ?? 0 },
+            ]}
+          />
+        </>
+      )}
 
       {hasInvite && (
         <>
