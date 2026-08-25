@@ -30,6 +30,10 @@ import "../styles/toast.css";
 import "../styles/home.css";
 
 export const metadata: Metadata = {
+  // Resolves relative OG/Twitter image URLs to absolute ones — link unfurlers
+  // (Teams, Slack, iMessage) reject relative image paths, so without this the
+  // share thumbnail never renders.
+  metadataBase: new URL("https://fornetto.app"),
   title: "Fornetto",
   description: "The week's shopping, in order.",
   manifest: "/manifest.webmanifest",
@@ -43,6 +47,27 @@ export const metadata: Metadata = {
     apple: "/apple-touch-icon.png",
   },
   appleWebApp: { capable: true, title: "Fornetto", statusBarStyle: "default" },
+  openGraph: {
+    type: "website",
+    siteName: "Fornetto",
+    title: "Fornetto",
+    description: "The week's shopping, in order.",
+    url: "https://fornetto.app",
+    images: [
+      {
+        url: "/home-desktop.png",
+        width: 1437,
+        height: 701,
+        alt: "Fornetto — plan the week and shop it by aisle.",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Fornetto",
+    description: "The week's shopping, in order.",
+    images: ["/home-desktop.png"],
+  },
 };
 
 export const viewport: Viewport = {
