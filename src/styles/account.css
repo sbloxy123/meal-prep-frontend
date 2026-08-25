@@ -50,6 +50,15 @@ html[data-theme="dark"] .account-card {
   flex: none;
   margin-top: 2px;
 }
+.premium-thanks {
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--color-accent-100);
+  color: var(--color-accent-800);
+  font-size: 13px;
+  line-height: 1.5;
+}
 
 .account-form {
   display: flex;
