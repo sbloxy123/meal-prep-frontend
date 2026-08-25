@@ -7,6 +7,7 @@ import { authClient, signOut, useSession } from "@/lib/auth-client";
 import { apiFetch, apiSend } from "@/lib/api";
 import type { RecipesResponse } from "@/lib/types";
 import { useMenu } from "@/lib/menu";
+import { GoPremiumLink } from "@/components/ai-allowance";
 import { useToast } from "@/lib/toast";
 import { PageHeader } from "@/components/page-header";
 import { HouseholdCard } from "@/components/household-card";
@@ -46,6 +47,7 @@ export default function AccountPage() {
         ) : (
           <>
             <ProfileCard key={user.id} name={user.name ?? ""} email={user.email} joined={formatJoined(user.createdAt)} />
+            <PremiumCard />
             <PreferencesCard />
             <InstallAppCard />
             <AboutCard />
@@ -111,6 +113,30 @@ function ProfileCard({ name, email, joined }: { name: string; email: string; joi
           <span className="account-readonly-label">Member since</span>
           <span className="account-readonly-value">{joined}</span>
         </div>
+      )}
+    </section>
+  );
+}
+
+function PremiumCard() {
+  const { allowance } = useMenu();
+  return (
+    <section className="account-card">
+      <h2>Premium</h2>
+      {allowance.isPremium ? (
+        <p className="text-muted" style={{ fontSize: 14, marginBottom: 12 }}>
+          Your household is on <strong>Premium</strong> — unlimited AI across every feature.
+        </p>
+      ) : (
+        <>
+          <p className="text-muted" style={{ fontSize: 14, marginBottom: 12 }}>
+            You’re on the free plan — {allowance.remaining} of {allowance.limit} AI actions left this
+            week. Go Premium for unlimited AI across your whole household, £2.99/month.
+          </p>
+          <GoPremiumLink source="account_card" className="btn btn-ai">
+            See Premium
+          </GoPremiumLink>
+        </>
       )}
     </section>
   );

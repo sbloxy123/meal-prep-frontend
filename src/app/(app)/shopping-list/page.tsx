@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { X } from "lucide-react";
 import { useMenu, shoppingItemName, type ShoppingItem } from "@/lib/menu";
+import { AllowanceNote } from "@/components/ai-allowance";
 import { useToast } from "@/lib/toast";
 import { useSession } from "@/lib/auth-client";
 import { apiFetch, apiSend } from "@/lib/api";
@@ -147,7 +148,7 @@ export default function ShoppingListPage() {
   }
 
   async function generate() {
-    if (generating || items.length === 0) return;
+    if (generating || items.length === 0 || menu.allowance.exhausted) return;
     setGenerating(true);
     setGenerateError(false);
     try {
@@ -193,7 +194,11 @@ export default function ShoppingListPage() {
               className="btn btn-primary"
               style={{ height: 42, paddingInline: 20 }}
               onClick={primaryAction}
-              disabled={generating || items.length === 0}
+              disabled={
+                generating ||
+                items.length === 0 ||
+                (!listIsCurrent && menu.allowance.exhausted)
+              }
             >
               {primaryLabel}
             </button>
@@ -207,6 +212,12 @@ export default function ShoppingListPage() {
           <button type="button" className="btn btn-ghost" onClick={generate}>
             Retry
           </button>
+        </p>
+      )}
+
+      {!listIsCurrent && items.length > 0 && (
+        <p className="sl-allowance-note">
+          <AllowanceNote source="generate_by_aisle" />
         </p>
       )}
 

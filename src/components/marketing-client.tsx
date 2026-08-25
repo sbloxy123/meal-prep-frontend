@@ -18,6 +18,7 @@ import { useSession } from "@/lib/auth-client";
 const BURGER_LINKS: [string, string][] = [
   ["How it works", "#how"],
   ["In the shop", "#shop"],
+  ["Pricing", "#pricing"],
   ["Features", "#features"],
   ["Questions", "#faq"],
 ];
@@ -149,6 +150,32 @@ export function MarketingClosingCta() {
         </>
       )}
     </div>
+  );
+}
+
+/** Pricing-card CTA. Signed out (default SSR): "Get started" → sign-up for both
+    plans. Signed in: Premium → /premium, Free → /recipes. */
+export function MarketingPriceCta({ plan }: { plan: "free" | "premium" }) {
+  const { data: session } = useSession();
+  const signedIn = !!session;
+
+  if (plan === "premium") {
+    return (
+      <Link
+        href={signedIn ? "/premium" : "/sign-up"}
+        className="btn btn-primary home-pricecard-cta"
+      >
+        {signedIn ? "Go Premium" : "Get started"}
+      </Link>
+    );
+  }
+  return (
+    <Link
+      href={signedIn ? "/recipes" : "/sign-up"}
+      className="btn btn-secondary home-pricecard-cta"
+    >
+      {signedIn ? "Open Fornetto" : "Get started"}
+    </Link>
   );
 }
 

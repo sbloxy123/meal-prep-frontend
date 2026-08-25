@@ -30,6 +30,27 @@ html[data-theme="dark"] .account-card {
   margin: 0 0 14px;
 }
 
+/* Premium page + account upsell card. */
+.premium-features {
+  list-style: none;
+  margin: 14px 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 14px;
+}
+.premium-features li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+.premium-tick {
+  color: var(--color-accent);
+  flex: none;
+  margin-top: 2px;
+}
+
 .account-form {
   display: flex;
   flex-direction: column;

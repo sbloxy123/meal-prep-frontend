@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { Sparkles, Link2, Share2, Camera, Images, X, Loader2, AlertCircle, ChevronDown } from "lucide-react";
 import { ApiError, apiFetch } from "@/lib/api";
 import { fileToDownscaledBase64 } from "@/lib/image";
+import { useMenu } from "@/lib/menu";
+import { AllowanceTag, AllowanceRow, isWeeklyLimit, WEEKLY_LIMIT_MESSAGE } from "@/components/ai-allowance";
 import type { RecipeFormInitial } from "@/components/recipe-form";
 
 // One consolidated "Fornetto AI" panel replacing the four peer import cards.
@@ -76,6 +78,7 @@ export function FornettoAiPanel({
   const [error, setError] = useState<{ message: string; retry: boolean } | null>(null);
   const [photos, setPhotos] = useState<Photo[]>([]);
   const captionRef = useRef<HTMLTextAreaElement>(null);
+  const { allowance } = useMenu();
 
   const cfg = ROUTES[route];
 
@@ -195,6 +198,10 @@ export function FornettoAiPanel({
 
   function handleError(err: unknown) {
     const status = err instanceof ApiError ? err.status : 0;
+    if (isWeeklyLimit(err)) {
+      fail(WEEKLY_LIMIT_MESSAGE, false);
+      return;
+    }
     if (status === 429) {
       const per =
         route === "title" ? "15 generations" : route === "photo" ? "15 photo scans" : "20 imports";
@@ -247,6 +254,7 @@ export function FornettoAiPanel({
 
   const actionDisabled =
     pending ||
+    allowance.exhausted ||
     (route === "photo" ? photos.length === 0 : !value.trim() && !caption.trim());
   const igPending = pending && route === "social" && /instagram\.com/i.test(value) && !caption.trim();
 
@@ -255,8 +263,7 @@ export function FornettoAiPanel({
       <div className="ai-panel-head">
         <Sparkles size={16} className="ai-panel-spark" aria-hidden />
         <span className="card-kicker">Fornetto AI</span>
-        {/* Allowance tag + "Go premium" row deferred until premium ships —
-            see design/README.md "Allowance row" + design/Add Recipe - AI Panel.dc.html */}
+        <AllowanceTag allowance={allowance} />
         {onToggle && (
           <button
             type="button"
@@ -355,7 +362,7 @@ export function FornettoAiPanel({
               className="btn btn-ai ai-panel-action"
               style={{ alignSelf: "flex-start" }}
               onClick={run}
-              disabled={pending}
+              disabled={pending || allowance.exhausted}
             >
               <Sparkles size={14} className="btn-ai-spark" aria-hidden />
               {pending ? "Reading…" : "Extract"}
@@ -459,6 +466,8 @@ export function FornettoAiPanel({
       ) : (
         !pending && <p className="ai-panel-help">{cfg.help}</p>
       )}
+
+      <AllowanceRow source="add_recipe_allowance_row" />
     </div>
   );
 }

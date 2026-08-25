@@ -4,6 +4,8 @@ import { useRef, useState } from "react";
 import { Sparkles } from "lucide-react";
 import { ApiError, apiFetch } from "@/lib/api";
 import { useModalA11y } from "@/lib/use-modal";
+import { useMenu } from "@/lib/menu";
+import { AllowanceNote, isWeeklyLimit, WEEKLY_LIMIT_MESSAGE } from "@/components/ai-allowance";
 
 // A2 — "Give me inspiration". Asks the AI for a handful of recipe ideas
 // (optionally hinted, e.g. "kids meals"), the user multi-selects the ones they
@@ -32,6 +34,7 @@ export function RecipeInspiration({
   const ref = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   useModalA11y(ref, onClose);
+  const menu = useMenu();
 
   const [hint, setHint] = useState("");
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
@@ -53,7 +56,7 @@ export function RecipeInspiration({
   }
 
   async function suggest() {
-    if (pending) return;
+    if (pending || menu.allowance.exhausted) return;
     const h = hint.trim();
     setPending(true);
     setError(null);
@@ -65,12 +68,15 @@ export function RecipeInspiration({
         body: JSON.stringify({ hint: h || undefined }),
       });
       setSuggestions(res.suggestions ?? []);
+      void menu.refresh(); // reflect the decremented weekly allowance
     } catch (err) {
       const status = err instanceof ApiError ? err.status : 0;
       setError(
-        status === 429
-          ? "Limit reached — 15 suggestions per 6 hours. Try again later."
-          : "Couldn’t get ideas just now. Please try again.",
+        isWeeklyLimit(err)
+          ? WEEKLY_LIMIT_MESSAGE
+          : status === 429
+            ? "Limit reached — 15 suggestions per 6 hours. Try again later."
+            : "Couldn’t get ideas just now. Please try again.",
       );
     } finally {
       setPending(false);
@@ -158,11 +164,18 @@ export function RecipeInspiration({
             aria-label="What kind of recipes?"
             disabled={busy}
           />
-          <button type="button" className="btn btn-ai" onClick={suggest} disabled={busy}>
+          <button
+            type="button"
+            className="btn btn-ai"
+            onClick={suggest}
+            disabled={busy || menu.allowance.exhausted}
+          >
             <Sparkles size={14} className="btn-ai-spark" aria-hidden />
             {pending ? "Thinking…" : suggestions.length ? "Again" : "Suggest"}
           </button>
         </div>
+
+        <AllowanceNote source="recipe_inspiration" />
 
         <div className="inspire-chips">
           {QUICK_HINTS.map((h) => (

@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { X, Plus, Sparkles, ChevronDown } from "lucide-react";
 import { ApiError, apiFetch, apiSend } from "@/lib/api";
 import { useMenu } from "@/lib/menu";
+import { AllowanceNote, isWeeklyLimit, WEEKLY_LIMIT_MESSAGE } from "@/components/ai-allowance";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { ImageDrop, type RecipePhoto } from "@/components/image-drop";
 
@@ -153,17 +154,20 @@ export function RecipeForm({
   }
 
   async function estimateMacros() {
-    if (estimating || !canEstimate) return;
+    if (estimating || !canEstimate || menu.allowance.exhausted) return;
     setEstimating(true);
     setEstimateError("");
     const rows = ingredients.filter((r) => r.name.trim());
     try {
       applyMacros(await requestEstimate(rows, servings));
+      void menu.refresh(); // reflect the decremented weekly allowance
     } catch (err) {
       setEstimateError(
-        err instanceof ApiError && err.status === 429
-          ? "Estimate limit reached — 20 per 6 hours. Try again later."
-          : "Couldn’t estimate macros. Please try again.",
+        isWeeklyLimit(err)
+          ? WEEKLY_LIMIT_MESSAGE
+          : err instanceof ApiError && err.status === 429
+            ? "Estimate limit reached — 20 per 6 hours. Try again later."
+            : "Couldn’t estimate macros. Please try again.",
       );
     } finally {
       setEstimating(false);
@@ -175,7 +179,7 @@ export function RecipeForm({
   // fresh per-serving macros. We only fill *blank* fields so the user's own
   // entries are never overwritten; macros are always refreshed (the whole point).
   async function improveRecipe() {
-    if (improving || !canEstimate) return;
+    if (improving || !canEstimate || menu.allowance.exhausted) return;
     setImproving(true);
     setImproveError("");
     const rows = ingredients.filter((r) => r.name.trim());
@@ -241,11 +245,14 @@ export function RecipeForm({
           // Quantities are already improved; a failed macro fallback is non-fatal.
         }
       }
+      void menu.refresh(); // reflect the decremented weekly allowance
     } catch (err) {
       setImproveError(
-        err instanceof ApiError && err.status === 429
-          ? "Improve limit reached — 15 per 6 hours. Try again later."
-          : "Couldn’t improve this recipe. Please try again.",
+        isWeeklyLimit(err)
+          ? WEEKLY_LIMIT_MESSAGE
+          : err instanceof ApiError && err.status === 429
+            ? "Improve limit reached — 15 per 6 hours. Try again later."
+            : "Couldn’t improve this recipe. Please try again.",
       );
     } finally {
       setImproving(false);
@@ -554,11 +561,12 @@ export function RecipeForm({
           type="button"
           className="btn btn-ai rf-estimate"
           onClick={estimateMacros}
-          disabled={estimating || improving || !canEstimate}
+          disabled={estimating || improving || !canEstimate || menu.allowance.exhausted}
         >
           <Sparkles size={15} className="btn-ai-spark" aria-hidden />
           {estimating ? "Estimating…" : "Estimate macros"}
         </button>
+        {canEstimate && <AllowanceNote source="estimate_macros_button" />}
         {!canEstimate && (
           <p className="rf-hint text-muted">
             Add a title and at least one ingredient to estimate.
@@ -658,7 +666,7 @@ export function RecipeForm({
             type="button"
             className="btn btn-ai rf-improve"
             onClick={improveRecipe}
-            disabled={estimating || improving || !canEstimate}
+            disabled={estimating || improving || !canEstimate || menu.allowance.exhausted}
           >
             <Sparkles size={15} className="btn-ai-spark" aria-hidden />
             {improving ? "Improving…" : "Improve recipe"}

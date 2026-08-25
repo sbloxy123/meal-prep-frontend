@@ -27,6 +27,28 @@ interface ShoppingListResponse {
   singleRecipeTags: { tag_recipe_title: string; name: string }[];
   shoppingListIngredientsByRecipe: { recipe_id: number; ingredient_name: string }[];
   householdMemberCount?: number;
+  // Premium entitlement + weekly AI allowance (see AiAllowance below).
+  plan?: "free" | "premium";
+  aiUsedThisWeek?: number;
+  aiWeeklyLimit?: number;
+  weekResetsAt?: string | null;
+}
+
+/** The household's premium status and weekly AI-action allowance, derived from
+    GET /shopping-list. Every AI surface reads this to render the allowance
+    tag/row and to disable actions once a free household's pool is spent. */
+export interface AiAllowance {
+  isPremium: boolean;
+  /** AI actions used in the current week (0 for premium — not tracked). */
+  used: number;
+  /** Weekly pool size for free households. */
+  limit: number;
+  /** Actions left this week (free only; Infinity for premium). */
+  remaining: number;
+  /** Free household with no actions left this week. */
+  exhausted: boolean;
+  /** When the weekly window resets (ISO), or null for premium. */
+  resetsAt: string | null;
 }
 
 // A row of shopping_list. Recipe-derived items carry ingredient_name (with
@@ -84,6 +106,8 @@ interface MenuValue {
   householdShared: boolean;
   collections: Collection[];
   shoppingList: ShoppingItem[];
+  /** Premium status + weekly AI allowance for the whole app. */
+  allowance: AiAllowance;
   recipeTitlesFor: (ingredientName: string) => string[];
   ingredientsFor: (title: string) => string[];
   selectedFor: (recipeId: number) => Set<string>;
@@ -177,6 +201,22 @@ export function MenuProvider({ children }: { children: ReactNode }) {
 
   const listCount = data?.shoppingList?.length ?? 0;
   const householdShared = (data?.householdMemberCount ?? 1) > 1;
+
+  const allowance = useMemo<AiAllowance>(() => {
+    const isPremium = data?.plan === "premium";
+    const limit = data?.aiWeeklyLimit ?? 15;
+    const used = data?.aiUsedThisWeek ?? 0;
+    const remaining = isPremium ? Infinity : Math.max(0, limit - used);
+    return {
+      isPremium,
+      used,
+      limit,
+      remaining,
+      // Never disable before the first load resolves (data null → not exhausted).
+      exhausted: !isPremium && data != null && remaining <= 0,
+      resetsAt: data?.weekResetsAt ?? null,
+    };
+  }, [data]);
 
   const collections = useMemo<Collection[]>(
     () => buildCollections((data?.singleRecipeTags ?? []).map((t) => t.name)),
@@ -272,6 +312,7 @@ export function MenuProvider({ children }: { children: ReactNode }) {
     householdShared,
     collections,
     shoppingList,
+    allowance,
     recipeTitlesFor,
     ingredientsFor,
     selectedFor,

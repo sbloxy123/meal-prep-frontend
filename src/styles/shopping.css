@@ -220,6 +220,9 @@
   font-size: 13px;
   color: var(--color-accent-700);
 }
+.sl-allowance-note {
+  margin: 8px 20px 0;
+}
 
 @media (min-width: 1024px) {
   .sl-header-actions {
