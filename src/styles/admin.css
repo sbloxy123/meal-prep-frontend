@@ -407,6 +407,33 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* Premium grants. */
+.admin-note-ok {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: var(--color-accent-700);
+}
+.admin-note-err {
+  margin: 8px 0 0;
+  font-size: 13px;
+  color: #c0563f;
+}
+.admin-grant-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--color-divider);
+  font-size: 13px;
+}
+.admin-revoke {
+  height: 30px;
+  padding-inline: 12px;
+  font-size: 13px;
+  flex: none;
+}
+
 /* Full-page states. */
 .admin-loading {
   display: grid;

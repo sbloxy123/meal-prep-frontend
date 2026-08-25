@@ -9,7 +9,7 @@
 // it just calls the API and redirects away on 401/403, so nothing leaks to the
 // bundle. Inert-safe before the backend ships (no endpoint → redirect).
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { ApiError, apiFetch } from "@/lib/api";
 import { useSession } from "@/lib/auth-client";
@@ -218,6 +218,9 @@ function Dashboard({
         <Kpi label="Shares" value={totals.shares} />
       </div>
 
+      {/* Premium grants (comp friends & family) */}
+      <PremiumGrantsSection />
+
       {/* ② Per-user drill-down */}
       <UsersSection users={users} />
 
@@ -247,6 +250,125 @@ function aiSubtitle(points?: AdminSeriesPoint[]): string {
   if (!points) return "";
   const parts = AI_ACTIONS.map((a) => `${AI_LABEL[a][0]} ${sum(points, [a])}`);
   return parts.join(" · ");
+}
+
+// ── Premium grants ───────────────────────────────────────────────────────────
+
+type Comp = { id: string; emails: string[]; created_at: string | null };
+
+function adminErrMsg(err: unknown, fallback: string): string {
+  if (err instanceof ApiError) {
+    try {
+      return (JSON.parse(err.body)?.error as string) || fallback;
+    } catch {
+      return fallback;
+    }
+  }
+  return fallback;
+}
+
+function PremiumGrantsSection() {
+  const [comps, setComps] = useState<Comp[] | null>(null);
+  const [email, setEmail] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [note, setNote] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
+
+  function load() {
+    apiFetch<{ comps: Comp[] }>("/admin/premium/comps")
+      .then((d) => setComps(d.comps ?? []))
+      .catch(() => setComps([]));
+  }
+  // Load once on mount.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(load, []);
+
+  async function grant(e: FormEvent) {
+    e.preventDefault();
+    const addr = email.trim();
+    if (!addr || busy) return;
+    setBusy(true);
+    setNote(null);
+    try {
+      await apiFetch("/admin/premium/grant", {
+        method: "POST",
+        body: JSON.stringify({ email: addr }),
+      });
+      setNote({ kind: "ok", text: `${addr} is now Premium.` });
+      setEmail("");
+      load();
+    } catch (err) {
+      setNote({ kind: "err", text: adminErrMsg(err, "Couldn’t grant Premium.") });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function revoke(addr: string) {
+    if (busy) return;
+    setBusy(true);
+    setNote(null);
+    try {
+      await apiFetch("/admin/premium/revoke", {
+        method: "POST",
+        body: JSON.stringify({ email: addr }),
+      });
+      setNote({ kind: "ok", text: `${addr} reverted to free.` });
+      load();
+    } catch (err) {
+      setNote({ kind: "err", text: adminErrMsg(err, "Couldn’t revoke.") });
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <section className="admin-section">
+      <h2>Premium grants</h2>
+      <p className="admin-section-note">
+        Comp a household to Premium (unlimited AI, no charge, no expiry) by a member’s email. Revoke
+        drops it back to free. Paid subscribers aren’t listed here — manage those in Stripe.
+      </p>
+      <form className="admin-controls" onSubmit={grant}>
+        <input
+          className="input admin-search"
+          type="email"
+          placeholder="friend@example.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          disabled={busy}
+        />
+        <button type="submit" className="btn btn-ai" disabled={busy || !email.trim()}>
+          Grant Premium
+        </button>
+      </form>
+      {note && (
+        <p className={note.kind === "err" ? "admin-note-err" : "admin-note-ok"} role="status">
+          {note.text}
+        </p>
+      )}
+      {comps == null ? null : comps.length === 0 ? (
+        <p className="admin-empty" style={{ marginTop: 12 }}>
+          No comped households yet.
+        </p>
+      ) : (
+        <div className="admin-rows" style={{ marginTop: 12 }}>
+          {comps.map((c) => (
+            <div key={c.id} className="admin-grant-row">
+              <span className="admin-row-label">{c.emails.join(", ") || "(no members)"}</span>
+              <button
+                type="button"
+                className="btn btn-ghost admin-revoke"
+                onClick={() => revoke(c.emails[0] ?? "")}
+                disabled={busy || c.emails.length === 0}
+              >
+                Revoke
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
+  );
 }
 
 // ── ② Users ─────────────────────────────────────────────────────────────────
