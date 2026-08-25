@@ -155,6 +155,18 @@
   height: 44px;
   font-size: 15px;
 }
+/* Secondary "try the AI" card in the empty state — quieter than the starter
+   card so the two don't compete as equal heroes. */
+.recipes-ai-cta {
+  margin-top: 12px;
+  border-color: var(--color-divider);
+  background: transparent;
+  box-shadow: none;
+}
+.recipes-ai-cta-note {
+  font-size: 12.5px;
+  margin: 10px 0 0;
+}
 .recipes-empty-alt {
   font-size: 13px;
   margin: 16px 0 0;

@@ -5,6 +5,7 @@ import {
   MarketingClosingCta,
   MarketingInstallButton,
   MarketingFooterAuthLink,
+  MarketingPriceCta,
 } from "@/components/marketing-client";
 
 /** Fornetto oven mark — accent arch, base line + door arch in ink. */
@@ -147,6 +148,69 @@ function Feature({ title, body }: { title: string; body: string }) {
   );
 }
 
+/** Accent tick used in the pricing feature lists (inline SVG to match the
+    page's icon style — no icon dependency). */
+function Tick() {
+  return (
+    <svg
+      className="home-pricecard-tick"
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="var(--color-accent)"
+      strokeWidth="2.4"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M20 6 9 17l-5-5" />
+    </svg>
+  );
+}
+
+/** One plan in the pricing band. `accent` is the highlighted Premium variant. */
+function PriceCard({
+  plan,
+  name,
+  price,
+  unit,
+  blurb,
+  features,
+  accent = false,
+  badge,
+}: {
+  plan: "free" | "premium";
+  name: string;
+  price: string;
+  unit: string;
+  blurb: string;
+  features: string[];
+  accent?: boolean;
+  badge?: string;
+}) {
+  return (
+    <div className={accent ? "home-pricecard home-pricecard--accent" : "home-pricecard"}>
+      {badge && <span className="tag tag-accent home-pricecard-badge">{badge}</span>}
+      <h3 className="home-pricecard-name">{name}</h3>
+      <div className="home-pricecard-priceline">
+        <span className="home-pricecard-price">{price}</span>
+        <span className="home-pricecard-unit">{unit}</span>
+      </div>
+      <p className="text-muted home-pricecard-blurb">{blurb}</p>
+      <ul className="home-pricecard-list">
+        {features.map((f) => (
+          <li key={f}>
+            <Tick />
+            <span>{f}</span>
+          </li>
+        ))}
+      </ul>
+      <MarketingPriceCta plan={plan} />
+    </div>
+  );
+}
+
 /** A hairline-separated question/answer in the FAQ. `last` adds the closing rule. */
 function Faq({
   q,
@@ -179,6 +243,7 @@ export function MarketingHome() {
           <nav className="home-nav">
             <a href="#how">How it works</a>
             <a href="#shop">In the shop</a>
+            <a href="#pricing">Pricing</a>
             <a href="#features">Features</a>
             <a href="#faq">Questions</a>
           </nav>
@@ -438,6 +503,61 @@ export function MarketingHome() {
         </div>
       </section>
 
+      {/* ── Pricing ───────────────────────────────────────────── */}
+      <section id="pricing" className="home-band">
+        <div className="home-container home-pricing">
+          <div className="home-section-head">
+            <div>
+              <div className="home-kicker">Membership</div>
+              <h2 className="home-pricing-title home-h2-lg">
+                Free to start. Unlimited when you&rsquo;re ready
+              </h2>
+            </div>
+            <p className="text-muted home-pricing-note">
+              Every feature is free, with a weekly allowance for the AI. When
+              you&rsquo;re cooking with it every week, Premium makes the AI
+              unlimited for your whole household.
+            </p>
+          </div>
+
+          <div className="home-pricing-grid">
+            <PriceCard
+              plan="free"
+              name="Free"
+              price="£0"
+              unit="always"
+              blurb="Everything Fornetto does, with a weekly allowance for the AI."
+              features={[
+                "All recipes, menus & shopping-list features",
+                "15 AI actions a week",
+                "Share with your whole household",
+                "Works offline in the shop",
+              ]}
+            />
+            <PriceCard
+              plan="premium"
+              accent
+              badge="Most popular"
+              name="Premium"
+              price="£2.99"
+              unit="per month"
+              blurb="Unlimited AI for the whole household."
+              features={[
+                "Everything in Free",
+                "Unlimited AI — drafts, photos, improve & macros",
+                "Unlimited inspiration & shop-by-aisle",
+                "Shared across your household · cancel anytime",
+              ]}
+            />
+          </div>
+
+          <p className="text-muted home-pricing-reassure">
+            Less than a coffee a month. Cancel anytime — and your recipes are
+            always yours.
+          </p>
+        </div>
+      </section>
+
       {/* ── The rest of it ────────────────────────────────────── */}
       <section id="features" className="home-band">
         <div className="home-container home-features">
@@ -554,7 +674,7 @@ export function MarketingHome() {
             <Faq
               q="What does it cost?"
               a={
-                "Nothing. It was built to solve a weekly annoyance, and it’s free to use."
+                "The whole app — planning, shopping and sharing — is free. The AI extras (drafting a recipe from a link, photo, title or reel, plus macro estimates and inspiration) come with a free allowance of 15 a week. Premium is £2.99 a month and makes them unlimited for your whole household; upgrade or cancel anytime."
               }
             />
             <Faq
@@ -612,6 +732,7 @@ export function MarketingHome() {
           </span>
           <div className="home-footer-links">
             <a href="#how">How it works</a>
+            <a href="#pricing">Pricing</a>
             <a href="#features">Features</a>
             <a href="#faq">Questions</a>
             <MarketingFooterAuthLink />

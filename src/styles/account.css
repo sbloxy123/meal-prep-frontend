@@ -30,6 +30,36 @@ html[data-theme="dark"] .account-card {
   margin: 0 0 14px;
 }
 
+/* Premium page + account upsell card. */
+.premium-features {
+  list-style: none;
+  margin: 14px 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 14px;
+}
+.premium-features li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+.premium-tick {
+  color: var(--color-accent);
+  flex: none;
+  margin-top: 2px;
+}
+.premium-thanks {
+  margin: 0 0 14px;
+  padding: 10px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--color-accent-100);
+  color: var(--color-accent-800);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
 .account-form {
   display: flex;
   flex-direction: column;

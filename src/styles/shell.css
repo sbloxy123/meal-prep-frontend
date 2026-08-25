@@ -26,6 +26,51 @@
   min-width: 0;
 }
 
+/* Conditional low-balance upsell strip (shown only when a free household is
+   nearly out of its weekly AI pool). Quiet, accent-tinted, dismissible. */
+.premium-banner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: var(--color-accent-100);
+  border-bottom: 1px solid var(--color-accent-200);
+  color: var(--color-accent-800);
+  font-size: 13px;
+}
+.premium-banner-spark {
+  color: var(--color-accent);
+  flex: none;
+}
+.premium-banner-text {
+  margin: 0;
+  flex: 1;
+  line-height: 1.4;
+}
+.premium-banner-link {
+  color: var(--color-accent-800);
+  font-weight: 600;
+  text-decoration: underline;
+  background: none;
+  border: 0;
+  padding: 0;
+  font-size: inherit;
+  cursor: pointer;
+}
+.premium-banner-close {
+  flex: none;
+  display: inline-flex;
+  padding: 2px;
+  background: none;
+  border: 0;
+  color: var(--color-accent-800);
+  opacity: 0.7;
+  cursor: pointer;
+}
+.premium-banner-close:hover {
+  opacity: 1;
+}
+
 /* Mobile-only top brand bar (rail is hidden < 1024px). */
 .mobile-header {
   display: flex;
@@ -107,6 +152,14 @@
   border-color: var(--color-accent-300);
   background: var(--color-accent-100);
   color: var(--color-accent-800);
+}
+/* Quiet "Go Premium" rail link — accent text, faint tint on hover. */
+.rail-premium {
+  color: var(--color-accent);
+}
+.rail-premium:hover {
+  color: var(--color-accent-800);
+  background: var(--color-accent-100);
 }
 .rail-nav-label {
   flex: 1;

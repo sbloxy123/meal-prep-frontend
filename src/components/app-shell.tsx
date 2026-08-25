@@ -2,11 +2,13 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BookOpen, Calendar, ListChecks, User } from "lucide-react";
+import { BookOpen, Calendar, ListChecks, User, Sparkles } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { useSession } from "@/lib/auth-client";
 import { useMenu, type Collection } from "@/lib/menu";
+import { logPremiumCta } from "@/components/ai-allowance";
+import { PremiumBanner } from "@/components/premium-banner";
 
 const WORDMARK = "Fornetto";
 
@@ -57,9 +59,15 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   return (
     <div className="shell">
-      <DesktopRail pathname={pathname} navItems={navItems} collections={menu.collections} />
+      <DesktopRail
+        pathname={pathname}
+        navItems={navItems}
+        collections={menu.collections}
+        isPremium={menu.allowance.isPremium}
+      />
       <div className="shell-main">
         <MobileHeader />
+        <PremiumBanner />
         <div className="shell-page">{children}</div>
       </div>
       <MobileTabBar pathname={pathname} navItems={navItems} />
@@ -71,10 +79,12 @@ function DesktopRail({
   pathname,
   navItems,
   collections,
+  isPremium,
 }: {
   pathname: string;
   navItems: NavItem[];
   collections: Collection[];
+  isPremium: boolean;
 }) {
   const { data: session } = useSession();
 
@@ -133,6 +143,18 @@ function DesktopRail({
         <Link href="/recipes?starters=1" className="rail-nav-item">
           <span className="rail-nav-label">Add starter recipes</span>
         </Link>
+
+        {!isPremium && (
+          <Link
+            href="/premium"
+            className="rail-nav-item rail-premium"
+            aria-current={isActive(pathname, "/premium") ? "page" : undefined}
+            onClick={() => logPremiumCta("rail_nav")}
+          >
+            <Sparkles size={17} aria-hidden />
+            <span className="rail-nav-label">Go Premium</span>
+          </Link>
+        )}
 
         <Link
           href="/about"

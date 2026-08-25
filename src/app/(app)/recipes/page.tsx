@@ -11,6 +11,7 @@ import { RecipeCard } from "@/components/recipe-card";
 import { StarterRecipes } from "@/components/starter-recipes";
 import { RecipeInspiration } from "@/components/recipe-inspiration";
 import { ThisWeekColumn, ThisWeekTray } from "@/components/this-week";
+import { GoPremiumLink } from "@/components/ai-allowance";
 import { useMenu, buildCollections } from "@/lib/menu";
 import { useSession } from "@/lib/auth-client";
 
@@ -343,6 +344,7 @@ function RecipesPageInner() {
 
 function EmptyRecipes({ onAddStarters }: { onAddStarters: () => void }) {
   const { data: session } = useSession();
+  const { allowance } = useMenu();
   const who = session?.user.name?.trim() || session?.user.email || null;
   return (
     <div className="recipes-empty">
@@ -364,6 +366,27 @@ function EmptyRecipes({ onAddStarters }: { onAddStarters: () => void }) {
         <button type="button" className="btn btn-primary recipes-starter-btn" onClick={onAddStarters}>
           Browse starter recipes
         </button>
+      </div>
+
+      <div className="recipes-starter-cta recipes-ai-cta">
+        <span className="recipes-starter-icon" aria-hidden>
+          <Sparkles size={22} />
+        </span>
+        <h4 className="recipes-starter-title">Or let Fornetto AI do the work</h4>
+        <p className="text-muted recipes-starter-desc">
+          Paste a recipe link, snap a cookbook page, or just give it a title — Fornetto AI drafts
+          the ingredients and method for you to review.
+        </p>
+        <Link href="/recipes/new" className="btn btn-ai recipes-starter-btn">
+          <Sparkles size={15} className="btn-ai-spark" aria-hidden />
+          Draft with Fornetto AI
+        </Link>
+        {!allowance.isPremium && (
+          <p className="text-muted recipes-ai-cta-note">
+            Your free plan includes {allowance.limit} AI actions a week.{" "}
+            <GoPremiumLink source="empty_state_ai">Go Premium</GoPremiumLink> for unlimited.
+          </p>
+        )}
       </div>
 
       <p className="text-muted recipes-empty-alt">
