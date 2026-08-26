@@ -5,6 +5,7 @@ import { useParams } from "next/navigation";
 import Link from "next/link";
 import { Star, ChevronLeft, Share2 } from "lucide-react";
 import { RecipeImage } from "@/components/recipe-image";
+import { RecipeMacros } from "@/components/recipe-macros";
 import { ApiError, apiFetch, apiSend } from "@/lib/api";
 import type { RecipeDetail } from "@/lib/types";
 import { parseInstructions } from "@/lib/instructions";
@@ -155,12 +156,6 @@ export default function RecipeDetailPage() {
   if (recipe.cook_time_minutes != null) metaParts.push(`Cook ${recipe.cook_time_minutes} min`);
   metaParts.push(`${ingredients.length} ingredient${ingredients.length === 1 ? "" : "s"}`);
 
-  const macros: string[] = [];
-  if (recipe.calories != null) macros.push(`${recipe.calories} kcal`);
-  if (recipe.protein_g != null) macros.push(`P ${recipe.protein_g}g`);
-  if (recipe.carb_g != null) macros.push(`C ${recipe.carb_g}g`);
-  if (recipe.fat_g != null) macros.push(`F ${recipe.fat_g}g`);
-
   const author = menu.householdShared
     ? attributionLabel(recipe.created_by_name, recipe.user_id, session?.user.id)
     : null;
@@ -199,17 +194,13 @@ export default function RecipeDetailPage() {
       </div>
 
       <div className="detail-body">
-        {macros.length > 0 && (
-          <div className="detail-macros">
-            <span className="detail-macros-label">Per serving</span>
-            {macros.map((m) => (
-              <span key={m}>{m}</span>
-            ))}
-            {recipe.macros_source === "estimated" && (
-              <span className="tag tag-outline detail-macros-est">Estimated</span>
-            )}
-          </div>
-        )}
+        <RecipeMacros
+          calories={recipe.calories}
+          protein_g={recipe.protein_g}
+          carb_g={recipe.carb_g}
+          fat_g={recipe.fat_g}
+          estimated={recipe.macros_source === "estimated"}
+        />
 
         {recipe.description && <p className="detail-para" style={{ textAlign: "left" }}>{recipe.description}</p>}
 

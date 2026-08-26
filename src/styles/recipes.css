@@ -526,28 +526,79 @@
   font-variant-numeric: tabular-nums;
   color: color-mix(in srgb, var(--color-text) 55%, transparent);
 }
-/* Nutrition (Feature 2) — per-serving macros block on the detail page. */
-.detail-macros {
+/* Nutrition (Feature 2) — per-serving macros block (RecipeMacros component),
+   shared by the recipe detail page and the shared-recipe preview. */
+.macros {
+  container-type: inline-size;
   display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-  align-items: center;
-  font-size: 13px;
-  font-variant-numeric: tabular-nums;
-  padding: 10px 12px;
-  border: 1px solid var(--color-divider);
-  border-radius: var(--radius-md);
+  flex-direction: column;
+  gap: 8px;
+  /* A little breathing room from the surrounding content (adds to .detail-body's
+     gap). No outer box/border — kept deliberately understated. */
+  margin: 8px 0;
 }
-.detail-macros-label {
+.macros-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.macros-label {
   font-size: 10px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: color-mix(in srgb, var(--color-text) 55%, transparent);
 }
-.detail-macros-est {
-  margin-left: auto;
+.macros-est {
   font-size: 10px;
   letter-spacing: 0.04em;
+}
+.macros-grid {
+  display: grid;
+  gap: 8px;
+}
+/* Fixed column counts so an item never orphans onto a row of one. 4 macros lay
+   out 2×2 by default and only expand to a single row of 4 when the box is wide
+   enough (container query) — so it's always 2 or 4 across, never 3+1. */
+.macros-grid--1 { grid-template-columns: 1fr; }
+.macros-grid--2 { grid-template-columns: repeat(2, 1fr); }
+.macros-grid--3 { grid-template-columns: repeat(3, 1fr); }
+.macros-grid--4 { grid-template-columns: repeat(2, 1fr); }
+@container (min-width: 380px) {
+  .macros-grid--4 { grid-template-columns: repeat(4, 1fr); }
+}
+.macros-cell {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  text-align: center;
+  padding: 10px 6px;
+  border-radius: var(--radius-sm);
+  /* Soft tint instead of a bordered surface — groups the stats without boxing. */
+  background: color-mix(in srgb, var(--color-text) 3.5%, transparent);
+}
+.macros-value {
+  font-family: var(--font-heading, inherit);
+  font-size: 20px;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text);
+}
+/* Calories keeps just a hint of accent on the figure — no border highlight. */
+.macros-cell--cal .macros-value {
+  color: var(--color-accent-700, var(--color-accent));
+}
+.macros-unit {
+  margin-left: 2px;
+  font-size: 11px;
+  font-family: var(--font-body, inherit);
+  color: color-mix(in srgb, var(--color-text) 50%, transparent);
+}
+.macros-name {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--color-text) 55%, transparent);
 }
 .detail-body {
   padding: 14px 20px;

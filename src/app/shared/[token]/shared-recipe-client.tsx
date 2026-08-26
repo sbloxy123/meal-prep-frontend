@@ -7,6 +7,7 @@ import { ApiError, apiFetch } from "@/lib/api";
 import { useSession } from "@/lib/auth-client";
 import { parseInstructions } from "@/lib/instructions";
 import { RecipeImage } from "@/components/recipe-image";
+import { RecipeMacros } from "@/components/recipe-macros";
 import { PENDING_SHARE_KEY } from "@/components/pending-share";
 
 interface SharedRecipe {
@@ -120,12 +121,6 @@ export default function SharedRecipeClient({ token }: { token: string }) {
   const { recipe } = state;
   const steps = parseInstructions(recipe.instructions);
 
-  const macros: string[] = [];
-  if (recipe.calories != null) macros.push(`${recipe.calories} kcal`);
-  if (recipe.protein_g != null) macros.push(`P ${recipe.protein_g}g`);
-  if (recipe.carb_g != null) macros.push(`C ${recipe.carb_g}g`);
-  if (recipe.fat_g != null) macros.push(`F ${recipe.fat_g}g`);
-
   return (
     <div className="detail">
       <div className="detail-hero">
@@ -147,17 +142,13 @@ export default function SharedRecipeClient({ token }: { token: string }) {
       </div>
 
       <div className="detail-body">
-        {macros.length > 0 && (
-          <div className="detail-macros">
-            <span className="detail-macros-label">Per serving</span>
-            {macros.map((m) => (
-              <span key={m}>{m}</span>
-            ))}
-            {recipe.macros_source === "estimated" && (
-              <span className="tag tag-outline detail-macros-est">Estimated</span>
-            )}
-          </div>
-        )}
+        <RecipeMacros
+          calories={recipe.calories}
+          protein_g={recipe.protein_g}
+          carb_g={recipe.carb_g}
+          fat_g={recipe.fat_g}
+          estimated={recipe.macros_source === "estimated"}
+        />
 
         {recipe.description && <p className="detail-para">{recipe.description}</p>}
 
