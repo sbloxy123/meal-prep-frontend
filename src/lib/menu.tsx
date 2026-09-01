@@ -14,6 +14,8 @@ import { apiFetch, apiSend } from "./api";
 import { StockCheck } from "@/components/stock-check";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { GoPremiumLink } from "@/components/ai-allowance";
+import type { Protein } from "./starter-recipes";
+import type { DietFlag, Scope } from "./starter-picker";
 
 // GET /shopping-list — the one endpoint that backs This week, the shopping
 // list count, collections, and the stock-check ingredient lists.
@@ -34,6 +36,30 @@ interface ShoppingListResponse {
   aiUsedThisWeek?: number;
   aiWeeklyLimit?: number;
   weekResetsAt?: string | null;
+  // Onboarding questionnaire state. Optional so a frontend running against a
+  // backend that predates them simply never offers the questionnaire.
+  onboardingNeeded?: boolean;
+  onboardingOutcome?: "completed" | "skipped" | "pre_existing" | null;
+  foodPrefs?: FoodPrefs | null;
+  dietaryRule?: DietaryRule | null;
+}
+
+/** A household member's own answers to the onboarding questionnaire. Mirrors
+    the backend's lib/dietary.js shape; `v` lets it be reshaped later without a
+    migration. */
+export interface FoodPrefs {
+  v?: number;
+  proteins: Protein[];
+  diets: DietFlag[];
+  scope: Scope;
+}
+
+/** The kitchen-wide dietary rule, set by the household owner. `setBy` is
+    provenance for the UI — authorisation is the owner role, server-side. */
+export interface DietaryRule {
+  v?: number;
+  diets: DietFlag[];
+  setBy?: string;
 }
 
 /** The household's premium status and weekly AI-action allowance, derived from
@@ -116,6 +142,11 @@ interface MenuValue {
   shoppingList: ShoppingItem[];
   /** Premium status + weekly AI allowance for the whole app. */
   allowance: AiAllowance;
+  /** Onboarding questionnaire state (see ShoppingListResponse). */
+  onboardingNeeded: boolean;
+  onboardingOutcome: "completed" | "skipped" | "pre_existing" | null;
+  foodPrefs: FoodPrefs | null;
+  dietaryRule: DietaryRule | null;
   recipeTitlesFor: (ingredientName: string) => string[];
   ingredientsFor: (title: string) => string[];
   selectedFor: (recipeId: number) => Set<string>;
@@ -353,6 +384,10 @@ export function MenuProvider({ children }: { children: ReactNode }) {
     collections,
     shoppingList,
     allowance,
+    onboardingNeeded: data?.onboardingNeeded === true,
+    onboardingOutcome: data?.onboardingOutcome ?? null,
+    foodPrefs: data?.foodPrefs ?? null,
+    dietaryRule: data?.dietaryRule ?? null,
     recipeTitlesFor,
     ingredientsFor,
     selectedFor,

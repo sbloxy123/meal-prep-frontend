@@ -18,6 +18,7 @@ import { PageHeader } from "@/components/page-header";
 import { RecipeCard, RecipeCardSkeleton } from "@/components/recipe-card";
 import { StarterRecipes } from "@/components/starter-recipes";
 import { RecipeInspiration } from "@/components/recipe-inspiration";
+import { OnboardingWizard } from "@/components/onboarding-wizard";
 import { ThisWeekColumn, ThisWeekTray } from "@/components/this-week";
 import { GoPremiumLink } from "@/components/ai-allowance";
 import { useMenu, buildCollections } from "@/lib/menu";
@@ -106,6 +107,7 @@ function RecipesPageInner() {
   const [showAllCollections, setShowAllCollections] = useState(false);
   const [sort, setSort] = useState<Sort>("newest");
   const [showStarters, setShowStarters] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const [showInspire, setShowInspire] = useState(false);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -139,16 +141,23 @@ function RecipesPageInner() {
     load();
   }, [load]);
 
-  // Entry points in the rail / Account link to /recipes?starters=1 to open the
-  // starter picker even when recipes already exist. Reactive on the param so a
-  // soft (client-side) navigation from the rail — same route, no remount — still
-  // opens it; then strip the param so a refresh doesn't reopen it.
+  // Deep links that open one of the sheets: ?starters=1 from the rail/Account,
+  // ?onboarding=1 from the Account retake link, ?inspire=1 from the wizard's AI
+  // hand-off. Reactive on the params so a soft navigation (same route, no
+  // remount) still opens them, then the param is stripped so a refresh doesn't
+  // reopen it. One effect and one router.replace — separate effects each
+  // replacing the URL would race each other.
   useEffect(() => {
-    if (searchParams.get("starters") != null) {
-      // eslint-disable-next-line react-hooks/set-state-in-effect
-      setShowStarters(true);
-      router.replace("/recipes", { scroll: false });
-    }
+    const starters = searchParams.get("starters") != null;
+    const onboarding = searchParams.get("onboarding") != null;
+    const inspire = searchParams.get("inspire") != null;
+    if (!starters && !onboarding && !inspire) return;
+    /* eslint-disable react-hooks/set-state-in-effect */
+    if (starters) setShowStarters(true);
+    if (onboarding) setShowOnboarding(true);
+    if (inspire) setShowInspire(true);
+    /* eslint-enable react-hooks/set-state-in-effect */
+    router.replace("/recipes", { scroll: false });
   }, [searchParams, router]);
 
   // title → tag names, title → ingredient names (the list endpoint keys both
@@ -492,7 +501,10 @@ function RecipesPageInner() {
         {error && !loading && <p style={{ color: "var(--color-accent-700)" }}>{error}</p>}
 
         {!loading && !error && recipes.length === 0 && (
-          <EmptyRecipes onAddStarters={() => setShowStarters(true)} />
+          <EmptyRecipes
+            onAddStarters={() => setShowStarters(true)}
+            onOpenQuestions={() => setShowOnboarding(true)}
+          />
         )}
 
         {!loading && !error && recipes.length > 0 && visible.length === 0 && (
@@ -555,14 +567,38 @@ function RecipesPageInner() {
           existingTitles={new Set(recipes.map((r) => r.title.toLowerCase()))}
         />
       )}
+
+      {/* Retaking the questions from Account, or from the empty state. The
+          automatic first-run version is mounted by OnboardingGate in the app
+          layout; here it can pass the real recipe list so a retake can't
+          re-add what's already there. */}
+      {showOnboarding && (
+        <OnboardingWizard
+          entry="account"
+          existingTitles={new Set(recipes.map((r) => r.title.toLowerCase()))}
+          onClose={async () => {
+            setShowOnboarding(false);
+            await Promise.all([load(), menu.refresh()]);
+          }}
+        />
+      )}
     </div>
   );
 }
 
-function EmptyRecipes({ onAddStarters }: { onAddStarters: () => void }) {
+function EmptyRecipes({
+  onAddStarters,
+  onOpenQuestions,
+}: {
+  onAddStarters: () => void;
+  onOpenQuestions: () => void;
+}) {
   const { data: session } = useSession();
-  const { allowance } = useMenu();
+  const { allowance, onboardingNeeded, onboardingOutcome } = useMenu();
   const who = session?.user.name?.trim() || session?.user.email || null;
+  // Quiet way back in for anyone who skipped or dismissed the questionnaire —
+  // it's the fastest route out of an empty list, so it shouldn't be a one-shot.
+  const canAnswer = onboardingNeeded || onboardingOutcome === "skipped";
   return (
     <div className="recipes-empty">
       {who && <p className="recipes-welcome">Welcome, {who}</p>}
@@ -570,6 +606,14 @@ function EmptyRecipes({ onAddStarters }: { onAddStarters: () => void }) {
       <p className="text-muted" style={{ fontSize: 14, margin: 0 }}>
         Get going in seconds with a ready-made collection of everyday family meals.
       </p>
+      {canAnswer && (
+        <p className="text-muted recipes-empty-alt" style={{ marginTop: 6 }}>
+          <button type="button" className="recipes-empty-link" onClick={onOpenQuestions}>
+            Answer 3 quick questions
+          </button>{" "}
+          and we&rsquo;ll pick some for you.
+        </p>
+      )}
 
       <div className="recipes-starter-cta">
         <span className="recipes-starter-icon" aria-hidden>

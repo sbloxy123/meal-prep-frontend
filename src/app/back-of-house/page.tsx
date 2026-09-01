@@ -677,6 +677,8 @@ function GrowthSection({ totals }: { totals: NonNullable<AdminOverview["totals"]
 
   const hasInvite =
     totals.invitesSent != null || totals.invitesAccepted != null || totals.invitesPending != null;
+  // Forward-only: absent until the questionnaire has been shown to someone.
+  const ob = totals.onboarding;
 
   return (
     <section className="admin-section">
@@ -698,6 +700,22 @@ function GrowthSection({ totals }: { totals: NonNullable<AdminOverview["totals"]
             items={[
               { label: "Paid", value: totals.paidHouseholds ?? 0 },
               { label: "Comped", value: totals.compedHouseholds ?? 0 },
+            ]}
+          />
+        </>
+      )}
+
+      {ob && (
+        <>
+          <p className="admin-chart-title" style={{ marginTop: 16 }}>Onboarding funnel</p>
+          <Breakdown
+            items={[
+              { label: "Shown", value: ob.shown ?? 0 },
+              { label: "Started", value: ob.started ?? 0 },
+              { label: "Completed", value: ob.completed ?? 0 },
+              { label: "Skipped", value: ob.skipped ?? 0 },
+              { label: "To AI", value: ob.aiHandoff ?? 0 },
+              { label: "Recipes seeded", value: ob.recipesSeeded ?? 0 },
             ]}
           />
         </>

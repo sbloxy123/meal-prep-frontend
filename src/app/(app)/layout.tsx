@@ -7,6 +7,7 @@ import { AppShell } from "@/components/app-shell";
 import { IosInstallHint } from "@/components/ios-install-hint";
 import { PendingInvite } from "@/components/pending-invite";
 import { PendingShare } from "@/components/pending-share";
+import { OnboardingGate } from "@/components/onboarding-gate";
 import { MenuProvider } from "@/lib/menu";
 import { ToastProvider } from "@/lib/toast";
 
@@ -42,6 +43,9 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
       <ToastProvider>
         <PendingInvite />
         <PendingShare />
+        {/* After the two hand-offs: both can change what the account looks
+            like, and the gate defers while either is in flight. */}
+        <OnboardingGate />
         <AppShell>
           <IosInstallHint />
           {children}
