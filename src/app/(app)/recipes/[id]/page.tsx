@@ -3,7 +3,8 @@
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import { Star, ChevronLeft, Share2 } from "lucide-react";
+import { Star, ChevronLeft, Share2, Sparkles } from "lucide-react";
+import { GoPremiumLink } from "@/components/ai-allowance";
 import { RecipeImage } from "@/components/recipe-image";
 import { RecipeMacros } from "@/components/recipe-macros";
 import { ApiError, apiFetch, apiSend } from "@/lib/api";
@@ -237,6 +238,36 @@ export default function RecipeDetailPage() {
           <p className="detail-para">{steps[0]}</p>
         ) : (
           <p className="text-muted" style={{ fontSize: 14 }}>No method added.</p>
+        )}
+
+        {/* Improve needs a title and at least one ingredient (the form's
+            canEstimate rule), so there's nothing to offer without them. */}
+        {ingredients.length > 0 && (
+          <div className="detail-improve">
+            {menu.allowance.exhausted ? (
+              <>
+                <button type="button" className="btn btn-ai detail-improve-btn" disabled>
+                  <Sparkles size={15} className="btn-ai-spark" aria-hidden />
+                  Improve recipe
+                </button>
+                <p className="text-muted detail-improve-note">
+                  No AI actions left this week.{" "}
+                  <GoPremiumLink source="detail_improve">Go premium</GoPremiumLink> for unlimited.
+                </p>
+              </>
+            ) : (
+              <>
+                <Link href={`/recipes/${id}/edit?improve=1`} className="btn btn-ai detail-improve-btn">
+                  <Sparkles size={15} className="btn-ai-spark" aria-hidden />
+                  Improve recipe
+                </Link>
+                <p className="text-muted detail-improve-note">
+                  Fornetto AI fills in missing amounts, method and macros — your own entries are
+                  kept. Opens the editor so you can review before saving.
+                </p>
+              </>
+            )}
+          </div>
         )}
 
         {recipe.link_url && (

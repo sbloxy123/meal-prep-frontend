@@ -308,9 +308,17 @@
   overflow-y: auto;
   padding: 4px 22px;
 }
+/* The row links to the recipe, so it needs the plain-text treatment the global
+   anchor rule would otherwise override. */
 .week-col-item {
+  display: block;
   padding: 14px 0;
   border-bottom: 1px solid var(--color-divider);
+  color: var(--color-text);
+  text-decoration: none;
+}
+.week-col-item:hover .week-col-item-title {
+  color: var(--color-accent-700);
 }
 .week-col-item-head {
   display: flex;
@@ -365,9 +373,15 @@
   min-width: 0;
 }
 .week-item-title {
+  display: inline-block;
   font-family: var(--font-heading);
   font-weight: var(--font-heading-weight);
   font-size: 18px;
+  color: var(--color-text);
+  text-decoration: none;
+}
+.week-item-title:hover {
+  color: var(--color-accent-700);
 }
 .week-item-summary {
   font-size: 13px;

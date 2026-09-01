@@ -111,7 +111,10 @@ function WeekRow({
   return (
     <div className="week-item">
       <div className="week-item-main">
-        <div className="week-item-title">{recipe.title}</div>
+        {/* Only the title links — the row carries its own buttons. */}
+        <Link href={`/recipes/${recipe.id}`} className="week-item-title">
+          {recipe.title}
+        </Link>
         {addedBy && (
           <div className="week-item-by text-muted">
             {addedBy === "you" ? "You" : addedBy} added this to the menu

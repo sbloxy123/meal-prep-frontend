@@ -15,6 +15,24 @@ interface RecipeCardProps {
   onAddToWeek?: (recipe: Recipe) => void;
   onEditStockCheck?: (recipe: Recipe) => void;
   onRemoveFromWeek?: (recipe: Recipe) => void;
+  /** Fired as the recipe is opened, so the list can save where the reader was. */
+  onOpen?: () => void;
+}
+
+/** Placeholder shown while the next batch of the list is revealed, so the lazy
+    loading reads as loading rather than as a list that just stops. Mirrors the
+    card's shape (the photo block is a fixed size) to keep the swap steady. */
+export function RecipeCardSkeleton() {
+  return (
+    <article className="recipe recipe-skel" aria-hidden>
+      <div className="recipe-photo recipe-skel-shimmer" />
+      <div className="recipe-content">
+        <div className="recipe-skel-line recipe-skel-shimmer" style={{ width: "70%" }} />
+        <div className="recipe-skel-line recipe-skel-shimmer" style={{ width: "45%" }} />
+        <div className="recipe-skel-btn recipe-skel-shimmer" />
+      </div>
+    </article>
+  );
 }
 
 export function RecipeCard({
@@ -25,18 +43,19 @@ export function RecipeCard({
   onAddToWeek,
   onEditStockCheck,
   onRemoveFromWeek,
+  onOpen,
 }: RecipeCardProps) {
   const href = `/recipes/${recipe.id}`;
   const onMenu = isOnMenu ?? recipe.is_on_menu;
   return (
     <article className={`recipe${onMenu ? " recipe--on-menu" : ""}`}>
-      <Link href={href} className="recipe-photo" aria-label={recipe.title}>
+      <Link href={href} className="recipe-photo" aria-label={recipe.title} onClick={onOpen}>
         <RecipeImage src={recipe.image_url} sizes="(min-width: 1024px) 400px, 76px" />
       </Link>
 
       <div className="recipe-content">
         <div className="recipe-head">
-          <Link href={href} className="recipe-title">
+          <Link href={href} className="recipe-title" onClick={onOpen}>
             {recipe.title}
           </Link>
           <button

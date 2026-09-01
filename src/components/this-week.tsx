@@ -26,7 +26,7 @@ export function ThisWeekTray() {
 }
 
 /** Desktop: the permanent 290px right column on Recipes. */
-export function ThisWeekColumn() {
+export function ThisWeekColumn({ onOpenRecipe }: { onOpenRecipe?: () => void } = {}) {
   const { thisWeek, listCount } = useMenu();
   return (
     <aside className="week-col" aria-label="This week">
@@ -44,13 +44,14 @@ export function ThisWeekColumn() {
       ) : (
         <div className="week-col-list">
           {thisWeek.map((r) => (
-            <div className="week-col-item" key={r.id}>
+            // The whole row links through — it holds no buttons of its own.
+            <Link href={`/recipes/${r.id}`} className="week-col-item" key={r.id} onClick={onOpenRecipe}>
               <div className="week-col-item-head">
                 <span className="week-col-item-title">{r.title}</span>
                 <span className="week-col-item-count">{r.itemCount}</span>
               </div>
               {r.summary && <div className="week-col-item-summary text-muted">{r.summary}</div>}
-            </div>
+            </Link>
           ))}
         </div>
       )}

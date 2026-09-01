@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { X, Plus, Sparkles, ChevronDown } from "lucide-react";
@@ -40,6 +40,9 @@ interface RecipeFormProps {
   collapsible?: boolean;
   open?: boolean;
   onToggle?: () => void;
+  // Set by /recipes/[id]/edit?improve=1 (the detail page's "Improve recipe"
+  // button) — runs the improve pass once, as soon as the form mounts.
+  autoImprove?: boolean;
 }
 
 type IngredientRow = { name: string; quantity: string; unit: string };
@@ -56,6 +59,7 @@ export function RecipeForm({
   collapsible = false,
   open = true,
   onToggle,
+  autoImprove = false,
 }: RecipeFormProps) {
   // Collapsed only applies in collapsible mode; otherwise always shown.
   const expanded = !collapsible || open;
@@ -155,6 +159,7 @@ export function RecipeForm({
 
   async function estimateMacros() {
     if (estimating || !canEstimate || menu.allowance.exhausted) return;
+    if (!(await menu.confirmAiSpend())) return;
     setEstimating(true);
     setEstimateError("");
     const rows = ingredients.filter((r) => r.name.trim());
@@ -180,6 +185,7 @@ export function RecipeForm({
   // entries are never overwritten; macros are always refreshed (the whole point).
   async function improveRecipe() {
     if (improving || !canEstimate || menu.allowance.exhausted) return;
+    if (!(await menu.confirmAiSpend())) return;
     setImproving(true);
     setImproveError("");
     const rows = ingredients.filter((r) => r.name.trim());
@@ -258,6 +264,24 @@ export function RecipeForm({
       setImproving(false);
     }
   }
+
+  // Arriving from the detail page's "Improve recipe" button. The ref keeps it to
+  // one run — including across StrictMode's double-invoked effects in dev.
+  const autoImproveFired = useRef(false);
+  useEffect(() => {
+    if (!autoImprove || autoImproveFired.current) return;
+    autoImproveFired.current = true;
+    if (menu.allowance.exhausted) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setImproveError(WEEKLY_LIMIT_MESSAGE);
+      return;
+    }
+    // Nothing to improve — the hint by the button already explains why.
+    if (!canEstimate) return;
+    void improveRecipe();
+    // Fires on the flag alone; improveRecipe reads current state when it runs.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoImprove]);
 
   function addCollection(name: string) {
     const value = name.trim();

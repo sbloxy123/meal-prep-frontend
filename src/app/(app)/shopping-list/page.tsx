@@ -149,6 +149,9 @@ export default function ShoppingListPage() {
 
   async function generate() {
     if (generating || items.length === 0 || menu.allowance.exhausted) return;
+    // Confirm the spend here rather than in organiseAndGo, so this and the
+    // regenerate confirmation below are never on screen at the same time.
+    if (!(await menu.confirmAiSpend())) return;
     setGenerating(true);
     setGenerateError(false);
     try {
