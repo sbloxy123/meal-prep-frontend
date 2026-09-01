@@ -77,6 +77,102 @@
   flex: none;
 }
 
+/* ── Onboarding questionnaire ──────────────────────────────────────────── */
+/* The width rule is copied verbatim from .starter-dialog: a bare 100% resolves
+   against content in the grid backdrop and pushes long lines off-screen on
+   mobile. .dialog has no max-height or overflow of its own, so a four-step
+   wizard needs the fixed-head / scrolling-body / fixed-actions discipline or
+   the buttons fall off a phone. dvh, not vh, so the iOS URL bar can't clip. */
+.ob-dialog {
+  width: min(460px, 100%);
+  max-width: calc(100vw - 2 * var(--space-4));
+  max-height: calc(100dvh - 2 * var(--space-4));
+}
+.ob-head {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.ob-dots {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 2px;
+}
+.ob-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--color-text) 20%, transparent);
+}
+.ob-dot.is-on {
+  background: var(--color-accent);
+}
+.ob-body {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+.ob-subhead {
+  font-family: var(--font-heading);
+  font-weight: var(--font-heading-weight);
+  font-size: 15px;
+  margin: 2px 0 0;
+}
+/* .dialog-actions is flex-end; a Back/Next footer wants the ends pinned. */
+.ob-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+.ob-actions-right {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.ob-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.ob-choice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-md);
+  font-family: inherit;
+  font-size: 14px;
+  color: var(--color-text);
+  background: none;
+  cursor: pointer;
+}
+.ob-choice.is-on {
+  border-color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 6%, transparent);
+}
+.ob-choice-wide {
+  width: 100%;
+}
+.ob-note {
+  font-size: 13px;
+  line-height: 1.45;
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--color-accent) 6%, transparent);
+}
+.ob-progress {
+  font-size: 13px;
+  margin: 0;
+}
+
 /* Sort control — right-aligned row below the filter chips. */
 .recipes-sort {
   display: flex;

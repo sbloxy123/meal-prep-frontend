@@ -6,6 +6,7 @@ import { ApiError, apiFetch } from "@/lib/api";
 import { useModalA11y } from "@/lib/use-modal";
 import { useMenu } from "@/lib/menu";
 import { AllowanceNote, isWeeklyLimit, WEEKLY_LIMIT_MESSAGE } from "@/components/ai-allowance";
+import { INSPIRE_HINT_KEY } from "@/components/onboarding-wizard";
 
 // A2 — "Give me inspiration". Asks the AI for a handful of recipe ideas
 // (optionally hinted, e.g. "kids meals"), the user multi-selects the ones they
@@ -36,7 +37,21 @@ export function RecipeInspiration({
   useModalA11y(ref, onClose);
   const menu = useMenu();
 
-  const [hint, setHint] = useState("");
+  // Seeded from the onboarding hand-off: a vegan/gluten-free household arrives
+  // here because the starter recipes can't serve them, so their requirement is
+  // pre-filled rather than left for them to retype.
+  const [hint, setHint] = useState(() => {
+    try {
+      const stashed = sessionStorage.getItem(INSPIRE_HINT_KEY);
+      if (stashed) {
+        sessionStorage.removeItem(INSPIRE_HINT_KEY);
+        return stashed;
+      }
+    } catch {
+      // Private mode — just start empty.
+    }
+    return "";
+  });
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [selected, setSelected] = useState<Set<number>>(() => new Set());
   const [pending, setPending] = useState(false);

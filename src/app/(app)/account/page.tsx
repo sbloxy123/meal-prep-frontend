@@ -12,6 +12,7 @@ import { useToast } from "@/lib/toast";
 import { PageHeader } from "@/components/page-header";
 import { HouseholdCard } from "@/components/household-card";
 import { PreferencesCard } from "@/components/preferences-card";
+import { DietaryCard } from "@/components/dietary-card";
 import { MarketingInstallButton } from "@/components/marketing-client";
 import { useModalA11y } from "@/lib/use-modal";
 
@@ -49,6 +50,7 @@ export default function AccountPage() {
             <ProfileCard key={user.id} name={user.name ?? ""} email={user.email} joined={formatJoined(user.createdAt)} />
             <PremiumCard />
             <PreferencesCard />
+            <DietaryCard />
             <InstallAppCard />
             <AboutCard />
             <StarterRecipesCard />

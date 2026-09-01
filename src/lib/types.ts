@@ -91,6 +91,15 @@ export interface AdminTotals {
   invitesSent?: number;
   invitesAccepted?: number;
   invitesPending?: number;
+  // Onboarding questionnaire funnel (forward-only, from app_events).
+  onboarding?: {
+    shown?: number;
+    started?: number;
+    completed?: number;
+    skipped?: number;
+    aiHandoff?: number;
+    recipesSeeded?: number;
+  } | null;
   macrosSource?: Record<string, number> | null; // manual/imported/estimated → count
   topTags?: { name: string; count: number }[];
   deviceSplit?: Record<string, number> | null; // e.g. { mobile, desktop } from userAgent
@@ -106,6 +115,7 @@ export interface AdminOverview {
     recipesCreated?: AdminSeriesPoint[]; // forward-only
     listsGenerated?: AdminSeriesPoint[]; // forward-only
     weekAdds?: AdminSeriesPoint[]; // forward-only
+    onboardingCompleted?: AdminSeriesPoint[]; // forward-only
   } | null;
   generated_at?: string;
 }

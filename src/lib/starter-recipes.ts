@@ -13,9 +13,28 @@ export interface StarterIngredient {
   unit: string; // "" for countable items, e.g. "1 Onion"
 }
 
+/** Kept byte-identical with the backend's lib/dietary.js — there is no shared
+    package between the repos, so change both together. */
+export type Protein = "chicken" | "beef" | "pork" | "lamb" | "fish";
+
+/** Only claims provable from the ingredient list. Gluten-free is deliberately
+    absent: stock cubes, gravy granules, sausage rusk and soy/katsu/taco
+    seasonings all hide wheat, so it cannot be inferred safely from this data. */
+export type DietaryClaim = "dairy-free";
+
 export interface StarterRecipe {
   title: string;
   tags: string[];
+  /** Every animal protein actually in the ingredients — not what `tags` says.
+      Tags are user-facing collections and they lie in two places: Creamy
+      Chicken & Bacon Pasta is tagged Chicken but contains bacon, and Shepherd's
+      Pie is tagged Lamb but contains beef stock. Preference filtering reads
+      this field, never `tags`. Empty means meat-free. */
+  proteins: Protein[];
+  /** Positive dietary claims, deliberately under-claimed (see DietaryClaim).
+      Roast Chicken Dinner is not marked dairy-free because gravy granules vary
+      by brand — under-claiming is the safe direction here, so don't "fix" it. */
+  dietary: DietaryClaim[];
   ingredients: StarterIngredient[];
   instructions: string; // one step per line
   servings: number;
@@ -24,6 +43,18 @@ export interface StarterRecipe {
   protein_g: number;
   carb_g: number;
   fat_g: number;
+}
+
+/** No meat or fish. Derived from `proteins` so it can't drift out of sync. */
+export function isVegetarian(r: StarterRecipe): boolean {
+  return r.proteins.length === 0;
+}
+/** Vegetarian, or fish only. */
+export function isPescatarian(r: StarterRecipe): boolean {
+  return r.proteins.every((p) => p === "fish");
+}
+export function isDairyFree(r: StarterRecipe): boolean {
+  return r.dietary.includes("dairy-free");
 }
 
 // Small helper to keep the ingredient lists terse and readable.
@@ -35,6 +66,8 @@ export const STARTER_RECIPES: StarterRecipe[] = [
   {
     title: "Spaghetti Bolognese",
     tags: ["Beef", "Pasta"],
+    proteins: ["beef"],
+    dietary: ["dairy-free"],
     ingredients: [
       ing("Beef mince", 500, "g"),
       ing("Spaghetti", 400, "g"),
@@ -63,6 +96,8 @@ export const STARTER_RECIPES: StarterRecipe[] = [
   {
     title: "Chilli Con Carne",
     tags: ["Beef", "Spicy"],
+    proteins: ["beef"],
+    dietary: ["dairy-free"],
     ingredients: [
       ing("Beef mince", 500, "g"),
       ing("Rice", 300, "g"),
@@ -91,6 +126,8 @@ export const STARTER_RECIPES: StarterRecipe[] = [
   {
     title: "Chicken Fajitas",
     tags: ["Chicken"],
+    proteins: ["chicken"],
+    dietary: ["dairy-free"],
     ingredients: [
       ing("Chicken breast", 600, "g"),
       ing("Tortilla wraps", 8),
@@ -115,6 +152,8 @@ export const STARTER_RECIPES: StarterRecipe[] = [
   {
     title: "Cheeseburger & Chips",
     tags: ["Beef"],
+    proteins: ["beef"],
+    dietary: [],
     ingredients: [
       ing("Beef mince", 500, "g"),
       ing("Burger buns", 4),
@@ -140,6 +179,8 @@ export const STARTER_RECIPES: StarterRecipe[] = [
   {
     title: "Sausage Carbonara",
     tags: ["Pork", "Pasta"],
+    proteins: ["pork"],
+    dietary: [],
     ingredients: [
       ing("Sausages", 6),
       ing("Spaghetti", 400, "g"),
@@ -164,6 +205,8 @@ export const STARTER_RECIPES: StarterRecipe[] = [
   {
     title: "Steak & Chips",
     tags: ["Beef"],
+    proteins: ["beef"],
+    dietary: [],
     ingredients: [
       ing("Steak", 2),
       ing("Chips", 500, "g"),
@@ -186,6 +229,8 @@ export const STARTER_RECIPES: StarterRecipe[] = [
   {
     title: "Chicken Gyros",
     tags: ["Chicken"],
+    proteins: ["chicken"],
+    dietary: [],
     ingredients: [
       ing("Chicken thighs", 800, "g"),
       ing("Flatbreads", 4),
@@ -212,6 +257,8 @@ export const STARTER_RECIPES: StarterRecipe[] = [
   {
     title: "Jerk Chicken",
     tags: ["Chicken", "Spicy"],
+    proteins: ["chicken"],
+    dietary: ["dairy-free"],
     ingredients: [
       ing("Chicken thighs", 800, "g"),
       ing("Jerk seasoning", 3, "tbsp"),
@@ -235,6 +282,8 @@ export const STARTER_RECIPES: StarterRecipe[] = [
   {
     title: "Oven Pizza",
     tags: ["Vegetarian", "Easy"],
+    proteins: [],
+    dietary: [],
     ingredients: [
       ing("Pizza base", 2),
       ing("Passata", 150, "g"),
@@ -257,6 +306,8 @@ export const STARTER_RECIPES: StarterRecipe[] = [
   {
     title: "Fish & Chips",
     tags: ["Fish"],
+    proteins: ["fish"],
+    dietary: ["dairy-free"],
     ingredients: [
       ing("Cod fillets", 2),
       ing("Potatoes", 600, "g"),
@@ -280,6 +331,8 @@ export const STARTER_RECIPES: StarterRecipe[] = [
   {
     title: "Chicken Pie",
     tags: ["Chicken"],
+    proteins: ["chicken"],
+    dietary: [],
     ingredients: [
       ing("Chicken breast", 600, "g"),
       ing("Puff pastry", 320, "g"),
@@ -305,6 +358,8 @@ export const STARTER_RECIPES: StarterRecipe[] = [
   {
     title: "Shepherd's Pie",
     tags: ["Lamb"],
+    proteins: ["lamb", "beef"],
+    dietary: [],
     ingredients: [
       ing("Lamb mince", 500, "g"),
       ing("Potatoes", 900, "g"),
@@ -331,6 +386,8 @@ export const STARTER_RECIPES: StarterRecipe[] = [
   {
     title: "Roast Chicken Dinner",
     tags: ["Chicken"],
+    proteins: ["chicken"],
+    dietary: [],
     ingredients: [
       ing("Whole chicken", 1.5, "kg"),
       ing("Potatoes", 900, "g"),
@@ -354,6 +411,8 @@ export const STARTER_RECIPES: StarterRecipe[] = [
   {
     title: "Beef Stew",
     tags: ["Beef"],
+    proteins: ["beef"],
+    dietary: ["dairy-free"],
     ingredients: [
       ing("Stewing beef", 600, "g"),
       ing("Potatoes", 500, "g"),
@@ -379,6 +438,8 @@ export const STARTER_RECIPES: StarterRecipe[] = [
   {
     title: "Mac & Cheese",
     tags: ["Vegetarian", "Pasta"],
+    proteins: [],
+    dietary: [],
     ingredients: [
       ing("Macaroni", 400, "g"),
       ing("Cheddar cheese", 200, "g"),
@@ -402,6 +463,8 @@ export const STARTER_RECIPES: StarterRecipe[] = [
   {
     title: "Fish Pie",
     tags: ["Fish"],
+    proteins: ["fish"],
+    dietary: [],
     ingredients: [
       ing("White fish", 300, "g"),
       ing("Salmon fillets", 300, "g"),
@@ -427,6 +490,8 @@ export const STARTER_RECIPES: StarterRecipe[] = [
   {
     title: "Chicken Curry & Rice",
     tags: ["Chicken", "Spicy"],
+    proteins: ["chicken"],
+    dietary: ["dairy-free"],
     ingredients: [
       ing("Chicken breast", 600, "g"),
       ing("Rice", 300, "g"),
@@ -452,6 +517,8 @@ export const STARTER_RECIPES: StarterRecipe[] = [
   {
     title: "Bangers & Mash",
     tags: ["Pork"],
+    proteins: ["pork"],
+    dietary: [],
     ingredients: [
       ing("Sausages", 8),
       ing("Potatoes", 900, "g"),
@@ -475,6 +542,8 @@ export const STARTER_RECIPES: StarterRecipe[] = [
   {
     title: "Tuna Pasta Bake",
     tags: ["Fish", "Pasta"],
+    proteins: ["fish"],
+    dietary: [],
     ingredients: [
       ing("Pasta", 400, "g"),
       ing("Tinned tuna", 2, "tins"),
@@ -499,6 +568,8 @@ export const STARTER_RECIPES: StarterRecipe[] = [
   {
     title: "Oven Lasagne, Broccoli & Carrots",
     tags: ["Beef", "Pasta", "Easy"],
+    proteins: ["beef"],
+    dietary: [],
     ingredients: [
       ing("Frozen lasagne", 1),
       ing("Broccoli", 1, "head"),
@@ -520,6 +591,8 @@ export const STARTER_RECIPES: StarterRecipe[] = [
   {
     title: "Spaghetti & Meatballs",
     tags: ["Beef", "Pasta"],
+    proteins: ["beef"],
+    dietary: [],
     ingredients: [
       ing("Beef meatballs", 400, "g"),
       ing("Spaghetti", 400, "g"),
@@ -544,6 +617,8 @@ export const STARTER_RECIPES: StarterRecipe[] = [
   {
     title: "Chicken Katsu Curry",
     tags: ["Chicken"],
+    proteins: ["chicken"],
+    dietary: ["dairy-free"],
     ingredients: [
       ing("Chicken breast", 600, "g"),
       ing("Breadcrumbs", 100, "g"),
@@ -569,6 +644,8 @@ export const STARTER_RECIPES: StarterRecipe[] = [
   {
     title: "Sweet & Sour Chicken",
     tags: ["Chicken"],
+    proteins: ["chicken"],
+    dietary: ["dairy-free"],
     ingredients: [
       ing("Chicken breast", 600, "g"),
       ing("Rice", 300, "g"),
@@ -593,6 +670,8 @@ export const STARTER_RECIPES: StarterRecipe[] = [
   {
     title: "Beef Tacos",
     tags: ["Beef", "Spicy"],
+    proteins: ["beef"],
+    dietary: [],
     ingredients: [
       ing("Beef mince", 500, "g"),
       ing("Taco shells", 8),
@@ -617,6 +696,8 @@ export const STARTER_RECIPES: StarterRecipe[] = [
   {
     title: "Breaded Chicken, Chips & Beans",
     tags: ["Chicken", "Easy"],
+    proteins: ["chicken"],
+    dietary: ["dairy-free"],
     ingredients: [
       ing("Breaded chicken", 4),
       ing("Chips", 800, "g"),
@@ -637,6 +718,8 @@ export const STARTER_RECIPES: StarterRecipe[] = [
   {
     title: "Fish Fingers, Chips & Peas",
     tags: ["Fish", "Easy"],
+    proteins: ["fish"],
+    dietary: ["dairy-free"],
     ingredients: [
       ing("Fish fingers", 12),
       ing("Chips", 800, "g"),
@@ -657,6 +740,8 @@ export const STARTER_RECIPES: StarterRecipe[] = [
   {
     title: "Sausage & Bean Casserole",
     tags: ["Pork", "Easy"],
+    proteins: ["pork"],
+    dietary: ["dairy-free"],
     ingredients: [
       ing("Sausages", 8),
       ing("Baked beans", 400, "g"),
@@ -680,6 +765,8 @@ export const STARTER_RECIPES: StarterRecipe[] = [
   {
     title: "Toad in the Hole",
     tags: ["Pork"],
+    proteins: ["pork"],
+    dietary: [],
     ingredients: [
       ing("Sausages", 8),
       ing("Plain flour", 140, "g"),
@@ -702,6 +789,8 @@ export const STARTER_RECIPES: StarterRecipe[] = [
   {
     title: "Cottage Pie",
     tags: ["Beef"],
+    proteins: ["beef"],
+    dietary: [],
     ingredients: [
       ing("Beef mince", 500, "g"),
       ing("Potatoes", 900, "g"),
@@ -728,6 +817,8 @@ export const STARTER_RECIPES: StarterRecipe[] = [
   {
     title: "Creamy Chicken & Bacon Pasta",
     tags: ["Chicken", "Pasta"],
+    proteins: ["chicken", "pork"],
+    dietary: [],
     ingredients: [
       ing("Chicken breast", 500, "g"),
       ing("Bacon", 6, "rashers"),
@@ -752,6 +843,8 @@ export const STARTER_RECIPES: StarterRecipe[] = [
   {
     title: "Tomato Soup & Cheese Toasties",
     tags: ["Vegetarian", "Easy"],
+    proteins: [],
+    dietary: [],
     ingredients: [
       ing("Tomato soup", 400, "g"),
       ing("Bread", 4, "slices"),
@@ -772,6 +865,8 @@ export const STARTER_RECIPES: StarterRecipe[] = [
   {
     title: "Jacket Potatoes with Beans & Cheese",
     tags: ["Vegetarian", "Easy"],
+    proteins: [],
+    dietary: [],
     ingredients: [
       ing("Baking potatoes", 4),
       ing("Baked beans", 400, "g"),
@@ -792,6 +887,8 @@ export const STARTER_RECIPES: StarterRecipe[] = [
   {
     title: "Vegetable Stir Fry with Noodles",
     tags: ["Vegetarian", "Easy"],
+    proteins: [],
+    dietary: ["dairy-free"],
     ingredients: [
       ing("Egg noodles", 300, "g"),
       ing("Stir fry vegetables", 500, "g"),
@@ -815,6 +912,8 @@ export const STARTER_RECIPES: StarterRecipe[] = [
   {
     title: "Ham, Egg & Chips",
     tags: ["Pork", "Easy"],
+    proteins: ["pork"],
+    dietary: ["dairy-free"],
     ingredients: [
       ing("Gammon steaks", 4),
       ing("Chips", 800, "g"),
@@ -836,6 +935,8 @@ export const STARTER_RECIPES: StarterRecipe[] = [
   {
     title: "Pesto Pasta",
     tags: ["Vegetarian", "Pasta", "Easy"],
+    proteins: [],
+    dietary: [],
     ingredients: [
       ing("Pasta", 400, "g"),
       ing("Pesto", 150, "g"),
@@ -857,6 +958,8 @@ export const STARTER_RECIPES: StarterRecipe[] = [
   {
     title: "Beef Burritos",
     tags: ["Beef", "Spicy"],
+    proteins: ["beef"],
+    dietary: [],
     ingredients: [
       ing("Beef mince", 500, "g"),
       ing("Tortilla wraps", 4),
@@ -881,6 +984,8 @@ export const STARTER_RECIPES: StarterRecipe[] = [
   {
     title: "Quiche, Chips & Salad",
     tags: ["Vegetarian", "Easy"],
+    proteins: [],
+    dietary: [],
     ingredients: [
       ing("Quiche", 1),
       ing("Chips", 800, "g"),
@@ -902,6 +1007,8 @@ export const STARTER_RECIPES: StarterRecipe[] = [
   {
     title: "Pork Chops, Mash & Veg",
     tags: ["Pork"],
+    proteins: ["pork"],
+    dietary: [],
     ingredients: [
       ing("Pork chops", 4),
       ing("Potatoes", 900, "g"),
@@ -925,6 +1032,8 @@ export const STARTER_RECIPES: StarterRecipe[] = [
   {
     title: "Chicken Noodle Soup",
     tags: ["Chicken", "Easy"],
+    proteins: ["chicken"],
+    dietary: ["dairy-free"],
     ingredients: [
       ing("Chicken breast", 300, "g"),
       ing("Egg noodles", 200, "g"),
@@ -947,6 +1056,8 @@ export const STARTER_RECIPES: StarterRecipe[] = [
   {
     title: "Omelette & Salad",
     tags: ["Vegetarian", "Easy"],
+    proteins: [],
+    dietary: [],
     ingredients: [
       ing("Eggs", 6),
       ing("Cheddar cheese", 60, "g"),
