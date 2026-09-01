@@ -1,13 +1,21 @@
 "use client";
 
-import { Suspense, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  Suspense,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Search, BookOpen, Sparkles } from "lucide-react";
 import { apiFetch, apiSend } from "@/lib/api";
 import type { RecipesResponse } from "@/lib/types";
 import { PageHeader } from "@/components/page-header";
-import { RecipeCard } from "@/components/recipe-card";
+import { RecipeCard, RecipeCardSkeleton } from "@/components/recipe-card";
 import { StarterRecipes } from "@/components/starter-recipes";
 import { RecipeInspiration } from "@/components/recipe-inspiration";
 import { ThisWeekColumn, ThisWeekTray } from "@/components/this-week";
@@ -18,11 +26,67 @@ import { useSession } from "@/lib/auth-client";
 type Filter = { kind: "all" } | { kind: "favourites" } | { kind: "collection"; name: string };
 type Sort = "newest" | "oldest" | "az";
 
-const PINNED = 4;
 // Lazy render: show a batch, reveal more as the sentinel scrolls into view. The
 // full set is still fetched once (search/filter/sort run client-side over all
 // recipes), so this is a render/UX win rather than a smaller request.
 const PAGE_SIZE = 15;
+
+// Where the reader was when they opened a recipe, so coming back doesn't dump
+// them at the top of the list. Search/filter/sort ride along because a scroll
+// offset only means anything against the same list. Session-scoped and short
+// lived: a snapshot older than this is likelier to confuse than to help.
+const LIST_STATE_KEY = "recipes:listState";
+const LIST_STATE_TTL_MS = 30 * 60_000;
+
+interface ListState {
+  scrollY: number;
+  visibleCount: number;
+  query: string;
+  filter: Filter;
+  sort: Sort;
+  ts: number;
+}
+
+function readListState(): ListState | null {
+  try {
+    const raw = sessionStorage.getItem(LIST_STATE_KEY);
+    if (!raw) return null;
+    sessionStorage.removeItem(LIST_STATE_KEY); // consume once, however it's used
+    const s = JSON.parse(raw) as ListState;
+    const kinds = ["all", "favourites", "collection"];
+    const sorts = ["newest", "oldest", "az"];
+    if (
+      typeof s?.scrollY !== "number" ||
+      typeof s.visibleCount !== "number" ||
+      typeof s.query !== "string" ||
+      !kinds.includes(s.filter?.kind) ||
+      !sorts.includes(s.sort) ||
+      Date.now() - s.ts > LIST_STATE_TTL_MS
+    ) {
+      return null;
+    }
+    return s;
+  } catch {
+    return null;
+  }
+}
+
+/** Did we get here by backing out of a recipe (either the back link or the
+    browser's back button), as opposed to arriving fresh from the nav? */
+function cameFromRecipe(): boolean {
+  try {
+    // The layout writes nav:current after this page's effects run, so on a fresh
+    // navigation it still holds the page we came from.
+    const current = sessionStorage.getItem("nav:current");
+    const prev = current === "/recipes" ? sessionStorage.getItem("nav:prev") : current;
+    // Matches the detail page and its editor (so deleting a recipe also comes
+    // back to where you were), but not /recipes/new — a new recipe belongs at
+    // the top of the list, where the default sort puts it.
+    return /^\/recipes\/\d+/.test(prev ?? "");
+  } catch {
+    return false;
+  }
+}
 
 export default function RecipesPage() {
   // useSearchParams needs a Suspense boundary in the App Router.
@@ -44,7 +108,20 @@ function RecipesPageInner() {
   const [showStarters, setShowStarters] = useState(false);
   const [showInspire, setShowInspire] = useState(false);
   const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+  const [loadingMore, setLoadingMore] = useState(false);
   const sentinelRef = useRef<HTMLDivElement | null>(null);
+  const loadMoreTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // Scroll position waiting to be restored, and the search/filter/sort we
+  // restored with — so the "new search, back to the top" effect below can tell
+  // the restore apart from the user actually changing something.
+  const pendingScrollY = useRef<number | null>(null);
+  const restoredSig = useRef<string | null>(null);
+  const chipsRef = useRef<HTMLDivElement | null>(null);
+  const [clamp, setClamp] = useState<{
+    maxHeight: number;
+    fit: number;
+    overflowing: boolean;
+  } | null>(null);
   const menu = useMenu();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -128,27 +205,105 @@ function RecipesPageInner() {
   const shown = visible.slice(0, visibleCount);
   const hasMore = visibleCount < visible.length;
 
-  // Start each new search/filter/sort back at the top.
+  // Start each new search/filter/sort back at the top — unless this render is
+  // the restore below putting the reader's old view back.
   useEffect(() => {
-    // eslint-disable-next-line react-hooks/set-state-in-effect
+    const sig = JSON.stringify([query, filter, sort]);
+    const restored = restoredSig.current;
+    restoredSig.current = null;
+    if (restored === sig) return;
+    // A batch mid-reveal belongs to the previous list — drop it.
+    if (loadMoreTimer.current) {
+      clearTimeout(loadMoreTimer.current);
+      loadMoreTimer.current = null;
+    }
+    setLoadingMore(false);
     setVisibleCount(PAGE_SIZE);
   }, [query, filter, sort]);
 
-  // Reveal the next batch when the bottom sentinel scrolls into view.
+  // Coming back from a recipe: put the view back as it was. Declared after the
+  // reset effect so it runs second on mount, leaving its marker for the rerun
+  // the restored search/filter/sort triggers.
+  useEffect(() => {
+    const saved = readListState();
+    if (!saved || !cameFromRecipe()) return;
+    restoredSig.current = JSON.stringify([saved.query, saved.filter, saved.sort]);
+    pendingScrollY.current = saved.scrollY;
+    /* eslint-disable react-hooks/set-state-in-effect */
+    setQuery(saved.query);
+    setFilter(saved.filter);
+    setSort(saved.sort);
+    setVisibleCount(Math.max(PAGE_SIZE, saved.visibleCount));
+    /* eslint-enable react-hooks/set-state-in-effect */
+  }, []);
+
+  // Scroll back once the list is on screen. Two frames: one for the restored
+  // batch to render, one for it to lay out. "instant" because the app sets
+  // scroll-behavior: smooth globally, and animating here would be visible.
+  useEffect(() => {
+    if (loading || pendingScrollY.current == null) return;
+    const y = pendingScrollY.current;
+    pendingScrollY.current = null;
+    requestAnimationFrame(() =>
+      requestAnimationFrame(() => window.scrollTo({ top: y, behavior: "instant" })),
+    );
+  }, [loading]);
+
+  // A collection that no longer exists would leave the list filtered to nothing
+  // with no chip to clear, so fall back to showing everything.
+  useEffect(() => {
+    if (filter.kind !== "collection" || collections.length === 0) return;
+    if (!collections.some((c) => c.name === filter.name)) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setFilter({ kind: "all" });
+    }
+  }, [collections, filter]);
+
+  function saveListState() {
+    try {
+      const state: ListState = {
+        scrollY: window.scrollY,
+        visibleCount,
+        query,
+        filter,
+        sort,
+        ts: Date.now(),
+      };
+      sessionStorage.setItem(LIST_STATE_KEY, JSON.stringify(state));
+    } catch {
+      // Storage unavailable — we just don't restore.
+    }
+  }
+
+  // Reveal the next batch when the bottom sentinel scrolls into view. The brief
+  // pause isn't padding: revealing instantly (and 400px early) made the batching
+  // invisible, so the list read as one long render that occasionally stalled.
   useEffect(() => {
     if (!hasMore) return;
     const el = sentinelRef.current;
     if (!el) return;
     const io = new IntersectionObserver(
       (entries) => {
-        if (entries[0].isIntersecting) {
+        if (!entries[0].isIntersecting) return;
+        if (loadMoreTimer.current) return;
+        setLoadingMore(true);
+        loadMoreTimer.current = setTimeout(() => {
+          loadMoreTimer.current = null;
+          setLoadingMore(false);
           setVisibleCount((c) => Math.min(c + PAGE_SIZE, visible.length));
-        }
+        }, 250);
       },
-      { rootMargin: "400px" },
+      { rootMargin: "120px" },
     );
     io.observe(el);
-    return () => io.disconnect();
+    return () => {
+      io.disconnect();
+      if (loadMoreTimer.current) {
+        clearTimeout(loadMoreTimer.current);
+        loadMoreTimer.current = null;
+        setLoadingMore(false);
+      }
+    };
   }, [hasMore, visible.length]);
 
   function toggleFavorite(id: number, next: boolean) {
@@ -170,7 +325,56 @@ function RecipesPageInner() {
     });
   }
 
-  const pinned = showAllCollections ? collections : collections.slice(0, PINNED);
+  // Every collection is rendered; collapsed, the row is clamped to two lines and
+  // the overflow is hidden. An active collection is hoisted to the front while
+  // collapsed so the filter in force is always on screen and clearable —
+  // restoring a saved filter can otherwise land it in the hidden rows.
+  const orderedCollections = useMemo(() => {
+    if (showAllCollections || filter.kind !== "collection") return collections;
+    const i = collections.findIndex((c) => c.name === filter.name);
+    if (i <= 0) return collections;
+    return [collections[i], ...collections.slice(0, i), ...collections.slice(i + 1)];
+  }, [collections, showAllCollections, filter]);
+
+  // How many chips fit in two rows, and how tall those rows are. Measured from
+  // the chips' own offsets — clamping affects painting, not layout, so this
+  // stays accurate while collapsed.
+  useLayoutEffect(() => {
+    const el = chipsRef.current;
+    if (!el) return;
+    const measure = () => {
+      const kids = Array.from(el.children) as HTMLElement[];
+      if (kids.length === 0) return;
+      const firstTop = kids[0].offsetTop;
+      const secondRow = kids.find((k) => k.offsetTop > firstTop);
+      const rowStep = secondRow ? secondRow.offsetTop - firstTop : 0;
+      const thirdRowTop = firstTop + 2 * rowStep;
+      const fit = secondRow ? kids.filter((k) => k.offsetTop < thirdRowTop).length : kids.length;
+      const next = {
+        maxHeight: rowStep + kids[0].offsetHeight,
+        fit,
+        overflowing: fit < kids.length,
+      };
+      setClamp((prev) =>
+        prev &&
+        prev.maxHeight === next.maxHeight &&
+        prev.fit === next.fit &&
+        prev.overflowing === next.overflowing
+          ? prev
+          : next,
+      );
+    };
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [orderedCollections, showAllCollections]);
+
+  // Chips past the second row are hidden outright rather than just clipped —
+  // a clipped-but-focusable chip is a keyboard trap.
+  const isClipped = (index: number) =>
+    !showAllCollections && clamp != null && index >= clamp.fit;
+  const showChipsToggle = showAllCollections || (clamp?.overflowing ?? false);
 
   function isActive(f: Filter) {
     if (f.kind === "favourites") return filter.kind === "favourites";
@@ -221,39 +425,51 @@ function RecipesPageInner() {
               aria-label="Search recipes by title or ingredient"
             />
           </label>
-          <div className="chips">
-            <button
-              type="button"
-              className={`tag chip ${isActive({ kind: "favourites" }) ? "tag-outline" : "tag-neutral"}`}
-              aria-pressed={isActive({ kind: "favourites" })}
-              onClick={() => pick({ kind: "favourites" })}
+          <div className="chips-bar">
+            <div
+              ref={chipsRef}
+              className={`chips${!showAllCollections ? " chips--clamped" : ""}`}
+              style={
+                !showAllCollections && clamp?.overflowing
+                  ? { maxHeight: clamp.maxHeight }
+                  : undefined
+              }
             >
-              Favourites
-            </button>
-            {pinned.map((c) => {
-              const active = isActive({ kind: "collection", name: c.name });
-              return (
-                <button
-                  key={c.name}
-                  type="button"
-                  className={`tag chip ${active ? "tag-outline" : "tag-neutral"}`}
-                  aria-pressed={active}
-                  onClick={() => pick({ kind: "collection", name: c.name })}
-                >
-                  {c.name}
-                </button>
-              );
-            })}
-            {collections.length > PINNED && (
               <button
                 type="button"
-                className="tag tag-neutral chip chip-all"
-                aria-expanded={showAllCollections}
-                onClick={() => setShowAllCollections((v) => !v)}
+                className={`tag chip ${isActive({ kind: "favourites" }) ? "tag-outline" : "tag-neutral"}${isClipped(0) ? " chip--clipped" : ""}`}
+                aria-pressed={isActive({ kind: "favourites" })}
+                onClick={() => pick({ kind: "favourites" })}
               >
-                {showAllCollections ? "Show fewer" : `All ${collections.length} ›`}
+                Favourites
               </button>
-            )}
+              {orderedCollections.map((c, i) => {
+                const active = isActive({ kind: "collection", name: c.name });
+                return (
+                  <button
+                    key={c.name}
+                    type="button"
+                    className={`tag chip ${active ? "tag-outline" : "tag-neutral"}${isClipped(i + 1) ? " chip--clipped" : ""}`}
+                    aria-pressed={active}
+                    onClick={() => pick({ kind: "collection", name: c.name })}
+                  >
+                    {c.name}
+                  </button>
+                );
+              })}
+            </div>
+            {/* Kept outside the chips so it can't wrap out of view, and given
+                space even when hidden — appearing would rewrap the chips and
+                could flip it straight back to hidden. */}
+            <button
+              type="button"
+              className="tag tag-neutral chip chip-all chips-toggle"
+              aria-expanded={showAllCollections}
+              style={{ visibility: showChipsToggle ? "visible" : "hidden" }}
+              onClick={() => setShowAllCollections((v) => !v)}
+            >
+              {showAllCollections ? "Show fewer" : `All ${collections.length} ›`}
+            </button>
           </div>
           <div className="recipes-sort">
             <label htmlFor="recipes-sort-select">Sort</label>
@@ -296,14 +512,15 @@ function RecipesPageInner() {
                   onAddToWeek={(r) => menu.openStockCheck(r)}
                   onEditStockCheck={(r) => menu.openStockCheck(r)}
                   onRemoveFromWeek={(r) => menu.requestRemoveRecipe(r)}
+                  onOpen={saveListState}
                 />
               ))}
+              {loadingMore &&
+                Array.from({ length: Math.min(3, visible.length - visibleCount) }).map((_, i) => (
+                  <RecipeCardSkeleton key={`skeleton-${i}`} />
+                ))}
             </div>
-            {hasMore && (
-              <div ref={sentinelRef} className="recipes-loadmore" aria-hidden>
-                Loading more…
-              </div>
-            )}
+            {hasMore && <div ref={sentinelRef} className="recipes-loadmore" aria-hidden />}
           </>
         )}
       </div>
@@ -313,7 +530,7 @@ function RecipesPageInner() {
       </div>
 
       {/* Desktop: permanent This week right column. */}
-      <ThisWeekColumn />
+      <ThisWeekColumn onOpenRecipe={saveListState} />
 
       {showStarters && (
         <StarterRecipes

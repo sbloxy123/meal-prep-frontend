@@ -18,6 +18,18 @@ export default function EditRecipePage() {
   const params = useParams<{ id: string }>();
   const id = params.id;
   const [state, setState] = useState<State>({ status: "loading" });
+  const [autoImprove, setAutoImprove] = useState(false);
+
+  // The detail page's "Improve recipe" button links here with ?improve=1 so the
+  // improve pass runs on arrival. Read it off the URL (rather than
+  // useSearchParams, which would need a Suspense boundary) and strip it, so a
+  // refresh doesn't spend a second AI action.
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("improve") == null) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setAutoImprove(true);
+    window.history.replaceState(null, "", `/recipes/${id}/edit`);
+  }, [id]);
 
   useEffect(() => {
     let cancelled = false;
@@ -91,5 +103,7 @@ export default function EditRecipePage() {
     );
   }
 
-  return <RecipeForm mode="edit" recipeId={Number(id)} initial={state.initial} />;
+  return (
+    <RecipeForm mode="edit" recipeId={Number(id)} initial={state.initial} autoImprove={autoImprove} />
+  );
 }

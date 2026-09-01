@@ -78,7 +78,8 @@ export function FornettoAiPanel({
   const [error, setError] = useState<{ message: string; retry: boolean } | null>(null);
   const [photos, setPhotos] = useState<Photo[]>([]);
   const captionRef = useRef<HTMLTextAreaElement>(null);
-  const { allowance } = useMenu();
+  const menu = useMenu();
+  const { allowance } = menu;
 
   const cfg = ROUTES[route];
 
@@ -128,6 +129,19 @@ export function FornettoAiPanel({
     if (pending) return;
     setError(null);
     setNeedsCaption(false);
+
+    // Bail on an empty input before the spend confirmation, so a stray tap
+    // never costs the user a dialog. Mirrors actionDisabled.
+    const hasInput =
+      route === "photo"
+        ? photos.length > 0
+        : route === "social"
+          ? value.trim() !== "" || caption.trim() !== ""
+          : value.trim() !== "";
+    if (!hasInput) return;
+    // Every route below spends a weekly AI action. Confirming here (rather than
+    // on the button) also covers the Enter key and the share-target auto-run.
+    if (!(await menu.confirmAiSpend())) return;
 
     try {
       let draft: RecipeFormInitial;
@@ -179,6 +193,9 @@ export function FornettoAiPanel({
       }
 
       onImported(draft);
+      // The action has been spent — pull the fresh count so the allowance tag
+      // and the spend confirmation aren't a step behind.
+      void menu.refresh();
       // Clear transient inputs so a reopened panel is fresh. The page collapses
       // the panel + expands the form in its onImported handler.
       setValue("");

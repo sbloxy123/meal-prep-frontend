@@ -6,12 +6,14 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from "react";
 import { apiFetch, apiSend } from "./api";
 import { StockCheck } from "@/components/stock-check";
 import { ConfirmDialog } from "@/components/confirm-dialog";
+import { GoPremiumLink } from "@/components/ai-allowance";
 
 // GET /shopping-list — the one endpoint that backs This week, the shopping
 // list count, collections, and the stock-check ingredient lists.
@@ -50,6 +52,12 @@ export interface AiAllowance {
   /** When the weekly window resets (ISO), or null for premium. */
   resetsAt: string | null;
 }
+
+/** At or below this many actions left, a free household is asked to confirm
+    before an AI action spends one. Above it the allowance notes on each AI
+    surface are enough, and a dialog would just be friction. Matches the
+    threshold the premium banner appears at. */
+const LOW_ALLOWANCE = 3;
 
 // A row of shopping_list. Recipe-derived items carry ingredient_name (with
 // custom_product null); user-added items carry custom_product. recipe_count is
@@ -115,6 +123,10 @@ interface MenuValue {
   // Opens a confirmation first — removing a recipe also clears its items from
   // the shopping list, so it's destructive and non-undoable.
   requestRemoveRecipe: (recipe: OpenRecipe) => void;
+  /** Call before spending a weekly AI action. Resolves true to proceed. Only
+      free households running low (see LOW_ALLOWANCE) actually see a dialog;
+      everyone else resolves straight through. */
+  confirmAiSpend: () => Promise<boolean>;
   // Takes every recipe off this week (each one cascades its ingredients out of
   // the shopping list); manually-added own items are left untouched.
   clearAllRecipes: () => Promise<void>;
@@ -134,6 +146,13 @@ export function MenuProvider({ children }: { children: ReactNode }) {
   const [loaded, setLoaded] = useState(false);
   const [openRecipe, setOpenRecipe] = useState<OpenRecipe | null>(null);
   const [removeTarget, setRemoveTarget] = useState<OpenRecipe | null>(null);
+  // The pending AI-spend confirmation: the dialog's answer is delivered back to
+  // whichever AI handler is awaiting confirmAiSpend().
+  const [aiConfirm, setAiConfirm] = useState<{
+    resolve: (ok: boolean) => void;
+    remaining: number;
+  } | null>(null);
+  const aiConfirmOpen = useRef(false);
 
   const refresh = useCallback(async () => {
     try {
@@ -217,6 +236,27 @@ export function MenuProvider({ children }: { children: ReactNode }) {
       resetsAt: data?.weekResetsAt ?? null,
     };
   }, [data]);
+
+  // Premium, a comfortable allowance, and an already-spent pool all proceed
+  // without a dialog — the last because every caller guards on `exhausted` and
+  // owns its own weekly-limit copy, which is more useful than a confirmation.
+  const confirmAiSpend = useCallback((): Promise<boolean> => {
+    if (allowance.isPremium || allowance.remaining > LOW_ALLOWANCE || allowance.remaining <= 0) {
+      return Promise.resolve(true);
+    }
+    if (aiConfirmOpen.current) return Promise.resolve(false);
+    aiConfirmOpen.current = true;
+    return new Promise<boolean>((resolve) => {
+      setAiConfirm({ resolve, remaining: allowance.remaining });
+    });
+  }, [allowance]);
+
+  function settleAiConfirm(ok: boolean) {
+    if (!aiConfirm) return;
+    aiConfirmOpen.current = false;
+    aiConfirm.resolve(ok);
+    setAiConfirm(null);
+  }
 
   const collections = useMemo<Collection[]>(
     () => buildCollections((data?.singleRecipeTags ?? []).map((t) => t.name)),
@@ -318,6 +358,7 @@ export function MenuProvider({ children }: { children: ReactNode }) {
     selectedFor,
     openStockCheck: setOpenRecipe,
     requestRemoveRecipe: setRemoveTarget,
+    confirmAiSpend,
     clearAllRecipes,
     refresh,
   };
@@ -345,6 +386,31 @@ export function MenuProvider({ children }: { children: ReactNode }) {
             setRemoveTarget(null);
           }}
           onClose={() => setRemoveTarget(null)}
+        />
+      )}
+      {aiConfirm && (
+        <ConfirmDialog
+          title="Use an AI action?"
+          body={
+            <>
+              <p style={{ margin: 0 }}>
+                {aiConfirm.remaining === 1
+                  ? "This will use your last free AI action this week."
+                  : `This will use 1 of your ${aiConfirm.remaining} remaining free AI actions this week.`}
+              </p>
+              <p style={{ margin: "8px 0 0" }}>
+                <GoPremiumLink source="ai_spend_confirm">
+                  Go premium for unlimited
+                </GoPremiumLink>
+              </p>
+            </>
+          }
+          confirmLabel="Continue"
+          cancelLabel="Not now"
+          // Only hands the answer back — the AI call itself runs in the caller,
+          // which owns the per-feature error copy.
+          onConfirm={async () => settleAiConfirm(true)}
+          onClose={() => settleAiConfirm(false)}
         />
       )}
     </MenuContext.Provider>

@@ -57,6 +57,7 @@ export function RecipeInspiration({
 
   async function suggest() {
     if (pending || menu.allowance.exhausted) return;
+    if (!(await menu.confirmAiSpend())) return;
     const h = hint.trim();
     setPending(true);
     setError(null);

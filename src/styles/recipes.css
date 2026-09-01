@@ -40,11 +40,28 @@
   color: color-mix(in srgb, var(--color-text) 45%, transparent);
 }
 
+/* Collection filters. Every chip is rendered; collapsed, the row is clamped to
+   two lines (max-height measured from the chips themselves) and the "All N ›"
+   toggle sits alongside, outside the clamp. */
+.chips-bar {
+  display: flex;
+  align-items: flex-end;
+  gap: 6px;
+}
 .chips {
+  flex: 1;
+  min-width: 0;
   display: flex;
   gap: 6px;
   flex-wrap: wrap;
   align-items: center;
+}
+.chips--clamped {
+  overflow: hidden;
+}
+/* Hidden rather than merely clipped, so Tab can't reach a chip nobody can see. */
+.chip--clipped {
+  visibility: hidden;
 }
 .chip {
   cursor: pointer;
@@ -55,6 +72,9 @@
 }
 .chip-all {
   opacity: 0.65;
+}
+.chips-toggle {
+  flex: none;
 }
 
 /* Sort control — right-aligned row below the filter chips. */
@@ -651,6 +671,23 @@
 .detail-source {
   font-size: 13px;
 }
+/* "Improve recipe" — the same AI action as the one in the recipe form, offered
+   here where people read the recipe and notice the gaps. */
+.detail-improve {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+}
+.detail-improve-btn {
+  width: 100%;
+  justify-content: center;
+}
+.detail-improve-note {
+  font-size: 13px;
+  margin: 0;
+  text-align: center;
+}
 .detail-actions {
   border-top: 1px solid var(--color-divider);
   padding: 14px 20px 20px;
@@ -754,10 +791,41 @@
   }
 }
 
-/* Lazy-load sentinel / "loading more" indicator at the foot of the recipe list. */
+/* Lazy-load sentinel at the foot of the recipe list. It has no text of its own —
+   the skeleton cards are the loading state — but needs a box to observe. */
 .recipes-loadmore {
-  text-align: center;
-  padding: 20px 0 8px;
-  font-size: 13px;
-  color: var(--color-neutral-500);
+  min-height: 8px;
+}
+
+/* Skeleton cards for the next batch. The photo block borrows .recipe-photo's
+   fixed size, so real cards drop in without shifting the page. */
+.recipe-skel-line {
+  height: 14px;
+  border-radius: 4px;
+}
+.recipe-skel-btn {
+  height: 30px;
+  border-radius: var(--radius-md);
+  margin-top: 2px;
+  max-width: 160px;
+}
+.recipe-skel-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--color-neutral-100) 25%,
+    color-mix(in srgb, var(--color-neutral-100) 55%, var(--color-surface)) 40%,
+    var(--color-neutral-100) 60%
+  );
+  background-size: 200% 100%;
+  animation: recipe-skel-shimmer 1.1s ease-in-out infinite;
+}
+@keyframes recipe-skel-shimmer {
+  to {
+    background-position: -200% 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .recipe-skel-shimmer {
+    animation: none;
+  }
 }
