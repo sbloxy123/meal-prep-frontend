@@ -202,6 +202,11 @@
   resize: vertical;
   line-height: 1.5;
 }
+/* .input sits the ring on the border edge, which reads as a double line on a
+   box this tall — inset it so it hugs the field instead. */
+.ob-textarea:focus-visible {
+  outline-offset: -2px;
+}
 .ob-count {
   font-size: 13px;
   margin: -6px 0 0;
