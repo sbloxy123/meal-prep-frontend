@@ -172,6 +172,45 @@
   font-size: 13px;
   margin: 0;
 }
+/* Step 4 — the dishes they actually cook. */
+.ob-textarea {
+  min-height: 112px;
+  resize: vertical;
+  line-height: 1.5;
+}
+.ob-count {
+  font-size: 13px;
+  margin: -6px 0 0;
+}
+/* Step 5 — YOURS above TO FILL THE GAPS. */
+.ob-group {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.ob-said {
+  font-size: 12px;
+  font-style: italic;
+}
+/* Sits after .starter-list, never inside a .starter-item label. */
+.ob-more {
+  align-self: flex-start;
+  padding: 8px 12px;
+  border: 1px solid var(--color-divider);
+  border-radius: var(--radius-md);
+  font-family: inherit;
+  font-size: 13px;
+  color: var(--color-text);
+  background: none;
+  cursor: pointer;
+}
+.ob-more:hover {
+  border-color: var(--color-accent);
+}
+.ob-more:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
 
 /* Sort control — right-aligned row below the filter chips. */
 .recipes-sort {

@@ -721,6 +721,24 @@ function GrowthSection({ totals }: { totals: NonNullable<AdminOverview["totals"]
         </>
       )}
 
+      {/* Forward-only, like the funnel above: absent until someone has run it.
+          Watch title-only against dishes — if it climbs, the prompt is failing
+          on real UK shorthand. */}
+      {(ob?.usualsRuns ?? 0) > 0 && (
+        <>
+          <p className="admin-chart-title" style={{ marginTop: 16 }}>My usuals</p>
+          <Breakdown
+            items={[
+              { label: "Typed", value: ob?.usualsTyped ?? 0 },
+              { label: "Runs", value: ob?.usualsRuns ?? 0 },
+              { label: "Dishes", value: ob?.usualsDishes ?? 0 },
+              { label: "Written", value: ob?.usualsWritten ?? 0 },
+              { label: "Title only", value: ob?.usualsTitleOnly ?? 0 },
+            ]}
+          />
+        </>
+      )}
+
       {hasInvite && (
         <>
           <p className="admin-chart-title" style={{ marginTop: 16 }}>Invites</p>
