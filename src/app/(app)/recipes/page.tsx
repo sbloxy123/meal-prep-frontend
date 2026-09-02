@@ -11,7 +11,7 @@ import {
 } from "react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Search, BookOpen, Sparkles } from "lucide-react";
+import { Search, BookOpen, ListChecks, Sparkles } from "lucide-react";
 import { apiFetch, apiSend } from "@/lib/api";
 import type { Recipe, RecipesResponse } from "@/lib/types";
 import { PageHeader } from "@/components/page-header";
@@ -631,37 +631,49 @@ function EmptyRecipes({
   const { data: session } = useSession();
   const { allowance, onboardingNeeded, onboardingOutcome } = useMenu();
   const who = session?.user.name?.trim() || session?.user.email || null;
-  // Quiet way back in for anyone who skipped or dismissed the questionnaire —
-  // it's the fastest route out of an empty list, so it shouldn't be a one-shot.
+  // Anyone who skipped or dismissed the questionnaire gets it back here, as the
+  // hero rather than a footnote: it's the fastest route out of an empty list and
+  // the only one that ends with *their* recipes, so it leads and the raw starter
+  // picker becomes the alternative inside the same card. Browsing all 40 stays
+  // one tap away for anyone who'd rather just pick.
   const canAnswer = onboardingNeeded || onboardingOutcome === "skipped";
   return (
     <div className="recipes-empty">
       {who && <p className="recipes-welcome">Welcome, {who}</p>}
       <h3 style={{ fontWeight: 400, margin: "4px 0 6px" }}>Let&rsquo;s fill your kitchen</h3>
       <p className="text-muted" style={{ fontSize: 14, margin: 0 }}>
-        Get going in seconds with a ready-made collection of everyday family meals.
+        {canAnswer
+          ? "Under a minute, and you’ll have a week of meals — including the ones you already cook."
+          : "Get going in seconds with a ready-made collection of everyday family meals."}
       </p>
-      {canAnswer && (
-        <p className="text-muted recipes-empty-alt" style={{ marginTop: 6 }}>
-          <button type="button" className="recipes-empty-link" onClick={onOpenQuestions}>
-            Answer 3 quick questions
-          </button>{" "}
-          and we&rsquo;ll pick some for you.
-        </p>
-      )}
 
       <div className="recipes-starter-cta">
         <span className="recipes-starter-icon" aria-hidden>
-          <BookOpen size={22} />
+          {canAnswer ? <ListChecks size={22} /> : <BookOpen size={22} />}
         </span>
-        <h4 className="recipes-starter-title">Add starter recipes</h4>
+        <h4 className="recipes-starter-title">
+          {canAnswer ? "Answer 3 quick questions" : "Add starter recipes"}
+        </h4>
         <p className="text-muted recipes-starter-desc">
-          Pick from 40 popular meals — complete with ingredients, quantities and macros. Edit or
-          delete any of them anytime.
+          {canAnswer
+            ? "Tell us what your household eats and the meals you cook most — we’ll write yours up and fill the gaps with everyday favourites."
+            : "Pick from 40 popular meals — complete with ingredients, quantities and macros. Edit or delete any of them anytime."}
         </p>
-        <button type="button" className="btn btn-primary recipes-starter-btn" onClick={onAddStarters}>
-          Browse starter recipes
+        <button
+          type="button"
+          className="btn btn-primary recipes-starter-btn"
+          onClick={canAnswer ? onOpenQuestions : onAddStarters}
+        >
+          {canAnswer ? "Get started" : "Browse starter recipes"}
         </button>
+        {canAnswer && (
+          <p className="text-muted recipes-starter-alt">
+            or{" "}
+            <button type="button" className="recipes-empty-link" onClick={onAddStarters}>
+              browse all 40 starter recipes
+            </button>
+          </p>
+        )}
       </div>
 
       <div className="recipes-starter-cta recipes-ai-cta">

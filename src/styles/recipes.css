@@ -287,8 +287,10 @@
   word-break: break-word;
 }
 
-/* Empty-recipes state — leads with a prominent "add starter recipes" card so a
-   brand-new account has an obvious one-tap way to get going. */
+/* Empty-recipes state — one prominent card so a brand-new account has an obvious
+   one-tap way to get going. It leads with the questionnaire when that's still on
+   offer (it ends with their own recipes, not just ours) and falls back to the
+   starter picker once they've been through it. */
 .recipes-empty {
   max-width: 460px;
   margin: 40px auto 0;
@@ -338,6 +340,12 @@
   max-width: 260px;
   height: 44px;
   font-size: 15px;
+}
+/* The quieter second option inside the hero card, so the two routes don't read
+   as equal weight. */
+.recipes-starter-alt {
+  font-size: 13px;
+  margin: 10px 0 0;
 }
 /* Secondary "try the AI" card in the empty state — quieter than the starter
    card so the two don't compete as equal heroes. */
