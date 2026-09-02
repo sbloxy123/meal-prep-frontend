@@ -362,20 +362,18 @@ export function MenuProvider({ children }: { children: ReactNode }) {
     await refresh();
   }, [onMenuIds, refresh]);
 
-  // DELETE /recipes/:id drops the recipe row only. Shopping-list items are keyed
-  // by ingredient *name*, so there's no foreign key to cascade from and they'd
-  // be stranded on the list with no recipe behind them. Take it off the menu
-  // first: that endpoint runs the proper cleanup, keeping anything a second
-  // recipe still needs.
+  // Delete for good. The API clears the recipe's shopping-list items itself
+  // (meal-prep-app#22) — it didn't until 2026-09-02, which is why this used to
+  // take the recipe off the week first. Don't reintroduce that: it's the API's
+  // job, and doing it here missed every caller that isn't this provider.
+  // Still worth going through here rather than calling the endpoint directly,
+  // so the menu and shopping list refresh.
   const deleteRecipe = useCallback(
     async (recipeId: number) => {
-      if (onMenuIds.has(recipeId)) {
-        await apiSend(`/shopping-list/recipe/${recipeId}`, { method: "PUT" });
-      }
       await apiSend(`/recipes/${recipeId}`, { method: "DELETE" });
       await refresh();
     },
-    [onMenuIds, refresh],
+    [refresh],
   );
 
   // Submit the stock check. Editing an already-on-menu recipe reconciles by
