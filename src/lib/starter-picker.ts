@@ -48,6 +48,11 @@ export interface PickResult {
   unservable: DietFlag[];
   /** Picks ignoring the diet filter, for "show me the starters anyway". */
   relaxed: StarterRecipe[];
+  /** Everything else the same pool could have offered, same order, for the
+      "Show more ideas" toggle. Never overlaps `picks`. */
+  rest: StarterRecipe[];
+  /** The equivalent remainder for `relaxed`. */
+  relaxedRest: StarterRecipe[];
 }
 
 function dietPredicate(diet: DietFlag): ((r: StarterRecipe) => boolean) | null {
@@ -131,6 +136,18 @@ function ensureEasy(picks: StarterRecipe[], pool: StarterRecipe[], want = 2): St
   return out;
 }
 
+/** The rest of a pool, in the same deterministic order, minus what was already
+    picked. Deliberately derived *after* the picks and never fed back into them:
+    "Show more ideas" must not be able to change the eight we chose. */
+function remainder(
+  pool: StarterRecipe[],
+  order: Protein[],
+  picked: StarterRecipe[],
+): StarterRecipe[] {
+  const taken = new Set(picked.map((r) => r.title));
+  return diversify(pool, order, pool.length).filter((r) => !taken.has(r.title));
+}
+
 export function pickStarters({
   proteins,
   diets,
@@ -162,10 +179,18 @@ export function pickStarters({
     .filter(Boolean) as ((r: StarterRecipe) => boolean)[];
   const relaxedPool = openPool.filter((r) => identityPreds.every((fn) => fn(r)));
   const relaxed = ensureEasy(diversify(relaxedPool, proteins, TARGET), relaxedPool);
+  const relaxedRest = remainder(relaxedPool, proteins, relaxed);
 
   // Nothing to honour: the whole list comes from the open pool.
   if (diets.length === 0) {
-    return { picks: relaxed, handOff: false, unservable: [], relaxed };
+    return {
+      picks: relaxed,
+      handOff: false,
+      unservable: [],
+      relaxed,
+      rest: relaxedRest,
+      relaxedRest,
+    };
   }
 
   let picks: StarterRecipe[];
@@ -192,5 +217,9 @@ export function pickStarters({
     handOff: unservable.length > 0 || picks.length < MIN_GOOD,
     unservable,
     relaxed,
+    // The same pool `picks` came from, so "show more ideas" can never surface
+    // something the answers ruled out.
+    rest: remainder(scope === "everyone" ? dietPool : openPool, proteins, picks),
+    relaxedRest,
   };
 }

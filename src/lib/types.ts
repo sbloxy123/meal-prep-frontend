@@ -99,6 +99,14 @@ export interface AdminTotals {
     skipped?: number;
     aiHandoff?: number;
     recipesSeeded?: number;
+    // "My usuals" step. usualsTyped counts people who typed something;
+    // usualsRuns counts server-side generation runs, so the pair is the
+    // drop-off between intent and outcome.
+    usualsTyped?: number;
+    usualsRuns?: number;
+    usualsDishes?: number;
+    usualsWritten?: number;
+    usualsTitleOnly?: number;
   } | null;
   macrosSource?: Record<string, number> | null; // manual/imported/estimated → count
   topTags?: { name: string; count: number }[];
@@ -142,4 +150,26 @@ export interface AdminUserRow {
 
 export interface AdminUsersResponse {
   users: AdminUserRow[];
+}
+
+/** POST /recipes/usuals — the dishes someone typed during onboarding, written
+    up as real recipes. `results` comes back in input order. `canonical` is a
+    generic dish name for client-side matching only; it is never stored. */
+export interface UsualResult {
+  input: string;
+  title: string;
+  canonical: string | null;
+  recipeId: number | null;
+  status: "written" | "title_only" | "failed";
+}
+
+export interface UsualsResponse {
+  results: UsualResult[];
+  counts: {
+    requested: number;
+    written: number;
+    titleOnly: number;
+    failed: number;
+    dropped: number;
+  };
 }
