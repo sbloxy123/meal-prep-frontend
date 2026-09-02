@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Star } from "lucide-react";
+import { Star, Trash2 } from "lucide-react";
 import type { Recipe } from "@/lib/types";
 import { RecipeImage } from "@/components/recipe-image";
 
@@ -17,6 +17,9 @@ interface RecipeCardProps {
   onRemoveFromWeek?: (recipe: Recipe) => void;
   /** Fired as the recipe is opened, so the list can save where the reader was. */
   onOpen?: () => void;
+  /** Omitted where deleting from a list would be the wrong offer (the week's
+      menu, say) — the button only appears when a handler is given. */
+  onDelete?: (recipe: Recipe) => void;
 }
 
 /** Placeholder shown while the next batch of the list is revealed, so the lazy
@@ -44,6 +47,7 @@ export function RecipeCard({
   onEditStockCheck,
   onRemoveFromWeek,
   onOpen,
+  onDelete,
 }: RecipeCardProps) {
   const href = `/recipes/${recipe.id}`;
   const onMenu = isOnMenu ?? recipe.is_on_menu;
@@ -58,15 +62,29 @@ export function RecipeCard({
           <Link href={href} className="recipe-title" onClick={onOpen}>
             {recipe.title}
           </Link>
-          <button
-            type="button"
-            className="recipe-fav"
-            aria-pressed={recipe.favorite}
-            aria-label={recipe.favorite ? "Remove from favourites" : "Add to favourites"}
-            onClick={() => onToggleFavorite(recipe.id, !recipe.favorite)}
-          >
-            <Star size={16} fill={recipe.favorite ? "currentColor" : "none"} aria-hidden />
-          </button>
+          <div className="recipe-actions">
+            <button
+              type="button"
+              className="recipe-fav"
+              aria-pressed={recipe.favorite}
+              aria-label={recipe.favorite ? "Remove from favourites" : "Add to favourites"}
+              onClick={() => onToggleFavorite(recipe.id, !recipe.favorite)}
+            >
+              <Star size={16} fill={recipe.favorite ? "currentColor" : "none"} aria-hidden />
+            </button>
+            {onDelete && (
+              /* Titled per recipe: in a list of these, "Delete recipe" alone
+                 tells a screen-reader user nothing about which one. */
+              <button
+                type="button"
+                className="recipe-del"
+                aria-label={`Delete ${recipe.title}`}
+                onClick={() => onDelete(recipe)}
+              >
+                <Trash2 size={16} aria-hidden />
+              </button>
+            )}
+          </div>
         </div>
 
         {tags.length > 0 && (

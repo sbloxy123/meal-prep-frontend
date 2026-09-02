@@ -539,6 +539,14 @@
   margin-top: 2px;
 }
 
+/* Favourite and delete share the top-right corner. A little gap between them
+   because one is destructive and they're both small icon targets. */
+.recipe-actions {
+  flex: none;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
 .recipe-fav {
   flex: none;
   margin-top: 3px;
@@ -555,6 +563,25 @@
 }
 .recipe-fav[aria-pressed="true"] {
   color: var(--color-accent);
+}
+
+.recipe-del {
+  flex: none;
+  margin-top: 3px;
+  padding: 2px;
+  line-height: 0;
+  background: transparent;
+  border: 0;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  /* Quieter than the star until you reach for it — it shouldn't advertise
+     itself on a list you're only browsing. */
+  color: color-mix(in srgb, var(--color-text) 38%, transparent);
+}
+.recipe-del:hover,
+.recipe-del:focus-visible {
+  /* Same red as .account-err — there's no danger token in the system. */
+  color: #b23b2e;
 }
 
 .recipe-tags {

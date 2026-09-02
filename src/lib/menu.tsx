@@ -161,6 +161,10 @@ interface MenuValue {
   // Takes every recipe off this week (each one cascades its ingredients out of
   // the shopping list); manually-added own items are left untouched.
   clearAllRecipes: () => Promise<void>;
+  /** Delete a recipe for good, tidying the shopping list on the way out. Lives
+      here rather than at the call sites because only the provider knows whether
+      it's on the menu, and both delete entry points need the same behaviour. */
+  deleteRecipe: (recipeId: number) => Promise<void>;
   refresh: () => Promise<void>;
 }
 
@@ -358,6 +362,22 @@ export function MenuProvider({ children }: { children: ReactNode }) {
     await refresh();
   }, [onMenuIds, refresh]);
 
+  // DELETE /recipes/:id drops the recipe row only. Shopping-list items are keyed
+  // by ingredient *name*, so there's no foreign key to cascade from and they'd
+  // be stranded on the list with no recipe behind them. Take it off the menu
+  // first: that endpoint runs the proper cleanup, keeping anything a second
+  // recipe still needs.
+  const deleteRecipe = useCallback(
+    async (recipeId: number) => {
+      if (onMenuIds.has(recipeId)) {
+        await apiSend(`/shopping-list/recipe/${recipeId}`, { method: "PUT" });
+      }
+      await apiSend(`/recipes/${recipeId}`, { method: "DELETE" });
+      await refresh();
+    },
+    [onMenuIds, refresh],
+  );
+
   // Submit the stock check. Editing an already-on-menu recipe reconciles by
   // clearing it first (PUT) then re-adding the ticked items (POST) — both are
   // existing endpoints, so the API contract is untouched.
@@ -395,6 +415,7 @@ export function MenuProvider({ children }: { children: ReactNode }) {
     requestRemoveRecipe: setRemoveTarget,
     confirmAiSpend,
     clearAllRecipes,
+    deleteRecipe,
     refresh,
   };
 
