@@ -60,10 +60,12 @@ Keeps cookies same-origin (avoids `SameSite=Lax`/Safari ITP):
 
 ### Shared state
 
-- `src/lib/menu.tsx` — **MenuProvider**, the backbone. Backed by one endpoint (`GET /shopping-list`): `thisWeek`, `onMenuIds`, `listCount`, `collections`, `shoppingList`, ingredient/tag lookups, `openStockCheck`, `requestRemoveRecipe`, `clearAllRecipes`, `refresh`. Hosts the StockCheck sheet + a ConfirmDialog. Refetches on window focus/visibility.
+- `src/lib/menu.tsx` — **MenuProvider**, the backbone. Backed by one endpoint (`GET /shopping-list`): `thisWeek`, `onMenuIds`, `listCount`, `collections`, `shoppingList`, ingredient/tag lookups, `openStockCheck`, `requestRemoveRecipe`, `clearAllRecipes`, `deleteRecipe`, `refresh`, plus the onboarding fields (`onboardingNeeded`, `onboardingOutcome`, `foodPrefs`, `dietaryRule`). Hosts the StockCheck sheet + a ConfirmDialog. Refetches on window focus/visibility.
+  - **Always delete recipes via `menu.deleteRecipe(id)`**, never `DELETE /recipes/:id` directly. That endpoint drops the recipe row only; `shopping_list` items are keyed by ingredient *name*, so nothing cascades and they'd be stranded on the list. `deleteRecipe` takes the recipe off the week first (`PUT /shopping-list/recipe/:id`), which runs the real cleanup and keeps anything a second recipe still needs.
 - `src/lib/toast.tsx` — ToastProvider: `show(msg)` + `showUndo({message,onUndo,onCommit})`; flushes pending commits on `pagehide`.
 - `src/lib/write-queue.ts` — offline write queue (localStorage; retries on `online` + interval); `useWriteQueue()` → `{pending, offline}`.
-- Also: `use-modal.ts` (a11y focus-trap/Escape/scroll-lock), `use-wake-lock.ts`, `cloudinary.ts` (unsigned upload + `next/image` loader), `format.ts`, `starter-recipes.ts`.
+- Also: `use-modal.ts` (a11y focus-trap/Escape/scroll-lock), `use-wake-lock.ts`, `cloudinary.ts` (unsigned upload + `next/image` loader), `format.ts`, `starter-recipes.ts` (the 40 curated starters), `starter-picker.ts`, `dish-match.ts`.
+- **`useModalA11y` sets its trap up once and holds `onClose` in a ref.** Callers define `onClose` inline, so depending on its identity re-ran the effect on every render — and the effect's mount step focuses the first control, which made typing inside a modal impossible (it also shut the mobile keyboard). Don't add `onClose` back to the dependency array. Its focusable selector must keep listing `textarea`/`select`, or fields are skipped by Tab entirely.
 
 ### Pages
 
@@ -73,7 +75,7 @@ Keeps cookies same-origin (avoids `SameSite=Lax`/Safari ITP):
 |---|---|---|
 | `/sign-in` `/sign-up` | `(auth)/…` | BetterAuth |
 | `/verify-email` `/forgot-password` `/reset-password` | `(auth)/…` | email-verification + reset flow |
-| `/recipes` | `(app)/recipes/page.tsx` | list; search, collection/favourite chips, **sort (Newest/Oldest/A–Z by id)**; empty state shows **"Welcome, {name}"** + **Add starter recipes** picker |
+| `/recipes` | `(app)/recipes/page.tsx` | list; search, collection/favourite chips, **sort (Newest/Oldest/A–Z by id)**; per-card favourite + **delete** (confirm dialog → `menu.deleteRecipe`); empty state leads with the **questionnaire** when it's still on offer, else the **Add starter recipes** picker |
 | `/recipes/new`, `/recipes/[id]`, `/recipes/[id]/edit` | `(app)/recipes/…` | RecipeForm (shared); photo upload via Cloudinary |
 | `/this-week` | `(app)/this-week/page.tsx` | menu; edit stock check, remove, **Clear all recipes** |
 | `/shopping-list` | `(app)/shopping-list/page.tsx` | draft list; add own items, AI parse box, Generate/Show list by aisle |
@@ -81,13 +83,25 @@ Keeps cookies same-origin (avoids `SameSite=Lax`/Safari ITP):
 | `/account` | `(app)/account/page.tsx` | profile (name/email/member-since), **Household** section, change password, delete account |
 | `/household/join/[token]` | `app/household/…` | accept-invite page |
 
+### Onboarding — "Let's get you started"
+
+A five-step dialog (`src/components/onboarding-wizard.tsx`) that turns an empty account into a usable kitchen: intro → proteins → diets + scope → **the meals you actually cook** → preview. It ends by creating recipes, which is the payoff the first screen promises.
+
+- **Two entry points, one component.** `OnboardingGate` (`(app)/layout.tsx`) opens it automatically, `entry="auto"`; `recipes/page.tsx` mounts it for the retake via `?onboarding=1`, `entry="account"`, passing `existingTitles` so a retake can't re-add what the household has. The gate's decision rides `GET /shopping-list` (no extra request) and is latched, so a MenuProvider refetch can't yank the dialog away mid-step.
+- **The trigger** (server-side) is `(onboarded_at IS NULL OR onboarding_outcome = 'pre_existing') AND NOT has_recipes`. `pre_existing` is the migration-014 backfill meaning "was already using the app", **not** an answer — so an established account that empties its recipe list qualifies again. Only a real `completed`/`skipped` settles it.
+- **Answers are saved on leaving step 3** (`PUT /household/dietary`), before anything can go wrong with seeding. The separate `PUT /household/onboarding` write, which stops the questionnaire being offered again, fires only on genuine completion. Per-member answers live on `household_member.food_prefs`; the kitchen-wide rule is `household.dietary_rule` and is **owner-only**.
+- **Step 4, "My usuals"** posts the typed dishes to `POST /recipes/usuals`, which writes them up as real recipes tagged `My usuals`. It is **free** — logged to `app_events`, never `recipe_imports` — so `aiUsedThisWeek` must not move; that's the check to repeat after touching it. Server caps: 10 dishes, 3 runs/24h per household (429 `USUALS_LIMIT`, show the server's `message`). Send it an `AbortSignal`, or a hung request locks the dialog.
+- **A typed dish matching a curated starter uses the curated recipe** instead of an AI draft (`dish-match.ts` — synonym expansion, conservative token rules; a bare "chicken" matches nothing). Better recipe, no AI call.
+- **`starter-picker.ts` is pure and deterministic** — same answers, same list, so the funnel and any support conversation are reproducible. Filtering reads a recipe's `proteins` field, never its `tags` (tags are user-facing collections and they lie). Vegan/gluten-free are `UNSERVABLE` by the curated set, so the wizard hands those users to the AI generator rather than offering a list they can't cook — but only when they haven't typed dishes of their own.
+- Funnel events (`onboarding_shown` → `_started` → `_step` → `_usuals_typed` → `_completed`/`_skipped`/`_ai_handoff`) are fire-and-forget via `logEvent`, and are **whitelisted server-side by name and by meta key** — an unlisted name or field is silently dropped. They surface on `/back-of-house`.
+
 ### Households & invites (frontend side)
 
 `src/components/household-card.tsx` (on Account) — members + roles, invite-by-email, pending invites, leave/remove, rename (owner). Talks to the backend `/household/*` endpoints. **Invite auto-join:** the join page stashes the token in `localStorage` (`fornetto:pendingInvite`) when the invitee is logged out; `src/components/pending-invite.tsx` (in the `(app)` layout) consumes it on the first authenticated load, so invitees land already joined.
 
 ### PWA / offline
 
-Manual `src/app/manifest.ts` + `public/sw.js` (`ServiceWorkerRegister`). Icons/favicons in `public/` (Fornetto oven mark: `favicon.svg`, `favicon-16/32/48.png`, `apple-touch-icon.png`, `icon-192/512.png`). Offline writes queue; shop page holds a Wake Lock.
+Manual `src/app/manifest.ts` + `public/sw.js` (`ServiceWorkerRegister`). **In local dev the service worker serves stale JS**: a change can appear not to have applied at all, across reloads and restarts. Unregister it and clear the `mise-v1` cache (DevTools → Application → Service Workers) before concluding a fix doesn't work. Icons/favicons in `public/` (Fornetto oven mark: `favicon.svg`, `favicon-16/32/48.png`, `apple-touch-icon.png`, `icon-192/512.png`). Offline writes queue; shop page holds a Wake Lock.
 
 ## Deployment
 
