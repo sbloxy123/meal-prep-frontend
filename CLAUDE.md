@@ -61,7 +61,7 @@ Keeps cookies same-origin (avoids `SameSite=Lax`/Safari ITP):
 ### Shared state
 
 - `src/lib/menu.tsx` — **MenuProvider**, the backbone. Backed by one endpoint (`GET /shopping-list`): `thisWeek`, `onMenuIds`, `listCount`, `collections`, `shoppingList`, ingredient/tag lookups, `openStockCheck`, `requestRemoveRecipe`, `clearAllRecipes`, `deleteRecipe`, `refresh`, plus the onboarding fields (`onboardingNeeded`, `onboardingOutcome`, `foodPrefs`, `dietaryRule`). Hosts the StockCheck sheet + a ConfirmDialog. Refetches on window focus/visibility.
-  - **Always delete recipes via `menu.deleteRecipe(id)`**, never `DELETE /recipes/:id` directly. That endpoint drops the recipe row only; `shopping_list` items are keyed by ingredient *name*, so nothing cascades and they'd be stranded on the list. `deleteRecipe` takes the recipe off the week first (`PUT /shopping-list/recipe/:id`), which runs the real cleanup and keeps anything a second recipe still needs.
+  - **Delete recipes via `menu.deleteRecipe(id)`** so the menu and shopping list refresh with it. The API clears the recipe's shopping-list items itself (meal-prep-app#22); it didn't until 2026-09-02, and the client-side workaround that covered the gap has been removed — don't reintroduce one.
 - `src/lib/toast.tsx` — ToastProvider: `show(msg)` + `showUndo({message,onUndo,onCommit})`; flushes pending commits on `pagehide`.
 - `src/lib/write-queue.ts` — offline write queue (localStorage; retries on `online` + interval); `useWriteQueue()` → `{pending, offline}`.
 - Also: `use-modal.ts` (a11y focus-trap/Escape/scroll-lock), `use-wake-lock.ts`, `cloudinary.ts` (unsigned upload + `next/image` loader), `format.ts`, `starter-recipes.ts` (the 40 curated starters), `starter-picker.ts`, `dish-match.ts`.
