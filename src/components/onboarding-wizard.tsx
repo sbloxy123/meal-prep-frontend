@@ -124,7 +124,6 @@ export function OnboardingWizard({
   onClose: (outcome: "completed" | "skipped" | "snoozed") => void;
 }) {
   const ref = useRef<HTMLDivElement>(null);
-  const headingRef = useRef<HTMLHeadingElement>(null);
   const menu = useMenu();
   const toast = useToast();
   const router = useRouter();
@@ -229,13 +228,6 @@ export function OnboardingWizard({
   const totalChosen =
     chosenUsuals.length + (handOff ? 0 : chosenGaps.length + chosenExtras.length);
 
-  // useModalA11y focuses the first control once on mount only, so each step has
-  // to move focus itself. Keying the dialog per step would re-run the modal
-  // stack push/pop and the scroll lock, so move focus instead of remounting.
-  useEffect(() => {
-    headingRef.current?.focus();
-  }, [step]);
-
   // One POST can't report a real count, so name what's being written instead of
   // faking a progress bar.
   useEffect(() => {
@@ -265,6 +257,25 @@ export function OnboardingWizard({
   }
 
   useModalA11y(ref, dismiss);
+
+  // Where focus goes on each step. Declared after useModalA11y deliberately:
+  // that hook focuses the first control on mount, and effects run in
+  // declaration order, so this one gets the last word.
+  //
+  // The primary action, not the heading — landing on Skip was too easy, and
+  // Enter should just carry you forward. Step 4 is the exception: it asks you
+  // to type, so focus the box. The title is aria-live, so screen readers still
+  // hear the new step even though focus sits on a button.
+  useEffect(() => {
+    if (phase === "writing" || phase === "adding") return;
+    const node = ref.current;
+    if (!node) return;
+    const target =
+      step === 4
+        ? node.querySelector<HTMLElement>("#ob-dishes")
+        : node.querySelector<HTMLElement>(".ob-primary:not([disabled])");
+    target?.focus();
+  }, [step, phase]);
 
   /** The explicit Skip button — a real "don't ask me again". */
   async function skipForGood() {
@@ -575,7 +586,7 @@ export function OnboardingWizard({
       >
         <div className="ob-head">
           {dots}
-          <h2 id="ob-title" className="dialog-title" tabIndex={-1} ref={headingRef}>
+          <h2 id="ob-title" className="dialog-title" aria-live="polite">
             {step === 1 && "Let’s get you started"}
             {step === 2 && "What does your household eat?"}
             {step === 3 && "Anything we should work around?"}
@@ -869,7 +880,10 @@ export function OnboardingWizard({
         </div>
 
         <div className="ob-actions">
-          <div>
+          {/* Skip sits over here, quiet and away from the primary action: it's
+              a real "don't ask me again", so it shouldn't read as the twin of
+              Next or sit under a thumb heading for it. */}
+          <div className="ob-actions-left">
             {/* Hidden once the work starts: going back and forward again would
                 create everything twice. */}
             {step > 1 && phase === "idle" && (
@@ -881,15 +895,15 @@ export function OnboardingWizard({
                 Back
               </button>
             )}
-          </div>
-          <div className="ob-actions-right">
             {step < 5 && (
-              <button type="button" className="btn btn-ghost" onClick={skipForGood}>
+              <button type="button" className="ob-skip" onClick={skipForGood}>
                 {step === 1 ? "Skip for now" : "Skip"}
               </button>
             )}
+          </div>
+          <div className="ob-actions-right">
             {step < 5 && (
-              <button type="button" className="btn btn-primary" onClick={next}>
+              <button type="button" className="btn btn-primary ob-primary" onClick={next}>
                 {step === 1 ? "Start" : "Next"}
               </button>
             )}
@@ -904,7 +918,7 @@ export function OnboardingWizard({
                 )}
                 <button
                   type="button"
-                  className="btn btn-primary"
+                  className="btn btn-primary ob-primary"
                   onClick={() => onClose("completed")}
                 >
                   Done
@@ -924,14 +938,14 @@ export function OnboardingWizard({
                   </button>
                 )}
                 {handOff && chosenUsuals.length === 0 ? (
-                  <button type="button" className="btn btn-ai" onClick={() => goToGenerator(0)}>
+                  <button type="button" className="btn btn-ai ob-primary" onClick={() => goToGenerator(0)}>
                     <Sparkles size={15} className="btn-ai-spark" aria-hidden />
                     Generate recipes
                   </button>
                 ) : (
                   <button
                     type="button"
-                    className="btn btn-primary"
+                    className="btn btn-primary ob-primary"
                     onClick={commit}
                     disabled={busy || totalChosen === 0}
                   >

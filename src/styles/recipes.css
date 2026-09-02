@@ -129,11 +129,35 @@
   gap: var(--space-2);
   margin-top: var(--space-2);
 }
+.ob-actions-left {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
 .ob-actions-right {
   display: flex;
   gap: var(--space-2);
   flex-wrap: wrap;
   justify-content: flex-end;
+}
+/* Deliberately not a .btn: skipping is a real "don't ask me again", so it
+   shouldn't carry the same weight as Next. Still a 44px tap target. */
+.ob-skip {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 4px;
+  border: 0;
+  background: none;
+  font-family: inherit;
+  font-size: 13px;
+  color: color-mix(in srgb, var(--color-text) 55%, transparent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.ob-skip:hover {
+  color: var(--color-text);
 }
 .ob-choices {
   display: flex;

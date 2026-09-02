@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, type RefObject } from "react";
+import { useEffect, useRef, type RefObject } from "react";
 
 // Shared modal accessibility (§11): move focus into the modal, trap Tab within
 // it, close on Escape, lock body scroll, and return focus to the trigger on
@@ -11,6 +11,16 @@ import { useEffect, type RefObject } from "react";
 const openModals: object[] = [];
 
 export function useModalA11y(ref: RefObject<HTMLElement | null>, onClose: () => void) {
+  // Callers define onClose inline, so its identity changes on every render. If
+  // the effect below depended on it, the trap would tear down and re-run on
+  // every keystroke — and its mount step moves focus to the first control,
+  // which makes typing inside a modal impossible (and shuts the mobile
+  // keyboard). Hold the latest handler in a ref and set the trap up once.
+  const onCloseRef = useRef(onClose);
+  useEffect(() => {
+    onCloseRef.current = onClose;
+  });
+
   useEffect(() => {
     const token = {};
     const isTopmost = () => openModals[openModals.length - 1] === token;
@@ -23,7 +33,8 @@ export function useModalA11y(ref: RefObject<HTMLElement | null>, onClose: () => 
     const focusables = () =>
       Array.from(
         node?.querySelectorAll<HTMLElement>(
-          'button:not([disabled]), input, [href], [tabindex]:not([tabindex="-1"])',
+          'button:not([disabled]), input:not([disabled]), textarea:not([disabled]), ' +
+            'select:not([disabled]), [href], [tabindex]:not([tabindex="-1"])',
         ) ?? [],
       );
     focusables()[0]?.focus();
@@ -32,7 +43,7 @@ export function useModalA11y(ref: RefObject<HTMLElement | null>, onClose: () => 
       if (!isTopmost()) return;
       if (e.key === "Escape") {
         e.stopPropagation();
-        onClose();
+        onCloseRef.current();
       } else if (e.key === "Tab") {
         const items = focusables();
         if (items.length === 0) return;
@@ -56,5 +67,5 @@ export function useModalA11y(ref: RefObject<HTMLElement | null>, onClose: () => 
       if (openModals.length === 0) document.body.style.overflow = prevOverflow ?? "";
       trigger?.focus?.();
     };
-  }, [ref, onClose]);
+  }, [ref]);
 }
