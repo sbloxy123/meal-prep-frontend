@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { X, Plus, Sparkles, ChevronDown } from "lucide-react";
-import { ApiError, apiFetch, apiSend } from "@/lib/api";
+import { ApiError, apiFetch } from "@/lib/api";
 import { useMenu } from "@/lib/menu";
 import { AllowanceNote, isWeeklyLimit, WEEKLY_LIMIT_MESSAGE } from "@/components/ai-allowance";
 import { ConfirmDialog } from "@/components/confirm-dialog";
@@ -345,8 +345,9 @@ export function RecipeForm({
   }
 
   async function doDelete() {
-    await apiSend(`/recipes/${recipeId}`, { method: "DELETE" });
-    await menu.refresh();
+    if (recipeId == null) return;
+    // Shared with the list's delete button so both tidy the shopping list.
+    await menu.deleteRecipe(recipeId);
     setConfirmDelete(false);
     router.push("/recipes");
   }

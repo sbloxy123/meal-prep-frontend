@@ -13,9 +13,10 @@ import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Search, BookOpen, Sparkles } from "lucide-react";
 import { apiFetch, apiSend } from "@/lib/api";
-import type { RecipesResponse } from "@/lib/types";
+import type { Recipe, RecipesResponse } from "@/lib/types";
 import { PageHeader } from "@/components/page-header";
 import { RecipeCard, RecipeCardSkeleton } from "@/components/recipe-card";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import { StarterRecipes } from "@/components/starter-recipes";
 import { RecipeInspiration } from "@/components/recipe-inspiration";
 import { OnboardingWizard } from "@/components/onboarding-wizard";
@@ -100,6 +101,7 @@ export default function RecipesPage() {
 
 function RecipesPageInner() {
   const [data, setData] = useState<RecipesResponse | null>(null);
+  const [confirmDelete, setConfirmDelete] = useState<Recipe | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [query, setQuery] = useState("");
@@ -334,6 +336,20 @@ function RecipesPageInner() {
     });
   }
 
+  /** Deleting is a hard delete server-side — no undo to offer — so it goes
+      through a confirm rather than the toast's undo pattern. Drop it from the
+      list on success rather than refetching: the reader keeps their scroll
+      position, and ConfirmDialog stays open with an error if this throws. */
+  async function deleteRecipe(recipe: Recipe) {
+    await menu.deleteRecipe(recipe.id);
+    // Drop it from the list rather than refetching, so the reader keeps their
+    // scroll position.
+    setData((prev) =>
+      prev ? { ...prev, recipes: prev.recipes.filter((r) => r.id !== recipe.id) } : prev,
+    );
+    setConfirmDelete(null);
+  }
+
   // Every collection is rendered; collapsed, the row is clamped to two lines and
   // the overflow is hidden. An active collection is hoisted to the front while
   // collapsed so the filter in force is always on screen and clearable —
@@ -525,6 +541,7 @@ function RecipesPageInner() {
                   onEditStockCheck={(r) => menu.openStockCheck(r)}
                   onRemoveFromWeek={(r) => menu.requestRemoveRecipe(r)}
                   onOpen={saveListState}
+                  onDelete={setConfirmDelete}
                 />
               ))}
               {loadingMore &&
@@ -543,6 +560,24 @@ function RecipesPageInner() {
 
       {/* Desktop: permanent This week right column. */}
       <ThisWeekColumn onOpenRecipe={saveListState} />
+
+      {confirmDelete && (
+        <ConfirmDialog
+          title="Delete this recipe?"
+          body={
+            <>
+              <strong>{confirmDelete.title}</strong> will be deleted for everyone in your
+              kitchen. This can&rsquo;t be undone.
+              {menu.onMenuIds.has(confirmDelete.id) && (
+                <> It&rsquo;s on this week&rsquo;s menu, so it will come off your shopping list too.</>
+              )}
+            </>
+          }
+          confirmLabel="Delete recipe"
+          onConfirm={() => deleteRecipe(confirmDelete)}
+          onClose={() => setConfirmDelete(null)}
+        />
+      )}
 
       {showStarters && (
         <StarterRecipes
