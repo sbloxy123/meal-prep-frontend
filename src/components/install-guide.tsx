@@ -66,6 +66,8 @@ function CopyLinkButton() {
 
 const STEP_ICONS: Record<IllustrationKey, ReactNode> = {
   "safari-compact-more": <MoreVertical size={15} aria-hidden />,
+  "more-menu-share": <Share size={15} aria-hidden />,
+  "sheet-view-more": <SquarePlus size={15} aria-hidden />,
   "safari-classic-share": <Share size={15} aria-hidden />,
   "chrome-share": <Share size={15} aria-hidden />,
   "menu-hamburger": <Menu size={15} aria-hidden />,
@@ -205,7 +207,7 @@ export function buildGuide(platform: InstallPlatform | null, nativeAvailable: bo
     return {
       title: "Add Fornetto to your Home Screen",
       lede: walk.verified
-        ? `Three taps in ${name}. About ten seconds.`
+        ? `${walk.steps.length === 4 ? "Four" : "Three"} taps in ${name}. About ten seconds.`
         : "Three taps. Your iPhone is on a newer iOS than we’ve checked, so the pictures may differ a little.",
       steps: walkthroughSteps(walk),
       note: IOS_CANT_SEE_IT,

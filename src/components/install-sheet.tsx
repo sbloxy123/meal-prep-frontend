@@ -43,7 +43,7 @@ export function walkthroughFor(platform: InstallPlatform | null): Walkthrough | 
   return iosWalkthrough(platform.browser, platform.ios);
 }
 
-type Screen = "offer" | 1 | 2 | 3;
+type Screen = "offer" | number;
 
 export function InstallSheet({
   source,
@@ -103,6 +103,7 @@ export function InstallSheet({
   }
 
   const step = walk && screen !== "offer" ? walk.steps[screen - 1] : null;
+  const last = walk ? walk.steps.length : 0;
   const shot = walk && screen !== "offer" ? SHOTS[`${walk.key}-${screen}`] : undefined;
 
   return (
@@ -133,7 +134,7 @@ export function InstallSheet({
               </h2>
               <p className="install-lede">
                 Full screen, its own icon, and it opens in the shop even when the signal doesn’t.
-                Three taps — we’ll point at each one.
+                {last === 4 ? " Four taps" : " Three taps"} — we’ll point at each one.
               </p>
               {!walk.verified && (
                 <p className="install-note">
@@ -168,8 +169,8 @@ export function InstallSheet({
         {walk && step && screen !== "offer" && (
           <>
             <div className="install-body">
-              <div className="install-dots" aria-label={`Step ${screen} of 3`}>
-                {[1, 2, 3].map((i) => (
+              <div className="install-dots" aria-label={`Step ${screen} of ${last}`}>
+                {walk.steps.map((_, idx) => idx + 1).map((i) => (
                   <span key={i} className={i === screen ? "is-on" : i < screen ? "is-done" : ""} />
                 ))}
               </div>
@@ -189,16 +190,12 @@ export function InstallSheet({
               <button
                 type="button"
                 className="btn btn-ghost"
-                onClick={() => setScreen(screen === 1 ? "offer" : ((screen - 1) as Screen))}
+                onClick={() => setScreen(screen === 1 ? "offer" : screen - 1)}
               >
                 Back
               </button>
-              {screen < 3 ? (
-                <button
-                  type="button"
-                  className="btn btn-primary"
-                  onClick={() => setScreen((screen + 1) as Screen)}
-                >
+              {screen < last ? (
+                <button type="button" className="btn btn-primary" onClick={() => setScreen(screen + 1)}>
                   Next
                 </button>
               ) : (
