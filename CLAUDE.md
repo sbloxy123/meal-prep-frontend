@@ -12,6 +12,7 @@
 npm run dev    # dev server on localhost:3000 (Turbopack)
 npm run build  # production build
 npm run lint
+npm test       # node --test (native TS stripping); currently src/lib/instructions.test.ts
 ```
 
 ## Environment variables
@@ -64,6 +65,7 @@ Keeps cookies same-origin (avoids `SameSite=Lax`/Safari ITP):
   - **Delete recipes via `menu.deleteRecipe(id)`** so the menu and shopping list refresh with it. The API clears the recipe's shopping-list items itself (meal-prep-app#22); it didn't until 2026-09-02, and the client-side workaround that covered the gap has been removed — don't reintroduce one.
 - `src/lib/toast.tsx` — ToastProvider: `show(msg)` + `showUndo({message,onUndo,onCommit})`; flushes pending commits on `pagehide`.
 - `src/lib/write-queue.ts` — offline write queue (localStorage; retries on `online` + interval); `useWriteQueue()` → `{pending, offline}`.
+- **`instructions.ts` — `parseInstructions` + the prose fallback.** The method is one TEXT column, one step per line. When it holds a single long line (what the AI paths used to write) it is split on sentence boundaries so old recipes render as steps without a migration; short one-liners and anything already multi-line are left exactly as they are. `splitSentences` is a byte-for-byte twin of the backend's `lib/steps.js`, which stops new prose being written — change them together. `shouldTakeMethod` lets **Improve** replace a single line of prose with real steps, and never touches a method that already has them.
 - Also: `use-modal.ts` (a11y focus-trap/Escape/scroll-lock), `use-wake-lock.ts`, `cloudinary.ts` (unsigned upload + `next/image` loader), `format.ts`, `starter-recipes.ts` (the 40 curated starters), `starter-picker.ts`, `dish-match.ts`.
 - **`useModalA11y` sets its trap up once and holds `onClose` in a ref.** Callers define `onClose` inline, so depending on its identity re-ran the effect on every render — and the effect's mount step focuses the first control, which made typing inside a modal impossible (it also shut the mobile keyboard). Don't add `onClose` back to the dependency array. Its focusable selector must keep listing `textarea`/`select`, or fields are skipped by Tab entirely.
 
