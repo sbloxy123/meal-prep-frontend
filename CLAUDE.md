@@ -73,7 +73,8 @@ Keeps cookies same-origin (avoids `SameSite=Lax`/Safari ITP):
 
 | Route | File | Notes |
 |---|---|---|
-| `/` `/about` | `app/page.tsx`, `app/about/page.tsx` → `components/marketing-home.tsx` | public marketing page (see route-groups note); `/` redirects signed-in users to `/recipes`, `/about` doesn't. Install button uses `beforeinstallprompt` (iOS/generic hint fallback) |
+| `/` `/about` | `app/page.tsx`, `app/about/page.tsx` → `components/marketing-home.tsx` | public marketing page (see route-groups note); `/` redirects signed-in users to `/recipes`, `/about` doesn't. Install button → native prompt where one exists, else the install sheet |
+| `/install` | `app/install/page.tsx` → `components/install-page.tsx` | public step-by-step install guide (see PWA section); where the install email, Account card and rail link land. `?from=` is analytics only; `?platform=ios-safari` etc. previews another phone's guide |
 |---|---|---|
 | `/sign-in` `/sign-up` | `(auth)/…` | BetterAuth |
 | `/verify-email` `/forgot-password` `/reset-password` | `(auth)/…` | email-verification + reset flow |
@@ -104,6 +105,17 @@ A five-step dialog (`src/components/onboarding-wizard.tsx`) that turns an empty 
 ### PWA / offline
 
 Manual `src/app/manifest.ts` + `public/sw.js` (`ServiceWorkerRegister`). **In local dev the service worker serves stale JS**: a change can appear not to have applied at all, across reloads and restarts. Unregister it and clear the `mise-v1` cache (DevTools → Application → Service Workers) before concluding a fix doesn't work. Icons/favicons in `public/` (Fornetto oven mark: `favicon.svg`, `favicon-16/32/48.png`, `apple-touch-icon.png`, `icon-192/512.png`). Offline writes queue; shop page holds a Wake Lock.
+
+**Installing — there is no iOS install prompt, and there never will be.** Safari doesn't fire `beforeinstallprompt`, has no `appinstalled`, and a page can't ask whether it's on the Home Screen; every iPhone install is a manual Share → Add to Home Screen. So the "prompt" is ours. Everything lives in `src/lib/install.ts` (native-prompt capture at module level — imported from `ServiceWorkerRegister` so the listener exists before the event fires; `detectPlatform()`; the auto-prompt policy in localStorage `fornetto:installPrompt`; `logInstall`/`logStandaloneOpen`):
+
+- `components/install-guide.tsx` — the platform-specific steps (iOS Safari / iOS other browser / iOS in-app / Android with or without a native prompt / desktop / already installed). Shared by the sheet and `/install`. Screenshots go in `public/install/` via the `SHOTS` map.
+- `components/install-sheet.tsx` — bottom sheet on phones, dialog on desktop. Chrome/Edge get an **Install** button that fires the held native prompt; iOS gets the steps. `source="auto"` offers *Remind me later* (7-day snooze; a plain close counts as later) and *Don't show this again*.
+- `components/install-gate.tsx` — the auto-open, mounted after `OnboardingGate`: once per device on phones/tablets, never on desktop, never on top of the questionnaire (if onboarding was wanted at any point this session it sets `sessionStorage fornetto:installGateSkip` and waits for the next one). Also logs `install_standalone_open` once per session — **the only true install metric on iOS**.
+- `components/install-banner.tsx` — the always-there fallback on phones; tapping it opens the sheet. Dismiss key `fornetto:iosInstallDismissed` kept from the old iOS-only hint.
+- `MarketingInstallButton` (`marketing-client.tsx`, used on `/`, `/about` and Account) — native prompt if held, else the sheet.
+- **Email**: the backend sends "Put Fornetto on your home screen" once after verification (`afterEmailVerification`, link to `/install?from=email`); `InstallEmailButton` (Account card + `/install` when signed in) resends it via `POST /install/email` (3/user/24h, 429 message shown verbatim).
+
+Two traps the copy is built around: **links opened from the Gmail/Instagram apps land in an in-app browser with no Add to Home Screen** (the guide leads with "Open in Safari" + a Copy-link button; detection is a UA heuristic, so the Safari branch keeps a "can't see it?" escape hatch too), and **the installed iOS app has its own cookie jar**, so the last step tells people to sign in once inside it — otherwise it reads as a bug. Funnel events (`install_prompt_shown/_outcome`, `install_page_view`, `install_standalone_open`; `install_email_sent` server-side) are whitelisted like the onboarding ones and surface on `/back-of-house`; `POST /events` needs a session, so guide views from signed-out phones don't count.
 
 ## Deployment
 

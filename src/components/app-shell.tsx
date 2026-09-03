@@ -164,6 +164,10 @@ function DesktopRail({
           <span className="rail-nav-label">How to use Fornetto</span>
         </Link>
 
+        <Link href="/install?from=account" className="rail-nav-item">
+          <span className="rail-nav-label">Get it on your phone</span>
+        </Link>
+
         <Link href="/account" className="rail-user">
           <span className="rail-user-avatar" aria-hidden>
             {initial}

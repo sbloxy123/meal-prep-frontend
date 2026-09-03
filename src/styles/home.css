@@ -484,7 +484,7 @@
   text-wrap: pretty;
 }
 .home-install { margin-top: 28px; }
-.home-install-row { display: flex; align-items: center; gap: 14px; }
+.home-install-row { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; }
 .home-install-sub { font-size: 13px; }
 .home-install-done { font-size: 14px; }
 .home-install-hint { margin: 12px 0 0; font-size: 13px; line-height: 1.55; max-width: 420px; }

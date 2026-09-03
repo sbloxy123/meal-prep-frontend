@@ -28,6 +28,8 @@ import "../styles/admin.css";
 import "../styles/toast.css";
 // Public marketing homepage (/).
 import "../styles/home.css";
+// Install sheet + /install guide page.
+import "../styles/install.css";
 
 export const metadata: Metadata = {
   // Resolves relative OG/Twitter image URLs to absolute ones — link unfurlers
@@ -47,6 +49,8 @@ export const metadata: Metadata = {
     apple: "/apple-touch-icon.png",
   },
   appleWebApp: { capable: true, title: "Fornetto", statusBarStyle: "default" },
+  // The standard twin of apple-mobile-web-app-capable (Chrome warns without it).
+  other: { "mobile-web-app-capable": "yes" },
   openGraph: {
     type: "website",
     siteName: "Fornetto",

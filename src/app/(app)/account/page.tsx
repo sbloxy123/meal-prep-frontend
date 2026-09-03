@@ -14,6 +14,7 @@ import { HouseholdCard } from "@/components/household-card";
 import { PreferencesCard } from "@/components/preferences-card";
 import { DietaryCard } from "@/components/dietary-card";
 import { MarketingInstallButton } from "@/components/marketing-client";
+import { InstallEmailButton } from "@/components/install-email-button";
 import { useModalA11y } from "@/lib/use-modal";
 
 function formatJoined(value?: string | Date | null) {
@@ -194,9 +195,14 @@ function InstallAppCard() {
       <h2>Install the app</h2>
       <p className="text-muted" style={{ fontSize: 14, marginBottom: 12 }}>
         Add Fornetto to your home screen for a full-screen app with its own icon
-        that opens even when the signal doesn&rsquo;t.
+        that opens even when the signal doesn&rsquo;t. On iPhone it&rsquo;s Share, then
+        Add to Home Screen — the button walks you through it.
       </p>
-      <MarketingInstallButton />
+      <MarketingInstallButton source="account" />
+      <p className="text-muted" style={{ fontSize: 14, margin: "18px 0 8px" }}>
+        On a computer? Send the guide to your phone instead.
+      </p>
+      <InstallEmailButton />
     </section>
   );
 }
