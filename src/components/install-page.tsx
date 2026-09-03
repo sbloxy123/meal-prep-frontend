@@ -7,6 +7,7 @@ import { useSession } from "@/lib/auth-client";
 import { Logo } from "@/components/logo";
 import { InstallGuide } from "@/components/install-guide";
 import { InstallEmailButton } from "@/components/install-email-button";
+import { useInstallCoach } from "@/components/install-coach";
 import { logInstall, promptNativeInstall, useNativeInstall, usePlatform } from "@/lib/install";
 
 // The public step-by-step guide: where the post-verification email and the
@@ -19,6 +20,7 @@ export function InstallPage() {
   const { data: session } = useSession();
   const from = useSearchParams().get("from") ?? "direct";
   const [pending, setPending] = useState(false);
+  const { requestCoach, coachElement } = useInstallCoach();
 
   const viewLogged = useRef(false);
   useEffect(() => {
@@ -56,7 +58,12 @@ export function InstallPage() {
 
       <main className="install-main">
         <div className="install-kicker">On your phone</div>
-        <InstallGuide platform={platform} nativeAvailable={native.available} variant="page" />
+        <InstallGuide
+          platform={platform}
+          nativeAvailable={native.available}
+          variant="page"
+          onCoach={requestCoach}
+        />
 
         {native.available && (
           <div className="install-actions">
@@ -84,6 +91,7 @@ export function InstallPage() {
           {session ? <Link href="/recipes">Back to the app</Link> : <Link href="/sign-up">Create an account</Link>}
         </p>
       </main>
+      {coachElement}
     </div>
   );
 }

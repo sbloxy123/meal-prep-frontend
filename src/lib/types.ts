@@ -119,6 +119,12 @@ export interface AdminTotals {
     pageViews?: number;
     emailsSent?: number;
     standaloneUsers?: number;
+    coach?: number;
+    // Stale-layout alarm: iOS majors newer than the walkthrough registry has
+    // been verified on (all-time), and the newest MAX_VERIFIED_IOS any client
+    // has reported — the notice shows for majors above it.
+    unverifiedIos?: { major: number; devices: number; firstSeen: string }[];
+    maxVerifiedIos?: number | null;
   } | null;
   macrosSource?: Record<string, number> | null; // manual/imported/estimated → count
   topTags?: { name: string; count: number }[];

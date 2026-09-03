@@ -7,7 +7,13 @@ import { useSession } from "@/lib/auth-client";
 import { isConsumingInvite } from "@/components/pending-invite";
 import { isConsumingShare } from "@/components/pending-share";
 import { InstallSheet } from "@/components/install-sheet";
-import { autoPromptAllowed, logStandaloneOpen, markAutoPromptShown } from "@/lib/install";
+import { useInstallCoach } from "@/components/install-coach";
+import {
+  autoPromptAllowed,
+  logLayoutUnverified,
+  logStandaloneOpen,
+  markAutoPromptShown,
+} from "@/lib/install";
 
 // Opens the install sheet by itself, once, on a phone — the closest thing to
 // an install prompt iOS will ever give us. Mounted after OnboardingGate.
@@ -31,6 +37,7 @@ export function InstallGate() {
   const { data: session } = useSession();
   const [show, setShow] = useState(false);
   const decided = useRef(false);
+  const { requestCoach, coachElement } = useInstallCoach();
 
   const userId = session?.user.id;
 
@@ -39,6 +46,8 @@ export function InstallGate() {
   // root layout.
   useEffect(() => {
     logStandaloneOpen();
+    // Newer iOS than the walkthrough registry knows → the stale-layout alarm.
+    logLayoutUnverified();
   }, []);
 
   useEffect(() => {
@@ -70,7 +79,10 @@ export function InstallGate() {
     return () => clearTimeout(id);
   }, [menu.loaded, menu.onboardingNeeded, pathname, userId]);
 
-  if (!show) return null;
-
-  return <InstallSheet source="auto" onClose={() => setShow(false)} />;
+  return (
+    <>
+      {show && <InstallSheet source="auto" onClose={() => setShow(false)} onCoach={requestCoach} />}
+      {coachElement}
+    </>
+  );
 }

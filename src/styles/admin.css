@@ -451,3 +451,17 @@
   min-height: 60vh;
   color: var(--color-neutral-600);
 }
+
+/* Stale-layout alarm (install walkthrough vs a newer iOS). */
+.admin-notice {
+  margin: 16px 0 0;
+  padding: 12px 14px;
+  border: 1px solid var(--color-accent-300);
+  border-radius: var(--radius-md);
+  background: var(--color-accent-100);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.admin-notice code {
+  font-size: 13px;
+}

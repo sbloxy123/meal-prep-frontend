@@ -2,38 +2,34 @@
 
 import { useState, type ReactNode } from "react";
 import Image from "next/image";
-import {
-  Check,
-  Compass,
-  Copy,
-  Download,
-  Menu,
-  MoreVertical,
-  Share,
-  Smartphone,
-  SquarePlus,
-} from "lucide-react";
+import { Check, Compass, Copy, Download, Menu, MoreVertical, Share, Smartphone, SquarePlus } from "lucide-react";
 import type { InstallPlatform } from "@/lib/install";
+import { chromeCanAddToHomeScreen, iosWalkthrough, type IllustrationKey, type Walkthrough } from "@/lib/ios-layouts";
+import { Illustration } from "@/components/install-illustrations";
 
 // The platform-specific "how to put Fornetto on your home screen" content,
-// shared by the install sheet and the public /install page. iOS is the reason
-// this exists: there is no prompt, so the steps *are* the install flow.
+// shared by the install sheet (single-screen mode) and the public /install
+// page. On iPhones the steps come from src/lib/ios-layouts.ts — the registry
+// of where each browser keeps Add to Home Screen per iOS version — so the
+// sheet's walkthrough and this long-form list can never disagree.
 //
-// Real iOS screenshots go in public/install/ and are wired up in SHOTS below;
-// until they land the steps are icon-only.
+// Real iOS screenshots go in public/install/ and are wired up in SHOTS,
+// keyed `${walkthrough.key}-${step}` (e.g. "safari-26-1"); until they land the
+// steps use the drawn illustrations.
 
-interface Shot {
+export interface Shot {
   src: string;
   width: number;
   height: number;
   alt: string;
 }
 
-const SHOTS: Partial<Record<"share" | "add" | "confirm", Shot>> = {};
+export const SHOTS: Record<string, Shot | undefined> = {};
 
 interface Step {
   icon: ReactNode;
   text: ReactNode;
+  illustration?: IllustrationKey;
   shot?: Shot;
 }
 
@@ -44,6 +40,8 @@ interface Guide {
   /** A second list, e.g. "Then, in Safari:" after the in-app escape. */
   then?: { heading: string; steps: Step[] };
   note?: ReactNode;
+  /** Set on iPhone branches that can hand off to the coach. */
+  walkthrough?: Walkthrough;
 }
 
 function CopyLinkButton() {
@@ -66,47 +64,28 @@ function CopyLinkButton() {
   );
 }
 
-const SIGN_IN_STEP: Step = {
-  icon: <Smartphone size={15} aria-hidden />,
-  text: (
-    <>
-      Open Fornetto from your Home Screen and <strong>sign in once</strong>. The installed app
-      keeps its own login, separate from the browser.
-    </>
-  ),
+const STEP_ICONS: Record<IllustrationKey, ReactNode> = {
+  "safari-compact-more": <MoreVertical size={15} aria-hidden />,
+  "safari-classic-share": <Share size={15} aria-hidden />,
+  "chrome-share": <Share size={15} aria-hidden />,
+  "menu-hamburger": <Menu size={15} aria-hidden />,
+  "sheet-add-row": <SquarePlus size={15} aria-hidden />,
+  "add-screen": <Check size={15} aria-hidden />,
+  "generic-share": <Share size={15} aria-hidden />,
 };
 
-const IOS_SAFARI_STEPS: Step[] = [
-  {
-    icon: <Share size={15} aria-hidden />,
+function walkthroughSteps(walk: Walkthrough): Step[] {
+  return walk.steps.map((s, i) => ({
+    icon: STEP_ICONS[s.illustration],
     text: (
       <>
-        Tap the <strong>Share</strong> button — the square with an arrow pointing up, at the
-        bottom of the screen.
+        <strong>{s.title}.</strong> {s.caption}
       </>
     ),
-    shot: SHOTS.share,
-  },
-  {
-    icon: <SquarePlus size={15} aria-hidden />,
-    text: (
-      <>
-        Scroll down the sheet and tap <strong>Add to Home Screen</strong>.
-      </>
-    ),
-    shot: SHOTS.add,
-  },
-  {
-    icon: <Check size={15} aria-hidden />,
-    text: (
-      <>
-        Tap <strong>Add</strong>. If you see an “Open as Web App” switch, leave it on.
-      </>
-    ),
-    shot: SHOTS.confirm,
-  },
-  SIGN_IN_STEP,
-];
+    illustration: s.illustration,
+    shot: SHOTS[`${walk.key}-${i + 1}`],
+  }));
+}
 
 const IOS_OPEN_IN_SAFARI: Step[] = [
   {
@@ -203,40 +182,34 @@ export function buildGuide(platform: InstallPlatform | null, nativeAvailable: bo
   const { os, browser } = platform;
 
   if (os === "ios") {
+    const safariWalk = iosWalkthrough("safari", platform.ios);
     if (browser === "inapp") {
       return {
         title: "First, open this page in Safari",
         lede:
           "You’re in an app’s built-in browser, which can’t add anything to the Home Screen. Two ways out:",
         steps: IOS_OPEN_IN_SAFARI,
-        then: { heading: "Then, in Safari", steps: IOS_SAFARI_STEPS },
+        then: { heading: "Then, in Safari", steps: walkthroughSteps(safariWalk) },
       };
     }
-    if (browser === "safari" || browser === "other") {
+    if (browser === "chrome" && !chromeCanAddToHomeScreen(platform.ios)) {
       return {
-        title: "Add Fornetto to your Home Screen",
-        lede: "About ten seconds, right here in Safari.",
-        steps: IOS_SAFARI_STEPS,
-        note: IOS_CANT_SEE_IT,
+        title: "First, open this page in Safari",
+        lede: "Chrome on this version of iOS can’t add to the Home Screen — Safari can.",
+        steps: IOS_OPEN_IN_SAFARI,
+        then: { heading: "Then, in Safari", steps: walkthroughSteps(safariWalk) },
       };
     }
-    // Chrome / Firefox / Edge on iOS: same share sheet, differently placed.
+    const walk = iosWalkthrough(browser, platform.ios);
+    const name = BROWSER_NAMES[browser] ?? "your browser";
     return {
       title: "Add Fornetto to your Home Screen",
-      lede: `${BROWSER_NAMES[browser]} on iPhone can do this too — or open fornetto.app in Safari.`,
-      steps: [
-        {
-          icon: <Share size={15} aria-hidden />,
-          text: (
-            <>
-              Tap the <strong>Share</strong> icon — by the address bar, or inside the{" "}
-              <strong>⋯</strong> menu.
-            </>
-          ),
-        },
-        ...IOS_SAFARI_STEPS.slice(1),
-      ],
+      lede: walk.verified
+        ? `Three taps in ${name}. About ten seconds.`
+        : "Three taps. Your iPhone is on a newer iOS than we’ve checked, so the pictures may differ a little.",
+      steps: walkthroughSteps(walk),
       note: IOS_CANT_SEE_IT,
+      walkthrough: walk,
     };
   }
 
@@ -390,7 +363,7 @@ function StepList({ steps }: { steps: Step[] }) {
           </span>
           <div className="install-step-text">
             {step.text}
-            {step.shot && (
+            {step.shot ? (
               <figure className="install-shot">
                 <Image
                   src={step.shot.src}
@@ -400,6 +373,12 @@ function StepList({ steps }: { steps: Step[] }) {
                   sizes="280px"
                 />
               </figure>
+            ) : (
+              step.illustration && (
+                <div className="install-figure install-figure--inline">
+                  <Illustration name={step.illustration} />
+                </div>
+              )
             )}
           </div>
         </li>
@@ -413,9 +392,11 @@ interface InstallGuideProps {
   nativeAvailable: boolean;
   variant: "sheet" | "page";
   titleId?: string;
+  /** iPhone only: "Show me where to tap" hands the walkthrough to the coach. */
+  onCoach?: (walkthrough: Walkthrough) => void;
 }
 
-export function InstallGuide({ platform, nativeAvailable, variant, titleId }: InstallGuideProps) {
+export function InstallGuide({ platform, nativeAvailable, variant, titleId, onCoach }: InstallGuideProps) {
   const guide = buildGuide(platform, nativeAvailable);
   const Heading = variant === "page" ? "h1" : "h2";
   return (
@@ -424,6 +405,13 @@ export function InstallGuide({ platform, nativeAvailable, variant, titleId }: In
         {guide.title}
       </Heading>
       <p className="install-lede">{guide.lede}</p>
+      {guide.walkthrough && onCoach && guide.walkthrough.coach.edge !== "none" && (
+        <div className="install-actions" style={{ marginTop: 0, marginBottom: 18 }}>
+          <button type="button" className="btn btn-primary" onClick={() => onCoach(guide.walkthrough!)}>
+            Show me where to tap
+          </button>
+        </div>
+      )}
       {guide.steps.length > 0 && <StepList steps={guide.steps} />}
       {guide.then && (
         <>

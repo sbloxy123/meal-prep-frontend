@@ -2,6 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 import { logEvent } from "./analytics";
+import { MAX_VERIFIED_IOS, type IosVersion } from "./ios-layouts";
 
 // Everything about getting Fornetto onto a home screen, in one place.
 //
@@ -34,8 +35,13 @@ export interface InstallPlatform {
   browser: InstallBrowser;
   /** Running from the home screen already. */
   standalone: boolean;
-  /** Forced with `?platform=os-browser` (e.g. `?platform=ios-inapp`) to preview
-      another phone's guide. Forced views are never logged. */
+  /** iOS version from the UA (major.minor); null off iOS or when unparsable. */
+  ios: IosVersion | null;
+  /** iOS only: false when the phone is newer than src/lib/ios-layouts.ts has
+      been checked on — the walkthrough falls back to generic wording. */
+  layoutVerified: boolean;
+  /** Forced with `?platform=os-browser&ios=26.1` (e.g. `?platform=ios-inapp`)
+      to preview another phone's guide. Forced views are never logged. */
   forced: boolean;
 }
 
@@ -45,6 +51,7 @@ export type InstallOutcome =
   | "guide"
   | "later"
   | "never"
+  | "coach"
   | "closed";
 
 // ── Native prompt (Chrome/Edge) ────────────────────────────────────────────
@@ -123,13 +130,23 @@ export function isStandalone(): boolean {
 const OSES: InstallOS[] = ["ios", "android", "desktop"];
 const BROWSERS: InstallBrowser[] = ["safari", "chrome", "firefox", "edge", "samsung", "inapp", "other"];
 
-function readForced(): { os: InstallOS; browser: InstallBrowser } | null {
+function parseIos(major: string | undefined, minor: string | undefined): IosVersion | null {
+  const M = Number(major);
+  if (!Number.isFinite(M)) return null;
+  const m = Number(minor);
+  return { major: M, minor: Number.isFinite(m) ? m : 0 };
+}
+
+function readForced(): { os: InstallOS; browser: InstallBrowser; ios: IosVersion | null } | null {
   try {
-    const raw = new URLSearchParams(window.location.search).get("platform");
+    const params = new URLSearchParams(window.location.search);
+    const raw = params.get("platform");
     if (!raw) return null;
     const [os, browser = "other"] = raw.split("-");
     if (!OSES.includes(os as InstallOS) || !BROWSERS.includes(browser as InstallBrowser)) return null;
-    return { os: os as InstallOS, browser: browser as InstallBrowser };
+    const [maj, min] = (params.get("ios") ?? "").split(".");
+    const ios = os === "ios" ? (parseIos(maj, min) ?? { major: MAX_VERIFIED_IOS, minor: 0 }) : null;
+    return { os: os as InstallOS, browser: browser as InstallBrowser, ios };
   } catch {
     return null;
   }
@@ -138,7 +155,14 @@ function readForced(): { os: InstallOS; browser: InstallBrowser } | null {
 export function detectPlatform(): InstallPlatform {
   const standalone = isStandalone();
   const forced = readForced();
-  if (forced) return { ...forced, standalone, forced: true };
+  if (forced) {
+    return {
+      ...forced,
+      standalone,
+      layoutVerified: !forced.ios || forced.ios.major <= MAX_VERIFIED_IOS,
+      forced: true,
+    };
+  }
 
   const ua = navigator.userAgent;
   // iPadOS 13+ masquerades as macOS — a touch-capable "Mac" is really an iPad.
@@ -146,6 +170,13 @@ export function detectPlatform(): InstallPlatform {
   const ios = /iPad|iPhone|iPod/.test(ua) || iPadOS;
   const android = !ios && /Android/.test(ua);
   const os: InstallOS = ios ? "ios" : android ? "android" : "desktop";
+  // "CPU iPhone OS 26_0_1 like Mac OS X"; iPadOS-as-Mac only exposes Safari's
+  // "Version/26.0", which tracks the OS closely enough for layout purposes.
+  let iosVersion: IosVersion | null = null;
+  if (ios) {
+    const m = /OS (\d+)_(\d+)/.exec(ua) ?? /Version\/(\d+)\.(\d+)/.exec(ua);
+    iosVersion = m ? parseIos(m[1], m[2]) : null;
+  }
 
   let browser: InstallBrowser = "other";
   if (ios) {
@@ -169,7 +200,14 @@ export function detectPlatform(): InstallPlatform {
     else if (/Firefox\//.test(ua)) browser = "firefox";
     else if (/Safari\//.test(ua)) browser = "safari";
   }
-  return { os, browser, standalone, forced: false };
+  return {
+    os,
+    browser,
+    standalone,
+    ios: iosVersion,
+    layoutVerified: !ios || (iosVersion !== null && iosVersion.major <= MAX_VERIFIED_IOS),
+    forced: false,
+  };
 }
 
 let platformCache: InstallPlatform | null = null;
@@ -250,6 +288,27 @@ export function logInstall(
 ) {
   if (!platform || platform.forced) return;
   logEvent(type, { platform: platform.os, browser: platform.browser, ...meta });
+}
+
+const UNVERIFIED_KEY = "fornetto:layoutUnverifiedLogged";
+
+/** iOS newer than the walkthrough registry knows. Once per session; the
+    backend emails the admins on the first sighting of each new major. */
+export function logLayoutUnverified() {
+  const p = detectPlatform();
+  if (p.os !== "ios" || p.layoutVerified || p.forced || !p.ios) return;
+  try {
+    if (sessionStorage.getItem(UNVERIFIED_KEY)) return;
+    sessionStorage.setItem(UNVERIFIED_KEY, "1");
+  } catch {
+    return;
+  }
+  logEvent("install_layout_unverified", {
+    platform: p.os,
+    browser: p.browser,
+    ios: `${p.ios.major}.${p.ios.minor}`,
+    verified: MAX_VERIFIED_IOS,
+  });
 }
 
 const STANDALONE_KEY = "fornetto:standaloneLogged";
