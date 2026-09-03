@@ -70,6 +70,7 @@ const STEP_ICONS: Record<IllustrationKey, ReactNode> = {
   "sheet-view-more": <SquarePlus size={15} aria-hidden />,
   "safari-classic-share": <Share size={15} aria-hidden />,
   "chrome-share": <Share size={15} aria-hidden />,
+  "chrome-open-safari": <Compass size={15} aria-hidden />,
   "menu-hamburger": <Menu size={15} aria-hidden />,
   "sheet-add-row": <SquarePlus size={15} aria-hidden />,
   "add-screen": <Check size={15} aria-hidden />,
@@ -204,6 +205,17 @@ export function buildGuide(platform: InstallPlatform | null, nativeAvailable: bo
     }
     const walk = iosWalkthrough(browser, platform.ios);
     const name = BROWSER_NAMES[browser] ?? "your browser";
+    if (browser === "chrome" && walk.verified) {
+      // Chrome can't add to the Home Screen itself: Share → Open in Safari,
+      // then the Safari steps. The long-form page shows both halves.
+      return {
+        title: "Add Fornetto to your Home Screen",
+        lede: "Chrome hands this over to Safari — two taps, then a few more there.",
+        steps: walkthroughSteps(walk).slice(0, 2),
+        then: { heading: "Then, in Safari", steps: walkthroughSteps(safariWalk) },
+        walkthrough: walk,
+      };
+    }
     return {
       title: "Add Fornetto to your Home Screen",
       lede: walk.verified

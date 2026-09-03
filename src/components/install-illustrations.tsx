@@ -9,6 +9,7 @@ import {
   Plus,
   ChevronLeft,
   ChevronRight,
+  Compass,
   Copy,
   Layers,
   Menu,
@@ -115,6 +116,23 @@ export function Illustration({ name }: { name: IllustrationKey }) {
             <Hot>
               <Share size={18} />
             </Hot>
+          </div>
+        </div>
+      );
+    case "chrome-open-safari":
+      return (
+        <div className="ill ill-list" aria-hidden>
+          <div className="ill-row">
+            <Copy size={17} /> Copy
+          </div>
+          <div className="ill-row">
+            <Bookmark size={17} /> Bookmark
+          </div>
+          <div className="ill-row">
+            <Search size={17} /> Find in Page
+          </div>
+          <div className="ill-row ill-row--hot">
+            <Compass size={17} /> Open in Safari
           </div>
         </div>
       );
