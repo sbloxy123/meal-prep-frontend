@@ -224,6 +224,8 @@ Render it by splitting on newlines: two or more non-empty lines become an ordere
 
 In the recipe form, use a textarea with the hint "One step per line" and `white-space: pre-wrap`. This gets structured output from users without a schema migration or a repeater UI.
 
+**Addendum (2026-09-03) — the prose fallback.** The AI paths (My usuals, generate, import, improve) sometimes returned the whole method as one paragraph, which the rule above rendered as a wall of text. `parseInstructions` (`src/lib/instructions.ts`) now falls back to a sentence split when the newline split yields a single line of 120+ characters; decimals and unit abbreviations are protected, shorter one-liners are left as a paragraph, and anything already multi-line is unchanged. The API normalises on the way in too (`meal-prep-app` `lib/steps.js`), so the fallback exists for recipes written before that landed. The two helpers are byte-for-byte twins — change them together.
+
 ---
 
 ## 11. Accessibility floor
