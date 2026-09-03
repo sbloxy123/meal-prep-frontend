@@ -2,7 +2,7 @@
 
 import { useSyncExternalStore } from "react";
 import { logEvent } from "./analytics";
-import { MAX_VERIFIED_IOS, type IosVersion } from "./ios-layouts";
+import { MAX_VERIFIED_IOS, parseIosVersion, type IosVersion } from "./ios-layouts";
 
 // Everything about getting Fornetto onto a home screen, in one place.
 //
@@ -170,13 +170,9 @@ export function detectPlatform(): InstallPlatform {
   const ios = /iPad|iPhone|iPod/.test(ua) || iPadOS;
   const android = !ios && /Android/.test(ua);
   const os: InstallOS = ios ? "ios" : android ? "android" : "desktop";
-  // "CPU iPhone OS 26_0_1 like Mac OS X"; iPadOS-as-Mac only exposes Safari's
-  // "Version/26.0", which tracks the OS closely enough for layout purposes.
-  let iosVersion: IosVersion | null = null;
-  if (ios) {
-    const m = /OS (\d+)_(\d+)/.exec(ua) ?? /Version\/(\d+)\.(\d+)/.exec(ua);
-    iosVersion = m ? parseIos(m[1], m[2]) : null;
-  }
+  // Safari on iOS 26+ freezes the "iPhone OS 18_x" token and only the
+  // "Version/26.x" token tells the truth — parseIosVersion takes the newer.
+  const iosVersion: IosVersion | null = ios ? parseIosVersion(ua) : null;
 
   let browser: InstallBrowser = "other";
   if (ios) {
