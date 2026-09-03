@@ -10,11 +10,13 @@
 // bundle. Inert-safe before the backend ships (no endpoint → redirect).
 
 import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { MAX_VERIFIED_IOS } from "@/lib/ios-layouts";
 import { useRouter } from "next/navigation";
 import { ApiError, apiFetch } from "@/lib/api";
 import { useSession } from "@/lib/auth-client";
 import type {
   AdminOverview,
+  AdminTotals,
   AdminSeriesPoint,
   AdminUserRow,
   AdminUsersResponse,
@@ -609,6 +611,29 @@ function EngagementSection({
   );
 }
 
+/** The stale-layout alarm: phones on an iOS newer than the Add to Home Screen
+    walkthrough has been verified on. Clears itself once a frontend build with a
+    higher MAX_VERIFIED_IOS (src/lib/ios-layouts.ts) has been seen. */
+function StaleLayoutNotice({ install }: { install: NonNullable<AdminTotals["install"]> }) {
+  const verified = install.maxVerifiedIos ?? MAX_VERIFIED_IOS;
+  const newer = (install.unverifiedIos ?? []).filter((r) => r.major > Math.max(verified, MAX_VERIFIED_IOS));
+  if (newer.length === 0) return null;
+  return (
+    <div className="admin-notice" role="alert">
+      <strong>Check the Add to Home Screen walkthrough.</strong>{" "}
+      {newer.map((r) => (
+        <span key={r.major}>
+          iOS {r.major} seen on {r.devices} device{r.devices === 1 ? "" : "s"} since{" "}
+          {new Date(r.firstSeen).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}.{" "}
+        </span>
+      ))}
+      The walkthrough is verified up to iOS {Math.max(verified, MAX_VERIFIED_IOS)} — those users get the
+      generic wording. Open Fornetto on the new iOS in Safari and Chrome, check where Share / ••• /
+      Add to Home Screen are, then update <code>src/lib/ios-layouts.ts</code>.
+    </div>
+  );
+}
+
 function Stat({ label, value }: { label: string; value?: number | null }) {
   return (
     <div className="admin-stat">
@@ -739,6 +764,8 @@ function GrowthSection({ totals }: { totals: NonNullable<AdminOverview["totals"]
         </>
       )}
 
+      {totals.install && <StaleLayoutNotice install={totals.install} />}
+
       {totals.install && (
         <>
           <p className="admin-chart-title" style={{ marginTop: 16 }}>Install funnel</p>
@@ -749,6 +776,7 @@ function GrowthSection({ totals }: { totals: NonNullable<AdminOverview["totals"]
               { label: "To guide", value: totals.install.guide ?? 0 },
               { label: "Later", value: totals.install.later ?? 0 },
               { label: "Never", value: totals.install.never ?? 0 },
+              { label: "Pointed at it", value: totals.install.coach ?? 0 },
               { label: "Guide views", value: totals.install.pageViews ?? 0 },
               { label: "Emails sent", value: totals.install.emailsSent ?? 0 },
               { label: "Using installed app", value: totals.install.standaloneUsers ?? 0 },

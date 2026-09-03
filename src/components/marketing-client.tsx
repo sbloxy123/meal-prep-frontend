@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
 import { InstallSheet } from "@/components/install-sheet";
+import { useInstallCoach } from "@/components/install-coach";
 import { logInstall, promptNativeInstall, useNativeInstall, usePlatform } from "@/lib/install";
 
 /**
@@ -193,10 +194,14 @@ export function MarketingInstallButton({ source = "button" }: { source?: "button
   const native = useNativeInstall();
   const [open, setOpen] = useState(false);
   const [accepted, setAccepted] = useState(false);
+  const { requestCoach, coachElement } = useInstallCoach();
   const installed = accepted || native.installed || platform?.standalone === true;
+  const ios = platform?.os === "ios";
 
   async function install() {
-    if (native.available) {
+    // iOS never has a native prompt; the check keeps a forced ?platform=ios
+    // preview on desktop Chrome from firing Chrome's dialog instead.
+    if (native.available && !ios) {
       logInstall("install_prompt_shown", platform, { source });
       const result = await promptNativeInstall();
       logInstall("install_prompt_outcome", platform, {
@@ -226,17 +231,17 @@ export function MarketingInstallButton({ source = "button" }: { source?: "button
           className="btn btn-primary home-btn-install"
           onClick={install}
         >
-          Install app
+          {ios ? "Add to Home Screen" : "Install app"}
         </button>
         <span className="text-muted home-install-sub">
-          Works on iPhone, Android and desktop
+          {ios ? "Three taps — we’ll point at each one" : "Works on iPhone, Android and desktop"}
         </span>
       </div>
       <p className="text-muted home-install-hint">
         <Link href={`/install?from=${source}`}>Step-by-step guide</Link>
-        {platform?.os === "ios" && " — on iPhone it’s Share, then Add to Home Screen."}
       </p>
-      {open && <InstallSheet source={source} onClose={() => setOpen(false)} />}
+      {open && <InstallSheet source={source} onClose={() => setOpen(false)} onCoach={requestCoach} />}
+      {coachElement}
     </div>
   );
 }

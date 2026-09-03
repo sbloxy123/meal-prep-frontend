@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Share, X } from "lucide-react";
 import { detectPlatform } from "@/lib/install";
 import { InstallSheet } from "@/components/install-sheet";
+import { useInstallCoach } from "@/components/install-coach";
 
 // Key kept from the old iOS-only hint so anyone who dismissed that stays
 // dismissed.
@@ -26,11 +27,16 @@ function shouldShowBanner(): boolean {
 export function InstallBanner() {
   const [show, setShow] = useState(false);
   const [open, setOpen] = useState(false);
+  const [ios, setIos] = useState(false);
+  const { requestCoach, coachElement } = useInstallCoach();
 
   useEffect(() => {
     // Deferred to after paint: the check reads client-only APIs, and this keeps
     // the state update out of the effect body (avoids cascading-render lint).
-    const id = requestAnimationFrame(() => setShow(shouldShowBanner()));
+    const id = requestAnimationFrame(() => {
+      setShow(shouldShowBanner());
+      setIos(detectPlatform().os === "ios");
+    });
     return () => cancelAnimationFrame(id);
   }, []);
 
@@ -51,14 +57,16 @@ export function InstallBanner() {
         <button type="button" className="install-banner-text" onClick={() => setOpen(true)}>
           <Share size={14} aria-hidden />
           <span>
-            Put Fornetto on your home screen — <strong>show me how</strong>
+            {ios ? "Add Fornetto to your Home Screen" : "Put Fornetto on your home screen"} —{" "}
+            <strong>show me how</strong>
           </span>
         </button>
         <button type="button" className="install-banner-close" aria-label="Dismiss" onClick={dismiss}>
           <X size={16} aria-hidden />
         </button>
       </div>
-      {open && <InstallSheet source="banner" onClose={() => setOpen(false)} />}
+      {open && <InstallSheet source="banner" onClose={() => setOpen(false)} onCoach={requestCoach} />}
+      {coachElement}
     </>
   );
 }

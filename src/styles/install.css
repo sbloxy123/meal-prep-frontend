@@ -284,3 +284,327 @@
   padding-inline: 14px;
   font-size: 14px;
 }
+
+/* ── iPhone walkthrough (one step per screen) ───────────────────────────── */
+.install-actions--stack {
+  flex-direction: column;
+  align-items: stretch;
+}
+.install-actions--stack .btn-block {
+  margin-top: 0;
+}
+.install-quiet {
+  display: flex;
+  justify-content: center;
+  gap: 22px;
+  margin-top: 4px;
+}
+.install-link {
+  background: none;
+  border: 0;
+  padding: 6px 2px;
+  font: inherit;
+  font-size: 14px;
+  color: var(--color-accent-700);
+  cursor: pointer;
+}
+.install-dots {
+  display: flex;
+  gap: 6px;
+  margin: 2px 0 14px;
+}
+.install-dots span {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1px solid var(--color-accent);
+  background: transparent;
+}
+.install-dots .is-on {
+  background: var(--color-accent);
+}
+.install-dots .is-done {
+  background: var(--color-accent-300);
+  border-color: var(--color-accent-300);
+}
+.install-step-n {
+  display: inline-grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid var(--color-accent);
+  color: var(--color-accent);
+  font-size: 15px;
+  vertical-align: 3px;
+  margin-right: 4px;
+}
+.install-figure {
+  margin: 0 0 16px;
+  display: flex;
+  justify-content: center;
+}
+.install-figure img {
+  display: block;
+  width: 100%;
+  max-width: 300px;
+  height: auto;
+  border-radius: 14px;
+  border: 1px solid var(--color-divider);
+  box-shadow: var(--shadow-sm);
+}
+.install-figure--inline {
+  justify-content: flex-start;
+  margin: 10px 0 0;
+}
+
+/* Drawn browser controls (install-illustrations.tsx). */
+.ill {
+  width: 100%;
+  max-width: 300px;
+  border: 1px solid var(--color-divider);
+  border-radius: 14px;
+  background: var(--color-surface);
+  padding: 14px;
+  color: var(--color-text);
+  font-size: 14px;
+}
+.ill-bottom {
+  padding-top: 40px;
+}
+.ill-top {
+  padding-bottom: 40px;
+}
+.ill-pill {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-divider);
+  box-shadow: var(--shadow-sm);
+}
+.ill-pill--wide {
+  border-radius: 10px;
+}
+.ill-url {
+  flex: 1;
+  text-align: center;
+  font-size: 13px;
+  opacity: 0.8;
+}
+.ill-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 4px 0;
+  border-top: 1px solid var(--color-divider);
+  color: var(--color-accent-700);
+}
+.ill-hot {
+  display: inline-grid;
+  place-items: center;
+  min-width: 34px;
+  height: 34px;
+  padding: 0 6px;
+  border-radius: 50%;
+  border: 2px solid var(--color-accent);
+  color: var(--color-accent);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-accent) 22%, transparent);
+  animation: install-pulse 1.6s ease-in-out infinite;
+}
+.ill-hot--text {
+  border-radius: 8px;
+  font-weight: 600;
+}
+.ill-list {
+  padding: 4px 0;
+}
+.ill-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--color-divider);
+}
+.ill-row:last-child {
+  border-bottom: 0;
+}
+.ill-row--hot {
+  border: 2px solid var(--color-accent);
+  border-radius: 10px;
+  color: var(--color-accent-700);
+  font-weight: 600;
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-accent) 18%, transparent);
+}
+.ill-add-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--color-divider);
+}
+.ill-add-body {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 0;
+}
+.ill-add-body span:last-child {
+  display: flex;
+  flex-direction: column;
+}
+.ill-add-body small {
+  opacity: 0.6;
+  font-size: 12px;
+}
+.ill-add-icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-divider);
+}
+.ill-add-toggle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 10px;
+  border-top: 1px solid var(--color-divider);
+  font-size: 13px;
+}
+.ill-switch {
+  width: 40px;
+  height: 24px;
+  border-radius: 12px;
+  background: #34c759;
+  position: relative;
+}
+.ill-switch::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+}
+.ill-generic {
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+@keyframes install-pulse {
+  50% {
+    box-shadow: 0 0 0 8px color-mix(in srgb, var(--color-accent) 10%, transparent);
+  }
+}
+
+/* ── Coach: points at the real browser control ─────────────────────────── */
+.install-coach {
+  position: fixed;
+  z-index: 66;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  pointer-events: none;
+}
+.install-coach--bottom-right {
+  right: 10px;
+  bottom: calc(6px + env(safe-area-inset-bottom));
+  align-items: flex-end;
+}
+.install-coach--bottom-centre {
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(6px + env(safe-area-inset-bottom));
+}
+.install-coach--top-right {
+  right: 10px;
+  top: calc(6px + env(safe-area-inset-top));
+  align-items: flex-end;
+}
+.install-coach--none {
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: calc(16px + env(safe-area-inset-bottom));
+}
+.install-coach-card {
+  pointer-events: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 8px 10px 14px;
+  border-radius: var(--radius-lg);
+  background: var(--color-bg);
+  border: 1px solid var(--color-accent);
+  box-shadow: var(--shadow-lg);
+  max-width: calc(100vw - 20px);
+}
+.install-coach-taps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  font-size: 14px;
+}
+.install-coach-taps b {
+  display: inline-grid;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  color: #fff;
+  font-size: 12px;
+  margin-right: 2px;
+}
+.install-coach-done {
+  pointer-events: auto;
+  flex: none;
+  background: none;
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  padding: 6px;
+  line-height: 0;
+}
+.install-coach-arrow {
+  color: var(--color-accent);
+  margin-right: 12px;
+  animation: install-bounce 900ms ease-in-out infinite;
+}
+.install-coach--bottom-centre .install-coach-arrow {
+  margin-right: 0;
+}
+@keyframes install-bounce {
+  50% {
+    transform: translateY(6px);
+  }
+}
+.install-coach--top-right .install-coach-arrow {
+  animation-name: install-bounce-up;
+}
+@keyframes install-bounce-up {
+  50% {
+    transform: translateY(-6px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .install-coach-arrow,
+  .ill-hot {
+    animation: none;
+  }
+}
+/* The banner would sit right where the coach is pointing. */
+body[data-install-coach] .install-banner {
+  display: none;
+}
