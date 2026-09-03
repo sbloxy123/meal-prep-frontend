@@ -42,6 +42,10 @@ test("lookups pick the right row and fall back when iOS is newer than verified",
   assert.equal(iosWalkthrough("safari", { major: 17, minor: 5 }).key, "safari-15-25");
   assert.equal(iosWalkthrough("safari", { major: 14, minor: 8 }).key, "safari-legacy");
   assert.equal(iosWalkthrough("chrome", { major: 18, minor: 0 }).key, "chrome");
+  // Chrome hands off to Safari, and its last picture is this phone's Safari bar.
+  assert.equal(iosWalkthrough("chrome", { major: 26, minor: 0 }).steps[1].title, "Tap Open in Safari");
+  assert.equal(iosWalkthrough("chrome", { major: 26, minor: 0 }).steps[2].illustration, "safari-compact-more");
+  assert.equal(iosWalkthrough("chrome", { major: 18, minor: 0 }).steps[2].illustration, "safari-classic-share");
   assert.equal(iosWalkthrough("firefox", { major: 26, minor: 0 }).coach.edge, "bottom-right");
   const newer = iosWalkthrough("safari", { major: MAX_VERIFIED_IOS + 1, minor: 0 });
   assert.equal(newer.verified, false);

@@ -28,6 +28,7 @@ export type IllustrationKey =
   | "sheet-view-more"
   | "safari-classic-share"
   | "chrome-share"
+  | "chrome-open-safari"
   | "menu-hamburger"
   | "sheet-add-row"
   | "add-screen"
@@ -157,7 +158,11 @@ export const LAYOUTS: readonly Entry[] = [
       ],
     },
   },
-  // ── Chrome (can add to the Home Screen from iOS 16.4; older is routed to Safari) ──
+  // ── Chrome: hands off to Safari. Google's help page says Chrome's share sheet
+  // has Add to Home Screen from iOS 16.4, but on real devices (BrowserStack
+  // iPhone 17 / iOS 26.6 and iPhone 16 / iOS 18.6, 2026-09-03) it isn't there,
+  // not even under Edit Actions. "Open in Safari" always is, and once the page
+  // opens in Safari the Safari walkthrough (banner / auto-sheet) takes over. ──
   {
     browser: "chrome",
     minIos: 0,
@@ -165,16 +170,26 @@ export const LAYOUTS: readonly Entry[] = [
     walkthrough: {
       key: "chrome",
       verifiedOn: "2026-09-03",
-      verifiedBy: "Google Chrome Help: Use web apps (iPhone & iPad)",
-      coach: { edge: "top-right", taps: ["Share", "Add to Home Screen", "Add"] },
+      verifiedBy: "BrowserStack iPhone 17 (iOS 26.6) + iPhone 16 (iOS 18.6): no Add to Home Screen in Chrome's share sheet",
+      coach: { edge: "top-right", taps: ["Share", "Open in Safari", "Add to Home Screen"] },
       steps: [
         {
           title: "Tap the Share icon",
           caption: "At the right end of the address bar — top of the screen, or bottom if you moved it.",
           illustration: "chrome-share",
         },
-        ADD_TO_HOME,
-        TAP_ADD,
+        {
+          title: "Tap Open in Safari",
+          caption:
+            "Chrome on iPhone can’t put Fornetto on the Home Screen itself. (If you do see Add to Home Screen in that list, tap it and skip ahead.)",
+          illustration: "chrome-open-safari",
+        },
+        {
+          title: "Finish in Safari",
+          caption:
+            "This page opens in Safari. Tap Add to Home Screen there and we’ll walk you through the last few taps.",
+          illustration: "safari-compact-more",
+        },
       ],
     },
   },
@@ -269,7 +284,16 @@ export function iosWalkthrough(browser: string, ios: IosVersion | null): Walkthr
   const entry = LAYOUTS.find(
     (l) => l.browser === browser && ios.major >= l.minIos && ios.major <= l.maxIos,
   );
-  return entry ? { ...entry.walkthrough, verified: true } : GENERIC;
+  if (!entry) return GENERIC;
+  const walk = { ...entry.walkthrough, verified: true };
+  if (browser === "chrome") {
+    // The "finish in Safari" picture should show the Safari this phone has.
+    const safari = iosWalkthrough("safari", ios);
+    const steps = [...walk.steps];
+    steps[steps.length - 1] = { ...steps[steps.length - 1], illustration: safari.steps[0].illustration };
+    return { ...walk, steps };
+  }
+  return walk;
 }
 
 /** Chrome on iOS gained Add to Home Screen in iOS 16.4. */
