@@ -3,6 +3,10 @@
 import {
   Book,
   BookOpen,
+  Bookmark,
+  ChevronDown,
+  Glasses,
+  Plus,
   ChevronLeft,
   ChevronRight,
   Copy,
@@ -36,6 +40,56 @@ export function Illustration({ name }: { name: IllustrationKey }) {
             <Hot>
               <MoreHorizontal size={18} />
             </Hot>
+          </div>
+        </div>
+      );
+    case "more-menu-share":
+      return (
+        <div className="ill ill-list" aria-hidden>
+          <div className="ill-row ill-row--hot">
+            <Share size={17} /> Share
+          </div>
+          <div className="ill-row">
+            <Bookmark size={17} /> Add to Bookmarks
+          </div>
+          <div className="ill-row">
+            <BookOpen size={17} /> Add Bookmark to…
+          </div>
+          <div className="ill-row">
+            <Plus size={17} /> New Tab
+          </div>
+        </div>
+      );
+    case "sheet-view-more":
+      return (
+        <div className="ill ill-sheet" aria-hidden>
+          <div className="ill-actions">
+            <span className="ill-action">
+              <Copy size={18} />
+              <small>Copy</small>
+            </span>
+            <span className="ill-action">
+              <Bookmark size={18} />
+              <small>Bookmarks</small>
+            </span>
+            <span className="ill-action">
+              <Glasses size={18} />
+              <small>Reading List</small>
+            </span>
+            <span className="ill-action">
+              <Hot>
+                <ChevronDown size={18} />
+              </Hot>
+              <small>View More</small>
+            </span>
+          </div>
+          <div className="ill-list ill-list--nested">
+            <div className="ill-row">
+              <Search size={17} /> Find on Page
+            </div>
+            <div className="ill-row ill-row--hot">
+              <SquarePlus size={17} /> Add to Home Screen
+            </div>
           </div>
         </div>
       );

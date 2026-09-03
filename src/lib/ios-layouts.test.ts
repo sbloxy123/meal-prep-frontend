@@ -31,7 +31,8 @@ test("every row records when and how it was verified", () => {
   for (const l of LAYOUTS) {
     assert.match(l.walkthrough.verifiedOn, /^\d{4}-\d{2}-\d{2}$/, l.walkthrough.key);
     assert.ok(l.walkthrough.verifiedBy.length > 0, l.walkthrough.key);
-    assert.equal(l.walkthrough.steps.length, 3, l.walkthrough.key);
+    assert.ok(l.walkthrough.steps.length >= 3 && l.walkthrough.steps.length <= 4, l.walkthrough.key);
+    assert.equal(l.walkthrough.coach.taps.length, l.walkthrough.steps.length, l.walkthrough.key);
   }
   assert.match(REGISTRY_VERIFIED_ON, /^\d{4}-\d{2}-\d{2}$/);
 });
@@ -90,6 +91,8 @@ test("parseIosVersion sees through Safari's frozen OS token", () => {
 
 test("an iOS 26 Safari lands on the ••• walkthrough", () => {
   assert.equal(iosWalkthrough("safari", parseIosVersion(UA.safari26)).key, "safari-26");
+  // iOS 26's share sheet hides Add to Home Screen behind "View More": four taps.
+  assert.equal(iosWalkthrough("safari", parseIosVersion(UA.safari26)).steps.length, 4);
   assert.equal(iosWalkthrough("safari", parseIosVersion(UA.safari17)).key, "safari-15-25");
   assert.equal(iosWalkthrough("chrome", parseIosVersion(UA.chrome26)).key, "chrome");
 });

@@ -24,6 +24,8 @@ export type IosBrowser = "safari" | "chrome" | "firefox" | "edge";
 export type CoachEdge = "bottom-right" | "bottom-centre" | "top-right" | "none";
 export type IllustrationKey =
   | "safari-compact-more"
+  | "more-menu-share"
+  | "sheet-view-more"
   | "safari-classic-share"
   | "chrome-share"
   | "menu-hamburger"
@@ -48,10 +50,11 @@ export interface Walkthrough {
   coach: {
     /** Which screen edge the real control sits on — where the arrow points. */
     edge: CoachEdge;
-    /** The three taps, as short labels for the coach card. */
-    taps: readonly [string, string, string];
+    /** One short label per step, for the coach card. */
+    taps: readonly string[];
   };
-  steps: readonly [WalkStep, WalkStep, WalkStep];
+  /** Three or four steps — one screen each in the sheet. */
+  steps: readonly WalkStep[];
 }
 
 interface Entry {
@@ -89,19 +92,26 @@ export const LAYOUTS: readonly Entry[] = [
     walkthrough: {
       key: "safari-26",
       verifiedOn: "2026-09-03",
-      verifiedBy: "owner’s iPhone, iOS 26, Compact layout",
-      coach: { edge: "bottom-right", taps: ["•••", "Share", "Add to Home Screen"] },
+      verifiedBy:
+        "owner’s iPhone + BrowserStack iPhone 17 on iOS 26.5, Compact layout: ••• → Share → View More → Add to Home Screen",
+      coach: { edge: "bottom-right", taps: ["•••", "Share", "View More", "Add to Home Screen"] },
       steps: [
         {
           title: "Tap •••",
           caption:
-            "It’s at the right end of the address bar, at the bottom of the screen. (See a Share button instead? Tap that.)",
+            "It’s at the right end of the address bar, at the bottom of the screen. (See a Share button instead? Tap that and skip to step 3.)",
           illustration: "safari-compact-more",
         },
         {
-          title: "Tap Share, then Add to Home Screen",
-          caption: "Share is in that menu. In the sheet that opens, scroll down to Add to Home Screen.",
-          illustration: "sheet-add-row",
+          title: "Tap Share",
+          caption: "It’s the first thing in that menu.",
+          illustration: "more-menu-share",
+        },
+        {
+          title: "Tap View More, then Add to Home Screen",
+          caption:
+            "Add to Home Screen is tucked away: tap the ⌄ View More button at the end of the row of round buttons, and it appears in the list underneath.",
+          illustration: "sheet-view-more",
         },
         TAP_ADD,
       ],
