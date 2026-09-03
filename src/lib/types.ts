@@ -108,6 +108,18 @@ export interface AdminTotals {
     usualsWritten?: number;
     usualsTitleOnly?: number;
   } | null;
+  // Install funnel (forward-only, from app_events). standaloneUsers is the one
+  // that means "installed": distinct users seen launching from the home screen.
+  install?: {
+    shown?: number;
+    nativeAccepted?: number;
+    guide?: number;
+    later?: number;
+    never?: number;
+    pageViews?: number;
+    emailsSent?: number;
+    standaloneUsers?: number;
+  } | null;
   macrosSource?: Record<string, number> | null; // manual/imported/estimated → count
   topTags?: { name: string; count: number }[];
   deviceSplit?: Record<string, number> | null; // e.g. { mobile, desktop } from userAgent

@@ -4,7 +4,8 @@ import { useEffect } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
 import { AppShell } from "@/components/app-shell";
-import { IosInstallHint } from "@/components/ios-install-hint";
+import { InstallBanner } from "@/components/install-banner";
+import { InstallGate } from "@/components/install-gate";
 import { PendingInvite } from "@/components/pending-invite";
 import { PendingShare } from "@/components/pending-share";
 import { OnboardingGate } from "@/components/onboarding-gate";
@@ -46,8 +47,11 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
         {/* After the two hand-offs: both can change what the account looks
             like, and the gate defers while either is in flight. */}
         <OnboardingGate />
+        {/* After the questionnaire: it yields to onboarding and never stacks
+            on it (see install-gate.tsx). */}
+        <InstallGate />
         <AppShell>
-          <IosInstallHint />
+          <InstallBanner />
           {children}
         </AppShell>
       </ToastProvider>

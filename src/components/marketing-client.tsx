@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useSession } from "@/lib/auth-client";
+import { InstallSheet } from "@/components/install-sheet";
+import { logInstall, promptNativeInstall, useNativeInstall, usePlatform } from "@/lib/install";
 
 /**
  * Client bits for the marketing page (used at `/` and `/about`). The page markup
@@ -179,67 +181,31 @@ export function MarketingPriceCta({ plan }: { plan: "free" | "premium" }) {
   );
 }
 
-interface BeforeInstallPromptEvent extends Event {
-  prompt: () => Promise<void>;
-  userChoice: Promise<{ outcome: "accepted" | "dismissed" }>;
-}
-
 /**
- * "Install it like an app" button. Uses the browser's install flow where one
- * exists: on Chrome/Edge/Android it captures `beforeinstallprompt` and fires the
- * native prompt on click; on iOS Safari (which has no such event) it reveals the
- * Share -> Add to Home Screen steps; otherwise it points at the browser menu.
- * Shows an installed state once done (or when already running standalone).
+ * "Install app" button (marketing page + Account). On Chrome/Edge it fires the
+ * browser's install dialog, held by src/lib/install.ts. Everywhere else — iOS
+ * above all, which has no such dialog — it opens the install sheet with the
+ * steps for this phone. Shows an installed state once done, or when already
+ * running from the home screen.
  */
-export function MarketingInstallButton() {
-  const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null);
-  const [installed, setInstalled] = useState(false);
-  const [isIOS, setIsIOS] = useState(false);
-  const [hint, setHint] = useState<"ios" | "generic" | null>(null);
-
-  useEffect(() => {
-    // Deferred to after paint (reads client-only APIs), keeping the state
-    // updates out of the effect body.
-    const raf = requestAnimationFrame(() => {
-      const standalone =
-        window.matchMedia("(display-mode: standalone)").matches ||
-        (window.navigator as unknown as { standalone?: boolean }).standalone === true;
-      if (standalone) setInstalled(true);
-
-      const ua = navigator.userAgent;
-      setIsIOS(
-        /iPad|iPhone|iPod/.test(ua) ||
-          (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1),
-      );
-    });
-
-    const onPrompt = (e: Event) => {
-      e.preventDefault();
-      setDeferred(e as BeforeInstallPromptEvent);
-    };
-    const onInstalled = () => {
-      setInstalled(true);
-      setDeferred(null);
-      setHint(null);
-    };
-    window.addEventListener("beforeinstallprompt", onPrompt);
-    window.addEventListener("appinstalled", onInstalled);
-    return () => {
-      cancelAnimationFrame(raf);
-      window.removeEventListener("beforeinstallprompt", onPrompt);
-      window.removeEventListener("appinstalled", onInstalled);
-    };
-  }, []);
+export function MarketingInstallButton({ source = "button" }: { source?: "button" | "account" }) {
+  const platform = usePlatform();
+  const native = useNativeInstall();
+  const [open, setOpen] = useState(false);
+  const [accepted, setAccepted] = useState(false);
+  const installed = accepted || native.installed || platform?.standalone === true;
 
   async function install() {
-    if (deferred) {
-      await deferred.prompt();
-      const { outcome } = await deferred.userChoice;
-      if (outcome === "accepted") setInstalled(true);
-      setDeferred(null);
+    if (native.available) {
+      logInstall("install_prompt_shown", platform, { source });
+      const result = await promptNativeInstall();
+      logInstall("install_prompt_outcome", platform, {
+        outcome: result === "accepted" ? "native_accepted" : "native_dismissed",
+      });
+      if (result === "accepted") setAccepted(true);
       return;
     }
-    setHint(isIOS ? "ios" : "generic");
+    setOpen(true);
   }
 
   if (installed) {
@@ -266,13 +232,11 @@ export function MarketingInstallButton() {
           Works on iPhone, Android and desktop
         </span>
       </div>
-      {hint && (
-        <p className="text-muted home-install-hint">
-          {hint === "ios"
-            ? "On iPhone or iPad: tap the Share button in Safari, then choose “Add to Home Screen”. On a Mac, Safari’s Share menu has “Add to Dock”."
-            : "If nothing pops up, use your browser’s install icon in the address bar (Chrome or Edge on desktop), or open its menu and choose “Install app” / “Add to Home Screen”."}
-        </p>
-      )}
+      <p className="text-muted home-install-hint">
+        <Link href={`/install?from=${source}`}>Step-by-step guide</Link>
+        {platform?.os === "ios" && " — on iPhone it’s Share, then Add to Home Screen."}
+      </p>
+      {open && <InstallSheet source={source} onClose={() => setOpen(false)} />}
     </div>
   );
 }

@@ -255,9 +255,10 @@
   letter-spacing: 0.04em;
 }
 
-/* iOS "Add to Home Screen" hint — a dismissible one-liner (iOS Safari has no
-   install prompt). Hidden on desktop. */
-.ios-install {
+/* Install reminder — a dismissible one-liner on phones not yet running the
+   installed app; tapping it opens the install sheet (iOS has no install
+   prompt of its own). Hidden on desktop. */
+.install-banner {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -269,14 +270,20 @@
   font-size: 13px;
   color: var(--color-text);
 }
-.ios-install-text {
+.install-banner-text {
   flex: 1;
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  flex-wrap: wrap;
+  gap: 7px;
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
 }
-.ios-install-close {
+.install-banner-close {
   flex: none;
   background: none;
   border: 0;
@@ -286,7 +293,7 @@
   line-height: 0;
 }
 @media (min-width: 1024px) {
-  .ios-install {
+  .install-banner {
     display: none;
   }
 }

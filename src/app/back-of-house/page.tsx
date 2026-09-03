@@ -739,6 +739,24 @@ function GrowthSection({ totals }: { totals: NonNullable<AdminOverview["totals"]
         </>
       )}
 
+      {totals.install && (
+        <>
+          <p className="admin-chart-title" style={{ marginTop: 16 }}>Install funnel</p>
+          <Breakdown
+            items={[
+              { label: "Sheet shown", value: totals.install.shown ?? 0 },
+              { label: "Native accepted", value: totals.install.nativeAccepted ?? 0 },
+              { label: "To guide", value: totals.install.guide ?? 0 },
+              { label: "Later", value: totals.install.later ?? 0 },
+              { label: "Never", value: totals.install.never ?? 0 },
+              { label: "Guide views", value: totals.install.pageViews ?? 0 },
+              { label: "Emails sent", value: totals.install.emailsSent ?? 0 },
+              { label: "Using installed app", value: totals.install.standaloneUsers ?? 0 },
+            ]}
+          />
+        </>
+      )}
+
       {hasInvite && (
         <>
           <p className="admin-chart-title" style={{ marginTop: 16 }}>Invites</p>
