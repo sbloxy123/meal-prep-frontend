@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { X, Plus, Sparkles, ChevronDown } from "lucide-react";
 import { ApiError, apiFetch } from "@/lib/api";
 import { useMenu } from "@/lib/menu";
+import { shouldTakeMethod } from "@/lib/instructions";
 import { AllowanceNote, isWeeklyLimit, WEEKLY_LIMIT_MESSAGE } from "@/components/ai-allowance";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { ImageDrop, type RecipePhoto } from "@/components/image-drop";
@@ -183,6 +184,9 @@ export function RecipeForm({
   // quantities/units, a fuller method/description, a serving count) and returns
   // fresh per-serving macros. We only fill *blank* fields so the user's own
   // entries are never overwritten; macros are always refreshed (the whole point).
+  // The one exception is a method held as a single line of prose (what the AI
+  // paths used to write): if the model hands back real steps, we take them.
+  // A method already spread over several lines is someone's own work — leave it.
   async function improveRecipe() {
     if (improving || !canEstimate || menu.allowance.exhausted) return;
     if (!(await menu.confirmAiSpend())) return;
@@ -218,7 +222,9 @@ export function RecipeForm({
       const resolvedServings =
         servings.trim() || (res.servings != null ? String(res.servings) : "");
       if (!servings.trim() && res.servings != null) setServings(String(res.servings));
-      if (!instructions.trim() && res.instructions) setInstructions(res.instructions);
+      if (res.instructions && shouldTakeMethod(instructions, res.instructions)) {
+        setInstructions(res.instructions);
+      }
 
       // Merge the improved amounts into the rows (response aligns, in order, with
       // the named rows we sent) — only filling fields the user left blank. Build
