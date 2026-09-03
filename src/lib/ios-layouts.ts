@@ -14,7 +14,8 @@
 // new version in Safari and Chrome, check where Share / "•••" / Add to Home
 // Screen are, add or extend a row below, bump MAX_VERIFIED_IOS, update the
 // verifiedOn/verifiedBy notes. ios-layouts.test.ts fails if the number is
-// bumped without a row reaching it.
+// bumped without a row reaching it. Mind parseIosVersion below when checking:
+// Safari's UA lies about the OS version from iOS 26 on.
 
 export const MAX_VERIFIED_IOS = 26;
 export const REGISTRY_VERIFIED_ON = "2026-09-03";
@@ -231,6 +232,26 @@ export const GENERIC: Walkthrough = {
 export interface IosVersion {
   major: number;
   minor: number;
+}
+
+/**
+ * The iOS version from a user-agent string — with the trap that bit us on
+ * launch day: Safari on iOS 26+ freezes the OS token at "iPhone OS 18_6/18_7"
+ * for privacy, and only the Safari version ("Version/26.0") reveals the real
+ * release. Chrome/Firefox/Edge on iOS still report the true OS token and have
+ * no Version/ token. So: read both, take the newer. iPadOS masquerading as a
+ * Mac exposes only "Version/26.0", which the same rule covers.
+ */
+export function parseIosVersion(ua: string): IosVersion | null {
+  const os = /OS (\d+)_(\d+)/.exec(ua);
+  const safari = /Version\/(\d+)\.(\d+)/.exec(ua);
+  const candidates: IosVersion[] = [];
+  if (os) candidates.push({ major: Number(os[1]), minor: Number(os[2]) });
+  if (safari) candidates.push({ major: Number(safari[1]), minor: Number(safari[2]) });
+  if (candidates.length === 0) return null;
+  return candidates.reduce((best, c) =>
+    c.major > best.major || (c.major === best.major && c.minor > best.minor) ? c : best,
+  );
 }
 
 export function iosWalkthrough(browser: string, ios: IosVersion | null): Walkthrough {
