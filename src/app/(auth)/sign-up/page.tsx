@@ -49,7 +49,7 @@ export default function SignUpPage() {
         <div className="auth-kicker">Get started</div>
         <h1 className="auth-title-sm">Create your account</h1>
         <p className="auth-lede text-muted">
-          Plan the week, build the list, shop it aisle by aisle.
+          Plan the week, build the list, shop it aisle by aisle. Every new account starts with 14 days of Premium — no card needed.
         </p>
 
         <hr className="auth-rule" />

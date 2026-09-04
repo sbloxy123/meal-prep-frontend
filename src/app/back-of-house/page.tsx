@@ -1218,6 +1218,8 @@ function CreditsSection({ stats, days }: { stats: AdminCreditStats | null; days:
         <Stat label="Paying (had a trial)" value={t?.paying} />
         <Stat label={`Trials started · ${RANGE_LABEL[days]}`} value={t?.startedInRange} />
         <Stat label={`Converted · ${RANGE_LABEL[days]}`} value={t?.convertedInRange} />
+        <Stat label={`Prompt emails · ${RANGE_LABEL[days]}`} value={t?.emailsInRange} />
+        <Stat label={`Prompt cards · ${RANGE_LABEL[days]}`} value={t?.cardsInRange} />
         <Stat label={`Refused for credits · ${RANGE_LABEL[days]}`} value={stats?.rejections?.count} />
         <Stat label="Households refused" value={stats?.rejections?.households} />
       </div>

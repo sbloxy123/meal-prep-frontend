@@ -9,6 +9,7 @@ import { useSession } from "@/lib/auth-client";
 import { useMenu, type Collection } from "@/lib/menu";
 import { logPremiumCta } from "@/components/ai-allowance";
 import { PremiumBanner } from "@/components/premium-banner";
+import { TrialPrompt } from "@/components/trial-prompt";
 
 const WORDMARK = "Fornetto";
 
@@ -67,6 +68,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       />
       <div className="shell-main">
         <MobileHeader />
+        <TrialPrompt />
         <PremiumBanner />
         <div className="shell-page">{children}</div>
       </div>

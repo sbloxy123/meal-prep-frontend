@@ -175,6 +175,8 @@ export interface AdminCreditStats {
     paying: number;
     startedInRange: number;
     convertedInRange: number;
+    emailsInRange?: number;
+    cardsInRange?: number;
   };
   rejections?: { count: number; households: number };
   generated_at?: string;
