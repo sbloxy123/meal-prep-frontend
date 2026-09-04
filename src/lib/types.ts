@@ -334,3 +334,77 @@ export interface UsualsResponse {
     dropped: number;
   };
 }
+
+/** GET /admin/history?months= — daily snapshots rolled up by month. */
+export interface AdminHistoryMonth {
+  month: string; // YYYY-MM
+  days: number;
+  partial: boolean;
+  reconstructed: string[]; // stock metrics that were written after the fact for some day this month
+  users?: number | null;
+  verified_users?: number | null;
+  households?: number | null;
+  paid_households?: number | null;
+  comped_households?: number | null;
+  subs_monthly?: number | null;
+  subs_annual?: number | null;
+  subs_founders?: number | null;
+  mrr_pence?: number | null;
+  active_7d?: number | null;
+  active_30d?: number | null;
+  trials_active?: number | null;
+  signups: number;
+  active_users: number;
+  ai_actions: number;
+  ai_rejected: number;
+  ai_credits: number;
+  ai_cost_pence: number;
+  aisle_actions: number;
+  aisle_model_calls: number;
+  lists_generated: number;
+  week_adds: number;
+  shops_finished: number;
+  recipes_created: number;
+  trials_started: number;
+  trials_converted: number;
+  trials_expired: number;
+  cancellations: number;
+  subscriptions_ended: number;
+  seat_hits: number;
+  cta_taps: number;
+  checkouts_started: number;
+  onboarding_shown: number;
+  onboarding_completed: number;
+  onboarding_skipped: number;
+  d1: number | null;
+  d7: number | null;
+  d30: number | null;
+  d7_cohort: number;
+  cost_per_paying_pence: number | null;
+}
+export interface AdminHistory {
+  months: AdminHistoryMonth[];
+  generated_at?: string;
+}
+
+/** GET /admin/onboarding?days= — the questionnaire, step by step. */
+export interface AdminOnboarding {
+  days: number;
+  funnel: {
+    shown: number; started: number; step2: number; step3: number; step4: number; step5: number;
+    completed: number; skipped: number; aiHandoff: number; medianMs: number | null;
+  };
+  skipsByStep: { step: number | null; soft: boolean; users: number }[];
+  byEntry: { entry: string; shown: number; completed: number }[];
+  dietary: {
+    answered: number; withDiets: number; withProteins: number;
+    diets: { label: string; value: number }[];
+    proteins: { label: string; value: number }[];
+    scope: { label: string; value: number }[];
+  };
+  starters: { avgOffered: number; avgChosen: number; avgAdded: number; totalAdded: number; addedFromList: number };
+  usuals: { typed: number; addedOwn: number; runs: number; dishes: number; written: number; titleOnly: number; failed: number; medianMs: number | null };
+  outcomes: { completedEmpty: number };
+  followThrough: { outcome: "completed" | "skipped"; users: number; addedRecipe: number; plannedWeek: number; generatedList: number; finishedShop: number }[];
+  generated_at?: string;
+}

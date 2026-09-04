@@ -6,8 +6,9 @@ import { Sparkles, Check } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { useMenu } from "@/lib/menu";
 import { PageHeader } from "@/components/page-header";
-import { resetDay, logPremiumCta } from "@/components/ai-allowance";
+import { resetDay, logPremiumCta, PREMIUM_FROM_KEY } from "@/components/ai-allowance";
 import { apiFetch, ApiError } from "@/lib/api";
+import { logEvent } from "@/lib/analytics";
 
 // Upgrade flow: the button starts Stripe Checkout (a redirect); on return with
 // ?upgraded=1 we refresh so the newly-unlocked plan shows once the webhook has
@@ -15,9 +16,10 @@ import { apiFetch, ApiError } from "@/lib/api";
 // its trial can convert early: the backend passes the trial end to Checkout, so
 // billing only starts when the free days would have run out anyway.
 
-const MONTHLY = "£3.99";
-const ANNUAL = "£29.99";
-const FOUNDERS = "£19.99";
+// Fallbacks only — GET /premium/offers carries the live labels (lib/pricing.js).
+const MONTHLY_FALLBACK = "£3.99";
+const ANNUAL_FALLBACK = "£29.99";
+const FOUNDERS_FALLBACK = "£19.99";
 // Two months free, i.e. £29.99 vs 12 × £3.99.
 const ANNUAL_SAVING = "save 37%";
 
@@ -27,6 +29,7 @@ interface Offers {
   monthly: boolean;
   annual: boolean;
   founders: { available: boolean; remaining: number | null; cap: number | null };
+  prices?: { monthly: string; annual: string; founders: string };
 }
 
 const INCLUDED = [
@@ -78,12 +81,22 @@ export default function PremiumPage() {
 
   const annual = interval === "year" && Boolean(offers?.annual);
   const founders = annual && Boolean(offers?.founders.available);
+  const MONTHLY = offers?.prices?.monthly ?? MONTHLY_FALLBACK;
+  const ANNUAL = offers?.prices?.annual ?? ANNUAL_FALLBACK;
+  const FOUNDERS = offers?.prices?.founders ?? FOUNDERS_FALLBACK;
 
   async function upgrade() {
     if (pending) return;
     setPending(true);
     setError(null);
     logPremiumCta(founders ? "premium_page_founders" : annual ? "premium_page_annual" : "premium_page_monthly");
+    let from: string | undefined;
+    try {
+      from = sessionStorage.getItem(PREMIUM_FROM_KEY) ?? undefined;
+    } catch {
+      from = undefined;
+    }
+    logEvent("checkout_started", { interval: annual ? "year" : "month", founders, from });
     try {
       const { error: upErr } = await authClient.subscription.upgrade({
         plan: "premium",

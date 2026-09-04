@@ -158,9 +158,11 @@ export function OnboardingWizard({
 
   // Top of the funnel. The ref keeps StrictMode's double-invoked effect (and
   // any re-render) from inflating it.
+  const shownAt = useRef<number>(0);
   useEffect(() => {
     if (loggedShown.current) return;
     loggedShown.current = true;
+    shownAt.current = Date.now();
     logEvent("onboarding_shown", { entry });
   }, [entry]);
 
@@ -330,6 +332,8 @@ export function OnboardingWizard({
       // The questionnaire may be offered again; the answers are what matter.
     }
     logEvent("onboarding_completed", {
+      // How long the questionnaire took, shown → done.
+      ms: shownAt.current ? Date.now() - shownAt.current : undefined,
       // Under a hand-off the starter list is never created, so don't report it
       // as chosen — the funnel would show recipes that never existed.
       offered: handOff ? 0 : gaps.length,
@@ -423,6 +427,7 @@ export function OnboardingWizard({
         await apiFetch("/recipes", {
           method: "POST",
           body: JSON.stringify({
+            recipe_source: "starter",
             recipe_title: r.title,
             recipe_instructions: r.instructions,
             tags,
