@@ -55,7 +55,7 @@ export function AiBox({ onDone }: { onDone: () => Promise<void> }) {
       )}
       <div className="ai-foot">
         <span className="ai-hint text-muted">
-          Type it however you like — it gets split into separate items.
+          Type it however you like — it gets split into separate items. Free, no credits used.
         </span>
         <button
           type="button"

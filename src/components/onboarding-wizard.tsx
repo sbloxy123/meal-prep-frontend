@@ -699,7 +699,7 @@ export function OnboardingWizard({
             <>
               <p className="dialog-body" style={{ margin: 0 }}>
                 Name the meals you actually cook and we’ll write them up — one per line. This
-                one’s on us; it doesn’t touch your weekly allowance.
+                one’s on us; it doesn’t use any credits.
               </p>
               <div className="field" style={{ margin: 0 }}>
                 <label htmlFor="ob-dishes">Your go-to meals</label>

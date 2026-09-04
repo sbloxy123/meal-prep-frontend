@@ -244,15 +244,15 @@ export default function RecipeDetailPage() {
             canEstimate rule), so there's nothing to offer without them. */}
         {ingredients.length > 0 && (
           <div className="detail-improve">
-            {menu.allowance.exhausted ? (
+            {!menu.allowance.canAfford("improve") ? (
               <>
                 <button type="button" className="btn btn-ai detail-improve-btn" disabled>
                   <Sparkles size={15} className="btn-ai-spark" aria-hidden />
                   Improve recipe
                 </button>
                 <p className="text-muted detail-improve-note">
-                  No AI actions left this week.{" "}
-                  <GoPremiumLink source="detail_improve">Go premium</GoPremiumLink> for unlimited.
+                  No AI credits left this month.{" "}
+                  <GoPremiumLink source="detail_improve">Go premium</GoPremiumLink> for more.
                 </p>
               </>
             ) : (

@@ -691,8 +691,8 @@ function EmptyRecipes({
         </Link>
         {!allowance.isPremium && (
           <p className="text-muted recipes-ai-cta-note">
-            Your free plan includes {allowance.limit} AI actions a week.{" "}
-            <GoPremiumLink source="empty_state_ai">Go Premium</GoPremiumLink> for unlimited.
+            Your free plan includes {allowance.limit} AI credits a month.{" "}
+            <GoPremiumLink source="empty_state_ai">Go Premium</GoPremiumLink> for more.
           </p>
         )}
       </div>

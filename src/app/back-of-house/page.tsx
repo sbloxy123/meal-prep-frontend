@@ -16,6 +16,8 @@ import { ApiError, apiFetch } from "@/lib/api";
 import { useSession } from "@/lib/auth-client";
 import type {
   AdminAiStats,
+  AdminConfig,
+  AdminCreditStats,
   AdminRetentionPoint,
   AdminOverview,
   AdminTotals,
@@ -131,6 +133,7 @@ export default function BackOfHousePage() {
   const [overview, setOverview] = useState<AdminOverview | null>(null);
   const [users, setUsers] = useState<AdminUserRow[] | null>(null);
   const [aiStats, setAiStats] = useState<AdminAiStats | null>(null);
+  const [creditStats, setCreditStats] = useState<AdminCreditStats | null>(null);
   const [error, setError] = useState("");
 
   // Not signed in at all → straight to sign-in.
@@ -205,6 +208,15 @@ export default function BackOfHousePage() {
         if (err instanceof ApiError && err.status === 404) return;
         handleErr(err);
       });
+    apiFetch<AdminCreditStats>(`/admin/credits?days=${days}`)
+      .then((d) => {
+        if (!cancelled) setCreditStats(d);
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        if (err instanceof ApiError && err.status === 404) return;
+        handleErr(err);
+      });
     return () => {
       cancelled = true;
     };
@@ -226,6 +238,7 @@ export default function BackOfHousePage() {
       users={users}
       overview={overview}
       aiStats={aiStats}
+      creditStats={creditStats}
       days={days}
       onRange={setDays}
     />
@@ -236,12 +249,14 @@ function Dashboard({
   users,
   overview,
   aiStats,
+  creditStats,
   days,
   onRange,
 }: {
   users: AdminUserRow[];
   overview: AdminOverview | null;
   aiStats: AdminAiStats | null;
+  creditStats: AdminCreditStats | null;
   days: Range;
   onRange: (d: Range) => void;
 }) {
@@ -302,6 +317,10 @@ function Dashboard({
 
       {/* ④ AI usage & cost */}
       <AiSection series={series} users={users} days={days} stats={aiStats} />
+
+      {/* ④b Credits, trial funnel, config */}
+      <CreditsSection stats={creditStats} days={days} />
+      <ConfigSection />
 
       {/* ⑤ Growth & adoption (secondary) */}
       <GrowthSection totals={totals} />
@@ -1123,4 +1142,217 @@ function toItems(rec: Record<string, number>): { label: string; value: number }[
 }
 function cap(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+// ── ④b Credits & trial ───────────────────────────────────────────────────────
+
+const PLAN_LABEL: Record<string, string> = { free: "Free", trial: "Trial", premium: "Premium" };
+
+function CreditsSection({ stats, days }: { stats: AdminCreditStats | null; days: Range }) {
+  const plans = stats?.byPlan ? Object.entries(stats.byPlan) : [];
+  const t = stats?.trial;
+  return (
+    <section className="admin-section">
+      <h2>Credits &amp; trial</h2>
+      <p className="admin-section-note">
+        Each household&rsquo;s credit period runs from its signup anniversary. &ldquo;At ceiling&rdquo;
+        means used ≥ allowance this period; the percentiles are credits used per household, all
+        households (and only those that used any).
+      </p>
+
+      {plans.length > 0 ? (
+        <div className="admin-table-wrap">
+          <table className="admin-table admin-table-compact">
+            <thead>
+              <tr>
+                <th>Plan</th>
+                <th className="admin-td-num">Households</th>
+                <th className="admin-td-num">Used any</th>
+                <th className="admin-td-num">At ceiling</th>
+                <th className="admin-td-num">≥ 80%</th>
+                <th className="admin-td-num">Avg</th>
+                <th className="admin-td-num">p50</th>
+                <th className="admin-td-num">p75</th>
+                <th className="admin-td-num">p90</th>
+                <th className="admin-td-num">p95</th>
+                <th className="admin-td-num">Max</th>
+                <th className="admin-td-num">p50 / p90 (active)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {plans.map(([plan, r]) => (
+                <tr key={plan}>
+                  <td>{PLAN_LABEL[plan] ?? cap(plan)}</td>
+                  <td className="admin-td-num">{r.households}</td>
+                  <td className="admin-td-num">{r.active}</td>
+                  <td className="admin-td-num">
+                    {r.atCeiling}
+                    {r.households > 0 && ` (${Math.round((r.atCeiling / r.households) * 100)}%)`}
+                  </td>
+                  <td className="admin-td-num">{r.nearCeiling}</td>
+                  <td className="admin-td-num">{r.avgUsed}</td>
+                  <td className="admin-td-num">{r.p50}</td>
+                  <td className="admin-td-num">{r.p75}</td>
+                  <td className="admin-td-num">{r.p90}</td>
+                  <td className="admin-td-num">{r.p95}</td>
+                  <td className="admin-td-num">{r.max}</td>
+                  <td className="admin-td-num">
+                    {r.p50Active} / {r.p90Active}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        <p className="admin-empty" style={{ padding: "16px 4px" }}>
+          No credit data yet.
+        </p>
+      )}
+
+      <p className="admin-chart-title" style={{ marginTop: 16 }}>Trial funnel</p>
+      <div className="admin-stat-grid">
+        <Stat label="On trial now" value={t?.active} />
+        <Stat label="Ending within 4 days" value={t?.endingSoon} />
+        <Stat label="Expired → free" value={t?.expiredFree} />
+        <Stat label="Paying (had a trial)" value={t?.paying} />
+        <Stat label={`Trials started · ${RANGE_LABEL[days]}`} value={t?.startedInRange} />
+        <Stat label={`Converted · ${RANGE_LABEL[days]}`} value={t?.convertedInRange} />
+        <Stat label={`Refused for credits · ${RANGE_LABEL[days]}`} value={stats?.rejections?.count} />
+        <Stat label="Households refused" value={stats?.rejections?.households} />
+      </div>
+    </section>
+  );
+}
+
+// ── ④c Config ───────────────────────────────────────────────────────────────
+// The app_config knobs. Saving writes one key; the backend validates and logs
+// it. Applies to households created from now on — nobody existing changes.
+
+const CONFIG_FIELDS: {
+  key: keyof AdminConfig["config"];
+  label: string;
+  help: string;
+  kind: "int" | "int-or-null" | "json" | "string-or-null";
+}[] = [
+  { key: "trial_days", label: "Trial length (days)", help: "Full Premium from signup, no card. New signups only.", kind: "int" },
+  { key: "free_credit_allowance", label: "Free credits / month", help: "Per household, on the signup anniversary. Blank = unlimited.", kind: "int-or-null" },
+  { key: "premium_credit_allowance", label: "Premium & trial credits / month", help: "Soft cap. Blank = unlimited (what a comp gets).", kind: "int-or-null" },
+  { key: "credit_weights", label: "Credits per action", help: "JSON, action → credits. 0 = free (the shopping list must stay 0).", kind: "json" },
+  { key: "member_limit_free", label: "Free household size", help: "Members a free household can have. Existing households keep theirs.", kind: "int" },
+  { key: "founders_coupon", label: "Founders’ coupon id", help: "Stripe coupon applied to annual checkouts while it has redemptions left. Blank = off.", kind: "string-or-null" },
+  { key: "founders_cap", label: "Founders’ cap", help: "For display only — Stripe enforces max_redemptions.", kind: "int" },
+];
+
+function ConfigSection() {
+  const [data, setData] = useState<AdminConfig | null>(null);
+  const [drafts, setDrafts] = useState<Record<string, string>>({});
+  const [busy, setBusy] = useState<string | null>(null);
+  const [note, setNote] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
+
+  function load() {
+    apiFetch<AdminConfig>("/admin/config")
+      .then((d) => {
+        setData(d);
+        const next: Record<string, string> = {};
+        for (const f of CONFIG_FIELDS) {
+          const v = d.config[f.key];
+          next[f.key] = v == null ? "" : f.kind === "json" ? JSON.stringify(v) : String(v);
+        }
+        setDrafts(next);
+      })
+      .catch(() => setData(null));
+  }
+  // Load once on mount.
+  useEffect(load, []);
+
+  async function save(f: (typeof CONFIG_FIELDS)[number]) {
+    const raw = (drafts[f.key] ?? "").trim();
+    let value: unknown;
+    try {
+      if (f.kind === "int") value = Number.parseInt(raw, 10);
+      else if (f.kind === "int-or-null") value = raw === "" ? null : Number.parseInt(raw, 10);
+      else if (f.kind === "string-or-null") value = raw === "" ? null : raw;
+      else value = JSON.parse(raw);
+      if ((f.kind === "int" || (f.kind === "int-or-null" && raw !== "")) && !Number.isInteger(value)) {
+        throw new Error("not a whole number");
+      }
+    } catch {
+      setNote({ kind: "err", text: `${f.label}: that isn’t valid.` });
+      return;
+    }
+    setBusy(f.key);
+    setNote(null);
+    try {
+      const d = await apiFetch<AdminConfig>("/admin/config", {
+        method: "PUT",
+        body: JSON.stringify({ key: f.key, value }),
+      });
+      setData((prev) => ({ ...(prev ?? {}), ...d }));
+      setNote({ kind: "ok", text: `${f.label} saved — applies to new households.` });
+    } catch (e) {
+      let text = `Couldn’t save ${f.label}.`;
+      if (e instanceof ApiError) {
+        try {
+          text = JSON.parse(e.body)?.error ?? text;
+        } catch {
+          // keep default
+        }
+      }
+      setNote({ kind: "err", text });
+    } finally {
+      setBusy(null);
+    }
+  }
+
+  if (!data) return null;
+
+  return (
+    <section className="admin-section">
+      <h2>Plan settings</h2>
+      <p className="admin-section-note">
+        Changes here apply to households created from now on. Every existing household keeps the
+        allowances, weights and member limit it was created with, so early users are never moved.
+      </p>
+      <div className="admin-config">
+        {CONFIG_FIELDS.map((f) => {
+          const m = data.meta?.[f.key];
+          return (
+            <div key={f.key} className="admin-config-row">
+              <label htmlFor={`cfg-${f.key}`} className="admin-config-label">
+                {f.label}
+                <span className="admin-config-help">{f.help}</span>
+              </label>
+              <input
+                id={`cfg-${f.key}`}
+                className="input admin-config-input"
+                value={drafts[f.key] ?? ""}
+                onChange={(e) => setDrafts((prev) => ({ ...prev, [f.key]: e.target.value }))}
+                spellCheck={false}
+              />
+              <button
+                type="button"
+                className="btn btn-secondary"
+                onClick={() => save(f)}
+                disabled={busy === f.key}
+              >
+                {busy === f.key ? "Saving…" : "Save"}
+              </button>
+              {m?.updatedAt && (
+                <span className="admin-config-meta">
+                  {fmtDate(m.updatedAt)}
+                  {m.updatedBy ? ` · ${m.updatedBy}` : ""}
+                </span>
+              )}
+            </div>
+          );
+        })}
+      </div>
+      {note && (
+        <p className={note.kind === "ok" ? "admin-note-ok" : "admin-note-err"} role="status">
+          {note.text}
+        </p>
+      )}
+    </section>
+  );
 }

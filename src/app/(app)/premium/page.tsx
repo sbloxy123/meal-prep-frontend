@@ -6,18 +6,27 @@ import { Sparkles, Check } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { useMenu } from "@/lib/menu";
 import { PageHeader } from "@/components/page-header";
+import { resetDay } from "@/components/ai-allowance";
 
 // Upgrade flow: the button starts Stripe Checkout (a redirect); on return with
 // ?upgraded=1 we refresh so the newly-unlocked plan shows once the webhook has
-// flipped household.plan. Entitlement is household-wide.
+// flipped household.plan. Entitlement is household-wide. A household still on
+// its trial can convert early: the backend passes the trial end to Checkout, so
+// billing only starts when the free days would have run out anyway.
+
+const MONTHLY = "£3.99";
 
 const INCLUDED = [
-  "Unlimited AI recipe drafts — from a link, a title, a photo or a social post",
-  "Unlimited “Improve recipe” and “Estimate macros”",
-  "Unlimited “Give me inspiration” ideas",
-  "Unlimited “Generate list by aisle”",
+  "300 AI credits a month — six times the free plan",
+  "Recipe drafts from a link, a title, a photo or a social post",
+  "“Improve recipe”, “Estimate macros” and “Give me inspiration”",
   "Shared across your whole household",
 ];
+
+function longDate(iso: string | null): string {
+  if (!iso) return "";
+  return new Date(iso).toLocaleDateString("en-GB", { day: "numeric", month: "long", timeZone: "Europe/London" });
+}
 
 export default function PremiumPage() {
   const { allowance, refresh } = useMenu();
@@ -57,6 +66,9 @@ export default function PremiumPage() {
     }
   }
 
+  const paid = allowance.plan === "premium";
+  const trial = allowance.isTrial;
+
   return (
     <>
       <PageHeader title="Fornetto Premium" />
@@ -67,12 +79,15 @@ export default function PremiumPage() {
             Fornetto AI
           </span>
 
-          {allowance.isPremium ? (
+          {paid ? (
             <>
               <h2>You’re on Premium</h2>
               <p className="text-muted" style={{ fontSize: 14 }}>
-                Your household has unlimited AI. Thank you for supporting Fornetto. You can manage
-                or cancel your subscription from your{" "}
+                {allowance.unlimited
+                  ? "Your household has unlimited AI."
+                  : `Your household has ${allowance.limit} AI credits a month (${allowance.remaining} left, tops up on ${resetDay(allowance.resetsAt)}).`}{" "}
+                Thank you for supporting Fornetto. You can manage or cancel your subscription from
+                your{" "}
                 <Link href="/account" className="recipes-empty-link">
                   Account
                 </Link>{" "}
@@ -83,15 +98,30 @@ export default function PremiumPage() {
             <>
               {justUpgraded && (
                 <p className="premium-thanks" role="status">
-                  Payment received — unlocking unlimited AI for your household. This can take a few
+                  Payment received — unlocking Premium for your household. This can take a few
                   seconds to appear.
                 </p>
               )}
-              <h2 style={{ marginBottom: 4 }}>Unlimited AI for your kitchen</h2>
-              <p className="text-muted" style={{ fontSize: 14, marginTop: 0 }}>
-                <strong style={{ fontSize: 20, color: "var(--color-text)" }}>£2.99</strong> / month
-                — cancel anytime.
-              </p>
+              {trial ? (
+                <>
+                  <h2 style={{ marginBottom: 4 }}>
+                    Premium trial — {allowance.trialDaysLeft} day{allowance.trialDaysLeft === 1 ? "" : "s"} left
+                  </h2>
+                  <p className="text-muted" style={{ fontSize: 14, marginTop: 0 }}>
+                    Keep everything you have now for{" "}
+                    <strong style={{ fontSize: 20, color: "var(--color-text)" }}>{MONTHLY}</strong> / month
+                    — you won’t pay anything until {longDate(allowance.trialEndsAt)}. Cancel anytime.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <h2 style={{ marginBottom: 4 }}>Six times the AI for your kitchen</h2>
+                  <p className="text-muted" style={{ fontSize: 14, marginTop: 0 }}>
+                    <strong style={{ fontSize: 20, color: "var(--color-text)" }}>{MONTHLY}</strong> / month
+                    — cancel anytime.
+                  </p>
+                </>
+              )}
 
               <ul className="premium-features">
                 {INCLUDED.map((line) => (
@@ -102,18 +132,23 @@ export default function PremiumPage() {
                 ))}
               </ul>
 
-              <p className="text-muted" style={{ fontSize: 13 }}>
-                Free accounts keep every feature — you just share {allowance.limit} AI actions a
-                week
-                {allowance.remaining < allowance.limit
-                  ? ` (you’ve got ${allowance.remaining} left this week).`
-                  : "."}{" "}
-                Writing a recipe by hand is always free.
-              </p>
+              {!trial && (
+                <p className="text-muted" style={{ fontSize: 13 }}>
+                  Free accounts keep every feature — you get {allowance.limit} AI credits a month
+                  {allowance.remaining < allowance.limit
+                    ? ` (${allowance.remaining} left, tops up on ${resetDay(allowance.resetsAt)}).`
+                    : "."}{" "}
+                  The shopping list never costs a credit, and writing a recipe by hand is always free.
+                </p>
+              )}
 
               <button type="button" className="btn btn-ai" onClick={upgrade} disabled={pending}>
                 <Sparkles size={15} className="btn-ai-spark" aria-hidden />
-                {pending ? "Starting checkout…" : "Go Premium — £2.99/month"}
+                {pending
+                  ? "Starting checkout…"
+                  : trial
+                    ? `Keep Premium — ${MONTHLY}/month`
+                    : `Go Premium — ${MONTHLY}/month`}
               </button>
               {error && (
                 <p className="rf-error" role="alert" style={{ marginTop: 8 }}>
@@ -121,7 +156,7 @@ export default function PremiumPage() {
                 </p>
               )}
               <p className="text-muted" style={{ fontSize: 12, marginTop: 8 }}>
-                Secure payment by Stripe. One member pays, your whole household gets unlimited AI.
+                Secure payment by Stripe. One member pays, your whole household gets Premium.
               </p>
             </>
           )}

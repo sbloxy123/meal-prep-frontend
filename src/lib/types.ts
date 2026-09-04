@@ -131,6 +131,55 @@ export interface AdminAiStats {
   generated_at?: string;
 }
 
+/** GET /admin/config — the knobs in app_config. Values are JSON; a change
+    applies to households created afterwards (existing ones keep their
+    snapshot). */
+export interface AdminConfig {
+  config: {
+    trial_days: number;
+    free_credit_allowance: number | null;
+    premium_credit_allowance: number | null;
+    credit_weights: Record<string, number>;
+    member_limit_free: number;
+    founders_coupon: string | null;
+    founders_cap: number;
+  };
+  meta?: Record<string, { updatedAt?: string; updatedBy?: string | null }>;
+  defaults?: AdminConfig["config"];
+}
+
+/** GET /admin/credits?days= — the credit model in numbers. */
+export interface AdminCreditStats {
+  days?: number;
+  byPlan?: Record<
+    string,
+    {
+      households: number;
+      active: number;
+      atCeiling: number;
+      nearCeiling: number;
+      avgUsed: number;
+      p50: number;
+      p75: number;
+      p90: number;
+      p95: number;
+      max: number;
+      p50Active: number;
+      p90Active: number;
+    }
+  >;
+  trial?: {
+    active: number;
+    endingSoon: number;
+    expiredFree: number;
+    paying: number;
+    startedInRange: number;
+    convertedInRange: number;
+  };
+  rejections?: { count: number; households: number };
+  generated_at?: string;
+}
+
 export interface AdminTotals {
   users?: number;
   verifiedUsers?: number;

@@ -5,7 +5,7 @@ import { Sparkles } from "lucide-react";
 import { ApiError, apiFetch } from "@/lib/api";
 import { useModalA11y } from "@/lib/use-modal";
 import { useMenu } from "@/lib/menu";
-import { AllowanceNote, isWeeklyLimit, WEEKLY_LIMIT_MESSAGE } from "@/components/ai-allowance";
+import { AllowanceNote, isCreditLimit, creditLimitMessage } from "@/components/ai-allowance";
 import { INSPIRE_HINT_KEY } from "@/components/onboarding-wizard";
 
 // A2 — "Give me inspiration". Asks the AI for a handful of recipe ideas
@@ -71,8 +71,8 @@ export function RecipeInspiration({
   }
 
   async function suggest() {
-    if (pending || menu.allowance.exhausted) return;
-    if (!(await menu.confirmAiSpend())) return;
+    if (pending || !menu.allowance.canAfford("suggest")) return;
+    if (!(await menu.confirmAiSpend("suggest"))) return;
     const h = hint.trim();
     setPending(true);
     setError(null);
@@ -84,12 +84,12 @@ export function RecipeInspiration({
         body: JSON.stringify({ hint: h || undefined }),
       });
       setSuggestions(res.suggestions ?? []);
-      void menu.refresh(); // reflect the decremented weekly allowance
+      void menu.refresh(); // reflect the spent credits
     } catch (err) {
       const status = err instanceof ApiError ? err.status : 0;
       setError(
-        isWeeklyLimit(err)
-          ? WEEKLY_LIMIT_MESSAGE
+        isCreditLimit(err)
+          ? creditLimitMessage(err)
           : status === 429
             ? "Limit reached — 15 suggestions per 6 hours. Try again later."
             : "Couldn’t get ideas just now. Please try again.",
@@ -184,14 +184,14 @@ export function RecipeInspiration({
             type="button"
             className="btn btn-ai"
             onClick={suggest}
-            disabled={busy || menu.allowance.exhausted}
+            disabled={busy || !menu.allowance.canAfford("suggest")}
           >
             <Sparkles size={14} className="btn-ai-spark" aria-hidden />
             {pending ? "Thinking…" : suggestions.length ? "Again" : "Suggest"}
           </button>
         </div>
 
-        <AllowanceNote source="recipe_inspiration" />
+        <AllowanceNote source="recipe_inspiration" action="suggest" />
 
         <div className="inspire-chips">
           {QUICK_HINTS.map((h) => (
