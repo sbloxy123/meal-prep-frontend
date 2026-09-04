@@ -8,6 +8,9 @@ import { useMenu, type AiAllowance } from "@/lib/menu";
 // All AI surfaces read the entitlement from MenuProvider and render these bits,
 // so the copy + upsell live in one place.
 
+/** Which CTA brought someone to /premium — read back when checkout starts. */
+export const PREMIUM_FROM_KEY = "fornetto:premiumFrom";
+
 /** Fire-and-forget funnel logging for a "Go premium" tap. */
 export function logPremiumCta(source: string) {
   void apiSend("/premium/cta", {
@@ -74,6 +77,11 @@ export function GoPremiumLink({
       className={className}
       onClick={() => {
         logPremiumCta(source);
+        try {
+          sessionStorage.setItem(PREMIUM_FROM_KEY, source);
+        } catch {
+          // best-effort attribution
+        }
         router.push("/premium");
       }}
     >

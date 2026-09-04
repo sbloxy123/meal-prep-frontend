@@ -54,6 +54,7 @@ export default function AccountPage() {
             <DietaryCard />
             <InstallAppCard />
             <AboutCard />
+            <AdminCard />
             <StarterRecipesCard />
             <HouseholdCard />
             <PasswordCard />
@@ -472,5 +473,23 @@ function DeleteDialog({ onClose }: { onClose: () => void }) {
         </div>
       </div>
     </div>
+  );
+}
+
+/** Only for accounts on the server's ADMIN_EMAILS allowlist — a way in to the
+    dashboard without remembering the URL. The page itself is still gated. */
+function AdminCard() {
+  const { isAdmin } = useMenu();
+  if (!isAdmin) return null;
+  return (
+    <section className="account-card">
+      <h2>Back of house</h2>
+      <p className="text-muted" style={{ fontSize: 14, marginBottom: 12 }}>
+        Usage, cost, credits, the trial funnel, plan settings and the aisle cache.
+      </p>
+      <Link href="/back-of-house" className="btn btn-secondary">
+        Open back of house
+      </Link>
+    </section>
   );
 }

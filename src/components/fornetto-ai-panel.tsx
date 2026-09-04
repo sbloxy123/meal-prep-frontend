@@ -196,7 +196,7 @@ export function FornettoAiPanel({
         draft = res;
       }
 
-      onImported(draft);
+      onImported({ ...draft, source: ROUTE_ACTION[route] === "generate" ? "generate" : ROUTE_ACTION[route] === "photo" ? "photo" : ROUTE_ACTION[route] === "social" ? "social" : "import" });
       // The action has been spent — pull the fresh count so the allowance tag
       // and the spend confirmation aren't a step behind.
       void menu.refresh();

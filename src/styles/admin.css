@@ -70,7 +70,7 @@
 }
 @media (min-width: 720px) {
   .admin-kpis {
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   }
 }
 .admin-kpi {
@@ -150,16 +150,104 @@
   background: var(--color-accent-100);
 }
 
-/* Responsive show/hide: table on wide screens, stacked cards on narrow. */
-.admin-only-wide {
+/* Tab bar under the header; scrolls sideways on phones. */
+.admin-tabs {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-bottom: 1px solid var(--color-divider);
+  margin: 4px 0 20px;
+  scrollbar-width: none;
+}
+.admin-tabs::-webkit-scrollbar {
   display: none;
 }
-@media (min-width: 1024px) {
-  .admin-only-wide {
+.admin-tab {
+  flex: 0 0 auto;
+  padding: 10px 12px;
+  font: inherit;
+  font-size: 14px;
+  color: var(--color-neutral-700);
+  background: none;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.admin-tab.is-active {
+  color: var(--color-text);
+  border-bottom-color: var(--color-accent);
+}
+.admin-link {
+  color: var(--color-accent-800, var(--color-text));
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.admin-table th.is-sortable {
+  cursor: pointer;
+}
+
+/* DataTable: one markup path. Below 1024px "cards" mode turns each row into a
+   card using the cell's data-label; "scroll" mode keeps the table and scrolls
+   it inside the section. */
+.admin-table-wrap.is-scroll {
+  overflow-x: auto;
+}
+@media (max-width: 1023px) {
+  .admin-table-wrap.is-cards .admin-table,
+  .admin-table-wrap.is-cards tbody,
+  .admin-table-wrap.is-cards tr,
+  .admin-table-wrap.is-cards td {
     display: block;
+    width: 100%;
   }
-  .admin-only-narrow {
+  .admin-table-wrap.is-cards thead {
     display: none;
+  }
+  .admin-table-wrap.is-cards tr {
+    background: var(--color-surface);
+    border: 1px solid var(--color-divider);
+    border-radius: var(--radius-md, 8px);
+    padding: 10px 12px;
+    margin-bottom: 8px;
+  }
+  .admin-table-wrap.is-cards td {
+    border: 0;
+    padding: 2px 0;
+    text-align: left;
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 13px;
+  }
+  .admin-table-wrap.is-cards td::before {
+    content: attr(data-label);
+    color: var(--color-neutral-500);
+    font-size: 12px;
+    flex: 0 0 auto;
+  }
+  .admin-table-wrap.is-cards td[data-mobile="title"] {
+    display: block;
+    font-size: 15px;
+    margin-bottom: 4px;
+  }
+  .admin-table-wrap.is-cards td[data-mobile="title"]::before,
+  .admin-table-wrap.is-cards td[data-mobile="pill"]::before {
+    content: none;
+  }
+  .admin-table-wrap.is-cards td[data-mobile="pill"] {
+    display: inline-flex;
+    width: auto;
+    margin-right: 8px;
+    padding: 0 0 6px;
+  }
+  .admin-table-wrap.is-cards td[data-mobile="hide"] {
+    display: none;
+  }
+  .admin-table-wrap.is-cards td.admin-td-num {
+    text-align: right;
   }
 }
 

@@ -53,6 +53,7 @@ export function StarterRecipes({
         await apiFetch("/recipes", {
           method: "POST",
           body: JSON.stringify({
+            recipe_source: "starter",
             recipe_title: r.title,
             recipe_instructions: r.instructions,
             tags: r.tags,

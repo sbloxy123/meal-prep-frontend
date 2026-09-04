@@ -11,6 +11,8 @@ import { AllowanceNote, isCreditLimit, creditLimitMessage, CREDIT_LIMIT_MESSAGE 
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { ImageDrop, type RecipePhoto } from "@/components/image-drop";
 
+export type RecipeSource = "manual" | "import" | "photo" | "generate" | "social" | "share" | "starter";
+
 export interface RecipeFormInitial {
   title?: string;
   description?: string | null;
@@ -28,6 +30,8 @@ export interface RecipeFormInitial {
   carb_g?: number | null;
   fat_g?: number | null;
   macros_source?: MacrosSource | null;
+  /** Where the draft came from — analytics only (recipe_created.meta.source). */
+  source?: RecipeSource;
 }
 
 type MacrosSource = "manual" | "imported" | "estimated";
@@ -323,6 +327,7 @@ export function RecipeForm({
       carb_g: carb.trim() ? Number(carb) : undefined,
       fat_g: fat.trim() ? Number(fat) : undefined,
       macros_source: hasMacros ? macrosSource ?? "manual" : undefined,
+      ...(mode === "edit" ? {} : { recipe_source: initial.source ?? "manual" }),
     };
 
     try {

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BookOpen, Calendar, ListChecks, User, Sparkles } from "lucide-react";
+import { BookOpen, Calendar, ListChecks, User, Sparkles, BarChart3 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { useSession } from "@/lib/auth-client";
@@ -65,6 +65,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         navItems={navItems}
         collections={menu.collections}
         isPremium={menu.allowance.isPremium}
+        isAdmin={menu.isAdmin}
       />
       <div className="shell-main">
         <MobileHeader />
@@ -82,9 +83,11 @@ function DesktopRail({
   navItems,
   collections,
   isPremium,
+  isAdmin,
 }: {
   pathname: string;
   navItems: NavItem[];
+  isAdmin?: boolean;
   collections: Collection[];
   isPremium: boolean;
 }) {
@@ -165,6 +168,12 @@ function DesktopRail({
         >
           <span className="rail-nav-label">How to use Fornetto</span>
         </Link>
+        {isAdmin && (
+          <Link href="/back-of-house" className={`rail-nav-item ${pathname.startsWith("/back-of-house") ? "is-active" : ""}`}>
+            <BarChart3 size={18} aria-hidden />
+            <span className="rail-nav-label">Back of house</span>
+          </Link>
+        )}
 
         <Link href="/install?from=account" className="rail-nav-item">
           <span className="rail-nav-label">Get it on your phone</span>

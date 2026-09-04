@@ -33,6 +33,9 @@ interface ShoppingListResponse {
   householdMemberCount?: number;
   // Plan, trial and credits (see AiAllowance below).
   entitlement?: EntitlementPayload | null;
+  // On the ADMIN_EMAILS allowlist — shows the Back of house link only; every
+  // /admin route is gated server-side regardless.
+  isAdmin?: boolean;
   // Onboarding questionnaire state. Optional so a frontend running against a
   // backend that predates them simply never offers the questionnaire.
   onboardingNeeded?: boolean;
@@ -201,6 +204,8 @@ interface MenuValue {
       Only households running low (see LOW_ALLOWANCE) actually see a dialog;
       everyone else resolves straight through. */
   confirmAiSpend: (action?: AiAction) => Promise<boolean>;
+  /** The signed-in user may open /back-of-house. */
+  isAdmin: boolean;
   // Takes every recipe off this week (each one cascades its ingredients out of
   // the shopping list); manually-added own items are left untouched.
   clearAllRecipes: () => Promise<void>;
@@ -478,7 +483,9 @@ export function MenuProvider({ children }: { children: ReactNode }) {
     [refresh],
   );
 
+  const isAdmin = Boolean(data?.isAdmin);
   const value: MenuValue = {
+    isAdmin,
     loaded,
     thisWeek,
     onMenuIds,
