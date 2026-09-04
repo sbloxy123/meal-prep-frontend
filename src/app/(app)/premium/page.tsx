@@ -174,22 +174,37 @@ export default function PremiumPage() {
               )}
 
               {offers?.annual && (
-                <div className="premium-interval" role="group" aria-label="Billing period">
+                <div className="premium-interval" role="radiogroup" aria-label="Billing period">
                   <button
                     type="button"
-                    className={`btn ${interval === "month" ? "btn-secondary is-active" : "btn-ghost"}`}
+                    role="radio"
+                    aria-checked={interval === "month"}
+                    className={`premium-option ${interval === "month" ? "is-active" : ""}`}
                     onClick={() => setInterval("month")}
-                    aria-pressed={interval === "month"}
                   >
-                    Monthly · {MONTHLY}
+                    <span className="premium-option-name">Monthly</span>
+                    <span className="premium-option-price">
+                      {MONTHLY}
+                      <span className="premium-option-unit"> / month</span>
+                    </span>
+                    <span className="premium-option-note">Cancel anytime</span>
                   </button>
                   <button
                     type="button"
-                    className={`btn ${interval === "year" ? "btn-secondary is-active" : "btn-ghost"}`}
+                    role="radio"
+                    aria-checked={interval === "year"}
+                    className={`premium-option ${interval === "year" ? "is-active" : ""}`}
                     onClick={() => setInterval("year")}
-                    aria-pressed={interval === "year"}
                   >
-                    Yearly · {ANNUAL} <span className="premium-saving">{ANNUAL_SAVING}</span>
+                    <span className="premium-option-badge">Best value · 2 months free</span>
+                    <span className="premium-option-name">Yearly</span>
+                    <span className="premium-option-price">
+                      {founders ? FOUNDERS : ANNUAL}
+                      <span className="premium-option-unit"> / year</span>
+                    </span>
+                    <span className="premium-option-note">
+                      {founders ? "Founders’ price, locked in" : `${ANNUAL_SAVING} vs monthly`}
+                    </span>
                   </button>
                 </div>
               )}

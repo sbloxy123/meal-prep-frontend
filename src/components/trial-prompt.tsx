@@ -67,17 +67,18 @@ export function TrialPrompt() {
     }
   }
 
+  // One bold lead, one clause, one link — it has to fit a phone in two lines.
   const days = allowance.trialDaysLeft ?? 0;
   const lead =
     stage === "ended"
       ? "Your Premium trial has ended."
       : stage === "last_day"
-        ? "Last day of your Premium trial."
-        : `${days} days left on your Premium trial.`;
+        ? "Last day of Premium."
+        : `${days} days of Premium left.`;
   const body =
     stage === "ended"
-      ? ` Everything you made is still here — you’re now on ${allowance.limit} AI credits a month. `
-      : " Keep it and you won’t pay until the trial would have ended anyway. ";
+      ? ` You’re on ${allowance.limit} AI credits a month now. `
+      : " Nothing to pay until the trial ends. ";
 
   return (
     <div className="premium-banner" role="region" aria-label="Premium trial">
@@ -88,7 +89,7 @@ export function TrialPrompt() {
         <GoPremiumLink source={`trial_prompt_${stage}`} className="premium-banner-link">
           {stage === "ended" ? "Go Premium" : "Keep Premium"}
         </GoPremiumLink>
-        {" — £3.99 a month for the whole household."}
+        {" — £3.99 a month."}
       </p>
       <button type="button" className="premium-banner-close" onClick={dismiss} aria-label="Dismiss">
         <X size={15} aria-hidden />
