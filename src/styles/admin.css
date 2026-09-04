@@ -534,3 +534,16 @@
     grid-column: 1;
   }
 }
+
+/* Aisle cache review. */
+.admin-aisle-select {
+  min-width: 160px;
+  font-size: 12px;
+  padding: 4px 8px;
+}
+.admin-aisle-actions {
+  white-space: nowrap;
+}
+.admin-aisle-actions .btn + .btn {
+  margin-left: 6px;
+}
