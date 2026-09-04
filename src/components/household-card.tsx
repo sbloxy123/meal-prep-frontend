@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { apiFetch, apiSend, ApiError } from "@/lib/api";
 import { useSession } from "@/lib/auth-client";
 import { ConfirmDialog } from "@/components/confirm-dialog";
+import { GoPremiumLink } from "@/components/ai-allowance";
 
 interface Member {
   user_id: string;
@@ -23,12 +24,19 @@ interface HouseholdData {
   members: Member[];
   invites: Invite[];
   role: string;
+  // Seat gating (free households only): pending invites hold a seat.
+  plan?: "free" | "trial" | "premium";
+  memberLimit?: number | null;
+  canInvite?: boolean;
+  reason?: string | null;
 }
 
+// Coded errors arrive as { error: CODE, message }; plain ones as { error: text }.
 function errMsg(e: unknown, fallback: string): string {
   if (e instanceof ApiError) {
     try {
-      return (JSON.parse(e.body) as { error?: string })?.error || fallback;
+      const body = JSON.parse(e.body) as { error?: string; message?: string };
+      return body?.message || body?.error || fallback;
     } catch {
       return fallback;
     }
@@ -166,7 +174,20 @@ export function HouseholdCard() {
         </div>
       )}
 
-      {isOwner && (
+      {isOwner && data?.canInvite === false && (
+        <div className="hh-invite-form hh-upgrade">
+          <h6 className="hh-subhead">Invite someone</h6>
+          <p className="hh-hint text-muted">
+            {data.reason ?? "Your plan's household is full."} Everyone you add shares the same
+            recipes, weekly menu and shopping list.
+          </p>
+          <GoPremiumLink source="household_invite" className="btn btn-ai">
+            Go Premium to add people
+          </GoPremiumLink>
+        </div>
+      )}
+
+      {isOwner && data?.canInvite !== false && (
         <form className="hh-invite-form" onSubmit={sendInvite}>
           <h6 className="hh-subhead">Invite someone</h6>
           <div className="account-inline-row">
@@ -191,6 +212,8 @@ export function HouseholdCard() {
           <p className="hh-hint text-muted">
             They&rsquo;ll get an email link to join. Everyone in the household shares the same
             recipes, weekly menu and shopping list.
+            {data?.plan === "trial" && " Sharing is included in your trial."}
+            {data?.plan === "free" && data?.memberLimit != null && ` Your plan includes ${data.memberLimit} people.`}
           </p>
         </form>
       )}
