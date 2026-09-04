@@ -15,6 +15,8 @@ import { useRouter } from "next/navigation";
 import { ApiError, apiFetch } from "@/lib/api";
 import { useSession } from "@/lib/auth-client";
 import type {
+  AdminAiStats,
+  AdminRetentionPoint,
   AdminOverview,
   AdminTotals,
   AdminSeriesPoint,
@@ -26,15 +28,43 @@ const RANGES = [7, 30, 90, 365] as const;
 type Range = (typeof RANGES)[number];
 const RANGE_LABEL: Record<Range, string> = { 7: "7d", 30: "30d", 90: "90d", 365: "1y" };
 
-const AI_ACTIONS = ["import", "estimate", "generate", "photo", "improve", "suggest"] as const;
-const AI_LABEL: Record<(typeof AI_ACTIONS)[number], string> = {
+// Every action the AI ledger records (backend AI_ACTIONS). The last four were
+// invisible to the old dashboard — social + aisle-sort drew the allowance
+// without being counted, and parse / usuals were never logged at all.
+const AI_ACTIONS = [
+  "import", "estimate", "generate", "photo", "improve", "suggest", "social", "aisle", "parse", "usuals",
+] as const;
+type AiAction = (typeof AI_ACTIONS)[number];
+const AI_LABEL: Record<AiAction, string> = {
   import: "Import",
   estimate: "Estimate",
   generate: "Generate",
   photo: "Photo",
   improve: "Improve",
   suggest: "Suggest",
+  social: "Social",
+  aisle: "Aisle sort",
+  parse: "Paste to list",
+  usuals: "My usuals",
 };
+
+/** Pence → "£1.23" / "0.45p". The ledger stores 4 dp; two is plenty here. */
+function fmtPence(p?: number | null): string {
+  if (p == null) return "—";
+  if (p >= 100) return `£${(p / 100).toFixed(2)}`;
+  return `${p.toFixed(2)}p`;
+}
+function fmtMs(ms?: number | null): string {
+  if (ms == null) return "—";
+  return ms >= 1000 ? `${(ms / 1000).toFixed(1)}s` : `${Math.round(ms)}ms`;
+}
+function fmtTokens(n?: number | null): string {
+  if (n == null) return "—";
+  return n >= 1_000_000 ? `${(n / 1_000_000).toFixed(2)}M` : n >= 1000 ? `${(n / 1000).toFixed(1)}k` : String(n);
+}
+function pct(v?: number | null): string {
+  return v == null ? "—" : `${v}%`;
+}
 
 type Segment = "all" | "active" | "inactive" | "unverified" | "recipes" | "premium";
 type SortKey = "name" | "joined" | "active" | "recipes" | "ai" | "household" | "plan";
@@ -100,6 +130,7 @@ export default function BackOfHousePage() {
   const [days, setDays] = useState<Range>(30);
   const [overview, setOverview] = useState<AdminOverview | null>(null);
   const [users, setUsers] = useState<AdminUserRow[] | null>(null);
+  const [aiStats, setAiStats] = useState<AdminAiStats | null>(null);
   const [error, setError] = useState("");
 
   // Not signed in at all → straight to sign-in.
@@ -160,6 +191,26 @@ export default function BackOfHousePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isPending, session, days]);
 
+  // AI ledger (cost, tokens, latency) — same range. A 404 here just means an
+  // older backend; the section shows its empty state rather than bouncing.
+  useEffect(() => {
+    if (isPending || !session) return;
+    let cancelled = false;
+    apiFetch<AdminAiStats>(`/admin/ai?days=${days}`)
+      .then((d) => {
+        if (!cancelled) setAiStats(d);
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        if (err instanceof ApiError && err.status === 404) return;
+        handleErr(err);
+      });
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isPending, session, days]);
+
   if (isPending || !session) {
     return <div className="admin-loading">Loading…</div>;
   }
@@ -174,6 +225,7 @@ export default function BackOfHousePage() {
     <Dashboard
       users={users}
       overview={overview}
+      aiStats={aiStats}
       days={days}
       onRange={setDays}
     />
@@ -183,11 +235,13 @@ export default function BackOfHousePage() {
 function Dashboard({
   users,
   overview,
+  aiStats,
   days,
   onRange,
 }: {
   users: AdminUserRow[];
   overview: AdminOverview | null;
+  aiStats: AdminAiStats | null;
   days: Range;
   onRange: (d: Range) => void;
 }) {
@@ -227,7 +281,12 @@ function Dashboard({
           value={totals.premiumHouseholds}
           sub={`${totals.paidHouseholds ?? 0} paid · ${totals.compedHouseholds ?? 0} comp`}
         />
-        <Kpi label={`AI calls · ${RANGE_LABEL[days]}`} value={aiInRange} sub={aiSubtitle(series.aiCalls)} />
+        <Kpi label={`AI actions · ${RANGE_LABEL[days]}`} value={aiInRange} sub={aiSubtitle(series.aiCalls)} />
+        <Kpi
+          label={`AI cost · ${RANGE_LABEL[days]}`}
+          text={fmtPence(totals.aiCost?.pence)}
+          sub={totals.aiCost?.usd != null ? `$${totals.aiCost.usd.toFixed(3)} billed` : undefined}
+        />
         <Kpi label="Recipes" value={totals.recipes} />
         <Kpi label="Shares" value={totals.shares} />
       </div>
@@ -242,7 +301,7 @@ function Dashboard({
       <EngagementSection totals={totals} series={series} days={days} />
 
       {/* ④ AI usage & cost */}
-      <AiSection series={series} users={users} days={days} />
+      <AiSection series={series} users={users} days={days} stats={aiStats} />
 
       {/* ⑤ Growth & adoption (secondary) */}
       <GrowthSection totals={totals} />
@@ -250,11 +309,11 @@ function Dashboard({
   );
 }
 
-function Kpi({ label, value, sub }: { label: string; value?: number | null; sub?: string }) {
+function Kpi({ label, value, text, sub }: { label: string; value?: number | null; text?: string; sub?: string }) {
   return (
     <div className="admin-kpi">
       <span className="admin-kpi-label">{label}</span>
-      <span className="admin-kpi-value">{value ?? "—"}</span>
+      <span className="admin-kpi-value">{text ?? value ?? "—"}</span>
       {sub && <span className="admin-kpi-sub">{sub}</span>}
     </div>
   );
@@ -601,6 +660,36 @@ function EngagementSection({
         <Chart title={`Active users · ${RANGE_LABEL[days]}`} points={series.activeUsers} />
         <Chart title={`Signups · ${RANGE_LABEL[days]}`} points={series.signups} />
       </div>
+
+      <p className="admin-chart-title" style={{ marginTop: 16 }}>
+        Retention · signups in {RANGE_LABEL[days]}
+        {totals.retention?.cohort != null && ` · cohort ${totals.retention.cohort}`}
+      </p>
+      <p className="admin-section-note">
+        Came back on exactly day 1 / 7 / 30 after signing up (classic), and at any point in the
+        first 7 / 30 days (rolling). Only users whose day N has already passed count. Collection
+        started with the ledger update, so early cohorts are small.
+      </p>
+      <div className="admin-stat-grid">
+        <Stat label="Day 1" text={retentionText(totals.retention?.d1)} />
+        <Stat label="Day 7" text={retentionText(totals.retention?.d7)} />
+        <Stat label="Day 30" text={retentionText(totals.retention?.d30)} />
+        <Stat label="Within 7 days" text={pct(totals.retention?.d7?.rolling)} />
+        <Stat label="Within 30 days" text={pct(totals.retention?.d30?.rolling)} />
+      </div>
+
+      {(totals.householdSizes?.length ?? 0) > 0 && (
+        <>
+          <p className="admin-chart-title" style={{ marginTop: 16 }}>Household size</p>
+          <Breakdown
+            items={(totals.householdSizes ?? []).map((h) => ({
+              label: `${h.size} member${h.size === 1 ? "" : "s"}`,
+              value: h.households,
+            }))}
+          />
+        </>
+      )}
+
       {totals.deviceSplit && Object.keys(totals.deviceSplit).length > 0 && (
         <>
           <p className="admin-chart-title" style={{ marginTop: 16 }}>Devices</p>
@@ -609,6 +698,11 @@ function EngagementSection({
       )}
     </section>
   );
+}
+
+function retentionText(p?: AdminRetentionPoint | null): string {
+  if (!p || !p.eligible) return "—";
+  return `${pct(p.rate)} · ${p.retained ?? 0}/${p.eligible}`;
 }
 
 /** The stale-layout alarm: phones on an iOS newer than the Add to Home Screen
@@ -634,11 +728,11 @@ function StaleLayoutNotice({ install }: { install: NonNullable<AdminTotals["inst
   );
 }
 
-function Stat({ label, value }: { label: string; value?: number | null }) {
+function Stat({ label, value, text }: { label: string; value?: number | null; text?: string }) {
   return (
     <div className="admin-stat">
       <div className="admin-stat-label">{label}</div>
-      <div className="admin-stat-value">{value ?? "—"}</div>
+      <div className="admin-stat-value">{text ?? value ?? "—"}</div>
     </div>
   );
 }
@@ -649,10 +743,12 @@ function AiSection({
   series,
   users,
   days,
+  stats,
 }: {
   series: NonNullable<AdminOverview["series"]>;
   users: AdminUserRow[];
   days: Range;
+  stats: AdminAiStats | null;
 }) {
   const topAi = useMemo(
     () =>
@@ -664,16 +760,34 @@ function AiSection({
     [users],
   );
 
+  const t = stats?.totals;
+  const byAction = stats?.byAction ?? [];
+  const byModel = stats?.byModel ?? [];
+  const topCost = (stats?.topHouseholds ?? []).filter((h) => h.costPence > 0).slice(0, 8);
+  const outcomes = stats?.outcomes ?? [];
+  const label = (a: string) => AI_LABEL[a as AiAction] ?? cap(a);
+
   return (
     <section className="admin-section">
-      <h2>AI usage</h2>
+      <h2>AI usage &amp; cost</h2>
       <p className="admin-section-note">
-        Free households share <strong>15 AI actions per week</strong> (all types combined); Premium
-        is unlimited. A per-action 6-hour burst ceiling (20 imports / 20 estimates / 15 generations /
-        15 photo scans / 15 improvements / 15 suggestions) still applies to everyone as an abuse
-        guard.
+        Every AI action is a row in the ledger: what it cost (list price × tokens, in pence at the
+        rate in force that day), how long it took, and whether it was charged, refunded (the model
+        answered but there was nothing to give back), failed (no answer) or rejected (allowance
+        said no). Free households share <strong>15 AI actions per week</strong>; Premium is
+        unlimited. Per-action 6-hour burst ceilings still apply to everyone.
       </p>
-      <Chart title={`Calls by type · ${RANGE_LABEL[days]}`} points={series.aiCalls} stacked={AI_ACTIONS} />
+
+      <div className="admin-stat-grid" style={{ marginBottom: 16 }}>
+        <Stat label={`Cost · ${RANGE_LABEL[days]}`} text={fmtPence(t?.costPence)} />
+        <Stat label="Model calls" value={t?.modelCalls} />
+        <Stat label="Charged actions" value={t?.credits} />
+        <Stat label="Refunded" value={t?.refunded} />
+        <Stat label="Failed" value={t?.failed} />
+        <Stat label="Hit the limit" value={t?.rejected} />
+      </div>
+
+      <Chart title={`Actions by type · ${RANGE_LABEL[days]}`} points={series.aiCalls} stacked={AI_ACTIONS} />
       <div className="admin-legend">
         {AI_ACTIONS.map((a) => (
           <span key={a}>
@@ -682,9 +796,100 @@ function AiSection({
           </span>
         ))}
       </div>
+
+      {byAction.length > 0 ? (
+        <>
+          <p className="admin-chart-title" style={{ marginTop: 16 }}>By action · {RANGE_LABEL[days]}</p>
+          <div className="admin-table-wrap">
+            <table className="admin-table admin-table-compact">
+              <thead>
+                <tr>
+                  <th>Action</th>
+                  <th className="admin-td-num">Actions</th>
+                  <th className="admin-td-num">Calls</th>
+                  <th className="admin-td-num">Cost</th>
+                  <th className="admin-td-num">Per action</th>
+                  <th className="admin-td-num">Tokens in / out</th>
+                  <th className="admin-td-num">p50</th>
+                  <th className="admin-td-num">p95</th>
+                  <th className="admin-td-num">Refund</th>
+                  <th className="admin-td-num">Fail</th>
+                  <th className="admin-td-num">Limit</th>
+                </tr>
+              </thead>
+              <tbody>
+                {byAction.map((r) => (
+                  <tr key={r.action}>
+                    <td>
+                      <i className={`admin-swatch admin-bar-seg--${r.action}`} />
+                      {label(r.action)}
+                    </td>
+                    <td className="admin-td-num">{r.actions}</td>
+                    <td className="admin-td-num">{r.modelCalls}</td>
+                    <td className="admin-td-num">{fmtPence(r.costPence)}</td>
+                    <td className="admin-td-num">{r.actions ? fmtPence(r.costPence / r.actions) : "—"}</td>
+                    <td className="admin-td-num">
+                      {fmtTokens(r.inputTokens)} / {fmtTokens(r.outputTokens)}
+                    </td>
+                    <td className="admin-td-num">{fmtMs(r.p50Ms)}</td>
+                    <td className="admin-td-num">{fmtMs(r.p95Ms)}</td>
+                    <td className="admin-td-num">{r.refunded}</td>
+                    <td className="admin-td-num">{r.failed}</td>
+                    <td className="admin-td-num">{r.rejected}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {(stats?.legacyRows ?? 0) > 0 && (
+            <p className="admin-section-note" style={{ marginTop: 8 }}>
+              {stats?.legacyRows} older action{stats?.legacyRows === 1 ? "" : "s"} in this range
+              predate the ledger and carry no tokens, cost or latency; they are counted in the
+              chart above but left out of this table.
+            </p>
+          )}
+        </>
+      ) : (
+        <p className="admin-empty" style={{ padding: "16px 4px" }}>
+          No AI actions in this range yet.
+        </p>
+      )}
+
+      {byModel.length > 0 && (
+        <>
+          <p className="admin-chart-title" style={{ marginTop: 16 }}>Cost by model</p>
+          <Breakdown
+            items={byModel.map((m) => ({ label: `${m.model} · ${m.modelCalls} calls`, value: m.costPence }))}
+            format={fmtPence}
+          />
+        </>
+      )}
+
+      {outcomes.length > 0 && (
+        <>
+          <p className="admin-chart-title" style={{ marginTop: 16 }}>Refunded outcomes</p>
+          <Breakdown
+            items={outcomes.map((o) => ({ label: `${label(o.action)} · ${o.outcome.replace(/_/g, " ")}`, value: o.count }))}
+          />
+        </>
+      )}
+
+      {topCost.length > 0 && (
+        <>
+          <p className="admin-chart-title" style={{ marginTop: 16 }}>Top households by cost · {RANGE_LABEL[days]}</p>
+          <Breakdown
+            items={topCost.map((h) => ({
+              label: `${h.name || h.emails || h.id}${h.plan === "premium" ? " · Premium" : ""}`,
+              value: h.costPence,
+            }))}
+            format={fmtPence}
+          />
+        </>
+      )}
+
       {topAi.length > 0 && (
         <>
-          <p className="admin-chart-title" style={{ marginTop: 16 }}>Top households by AI calls</p>
+          <p className="admin-chart-title" style={{ marginTop: 16 }}>Top households by AI actions · all time</p>
           <Breakdown items={topAi} />
         </>
       )}
@@ -824,7 +1029,7 @@ function Chart({
 }: {
   title: string;
   points?: AdminSeriesPoint[];
-  stacked?: readonly ("import" | "estimate" | "generate" | "photo" | "improve" | "suggest")[];
+  stacked?: readonly AiAction[];
 }) {
   if (!points || points.length === 0) {
     return (
@@ -888,7 +1093,13 @@ function Chart({
   );
 }
 
-function Breakdown({ items }: { items: { label: string; value: number }[] }) {
+function Breakdown({
+  items,
+  format,
+}: {
+  items: { label: string; value: number }[];
+  format?: (v: number) => string;
+}) {
   const max = Math.max(1, ...items.map((i) => i.value));
   return (
     <div className="admin-rows">
@@ -898,7 +1109,7 @@ function Breakdown({ items }: { items: { label: string; value: number }[] }) {
           <div className="admin-row-track">
             <div className="admin-row-fill" style={{ width: `${(it.value / max) * 100}%` }} />
           </div>
-          <span className="admin-row-value">{it.value}</span>
+          <span className="admin-row-value">{format ? format(it.value) : it.value}</span>
         </div>
       ))}
     </div>

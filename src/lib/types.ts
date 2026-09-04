@@ -74,13 +74,84 @@ export interface AdminSeriesPoint {
   values?: Record<string, number>;
 }
 
+// Every action the AI ledger records. Keep in step with AI_ACTIONS in
+// meal-prep-app controllers/adminController.js.
+export type AdminAiAction =
+  | "import" | "estimate" | "generate" | "photo" | "improve" | "suggest"
+  | "social" | "aisle" | "parse" | "usuals";
+
+export type AdminAiActionCounts = Partial<Record<AdminAiAction, number>> & { total?: number };
+
+export interface AdminRetentionPoint {
+  eligible?: number;
+  retained?: number;
+  rate?: number | null;
+  rolling?: number | null;
+}
+
+/** GET /admin/ai?days= — the AI ledger sliced for the cost & latency panel. */
+export interface AdminAiStats {
+  days?: number;
+  totals?: {
+    actions?: number;
+    modelCalls?: number;
+    credits?: number;
+    costPence?: number;
+    costUsd?: number;
+    failed?: number;
+    refunded?: number;
+    rejected?: number;
+  };
+  byAction?: {
+    action: string;
+    actions: number;
+    charged: number;
+    refunded: number;
+    failed: number;
+    rejected: number;
+    stale: number;
+    modelCalls: number;
+    credits: number;
+    inputTokens: number;
+    outputTokens: number;
+    cacheReadTokens: number;
+    costUsd: number;
+    costPence: number;
+    p50Ms: number | null;
+    p95Ms: number | null;
+    maxMs: number | null;
+  }[];
+  byModel?: { model: string; actions: number; modelCalls: number; inputTokens: number; outputTokens: number; costPence: number }[];
+  outcomes?: { action: string; outcome: string; count: number }[];
+  topHouseholds?: { id: string; name: string | null; plan: string; emails: string; actions: number; credits: number; costPence: number; rejected: number }[];
+  daily?: { date: string; costPence: number; count: number }[];
+  // Rows backfilled from the old call log: they have no tokens/cost/latency and
+  // are excluded from the per-action figures above.
+  legacyRows?: number;
+  generated_at?: string;
+}
+
 export interface AdminTotals {
   users?: number;
   verifiedUsers?: number;
   activeUsers7d?: number;
   activeUsers30d?: number;
   recipes?: number;
-  aiCalls?: { import?: number; estimate?: number; generate?: number; photo?: number; improve?: number; suggest?: number; total?: number } | null;
+  aiCalls?: AdminAiActionCounts | null;
+  // Spend in the window, from the ai_usage ledger (pence at the FX rate in
+  // force when each row was written; usd is what Anthropic actually bills).
+  aiCost?: { pence?: number; usd?: number; byAction?: Record<string, number> } | null;
+  // Classic day-N retention for users who signed up in the window: retained =
+  // made an authenticated request on exactly day N; rolling = on any of days
+  // 1..N. rate is a percentage, null until anyone is eligible.
+  retention?: {
+    cohort?: number;
+    d1?: AdminRetentionPoint;
+    d7?: AdminRetentionPoint;
+    d30?: AdminRetentionPoint;
+  } | null;
+  // Households by member count, all-time.
+  householdSizes?: { size: number; households: number }[] | null;
   shares?: number;
   households?: number;
   multiMemberHouseholds?: number;
@@ -160,7 +231,7 @@ export interface AdminUserRow {
   plan?: "free" | "premium";
   paid?: boolean; // premium via a real Stripe subscription (vs a comp)
   recipe_count?: number;
-  ai_usage?: { import?: number; estimate?: number; generate?: number; photo?: number; improve?: number; suggest?: number; total?: number } | null;
+  ai_usage?: (AdminAiActionCounts & { cost_pence?: number; credits?: number }) | null;
   shares_created?: number | null;
   week_adds?: number | null;
   lists_generated?: number | null;

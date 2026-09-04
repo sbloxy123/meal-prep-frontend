@@ -465,3 +465,32 @@
 .admin-notice code {
   font-size: 13px;
 }
+
+/* Ledger actions added with the AI usage ledger (backend migration 015). */
+.admin-bar-seg--social {
+  background: var(--color-accent-2-700);
+}
+.admin-bar-seg--aisle {
+  background: var(--color-neutral-500);
+}
+.admin-bar-seg--parse {
+  background: var(--color-neutral-400);
+}
+.admin-bar-seg--usuals {
+  background: var(--color-accent-2-300);
+}
+/* Colour chip in front of an action name in the cost table. */
+.admin-swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  margin-right: 6px;
+  vertical-align: -1px;
+}
+.admin-table-compact th,
+.admin-table-compact td {
+  padding: 6px 8px;
+  font-size: 12px;
+  white-space: nowrap;
+}
