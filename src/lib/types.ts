@@ -179,6 +179,7 @@ export interface AdminCreditStats {
     cardsInRange?: number;
   };
   rejections?: { count: number; households: number };
+  householdLimitHits?: number;
   generated_at?: string;
 }
 

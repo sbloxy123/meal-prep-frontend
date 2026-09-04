@@ -1227,6 +1227,7 @@ function CreditsSection({ stats, days }: { stats: AdminCreditStats | null; days:
         <Stat label={`Prompt cards · ${RANGE_LABEL[days]}`} value={t?.cardsInRange} />
         <Stat label={`Refused for credits · ${RANGE_LABEL[days]}`} value={stats?.rejections?.count} />
         <Stat label="Households refused" value={stats?.rejections?.households} />
+        <Stat label={`Invite blocked by seats · ${RANGE_LABEL[days]}`} value={stats?.householdLimitHits} />
       </div>
     </section>
   );

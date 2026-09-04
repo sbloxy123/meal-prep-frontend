@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { apiFetch } from "@/lib/api";
+import { apiFetch, ApiError } from "@/lib/api";
 import { useToast } from "@/lib/toast";
 import { useMenu } from "@/lib/menu";
 
@@ -39,8 +39,17 @@ export function PendingInvite() {
             ? "You're already in that household."
             : `Joined ${res?.household_name ?? "the household"}.`,
         );
-      } catch {
-        // Invite expired/invalid — nothing to do; they're signed in regardless.
+      } catch (err) {
+        // Expired/invalid invites are silent; a full household or a payer who
+        // can't move gets told why, since they came here to join.
+        if (err instanceof ApiError && (err.status === 402 || err.status === 409)) {
+          try {
+            const body = JSON.parse(err.body) as { message?: string };
+            if (body?.message) toast.show(body.message);
+          } catch {
+            // ignore
+          }
+        }
       } finally {
         consuming = false;
       }

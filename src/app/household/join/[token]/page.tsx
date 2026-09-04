@@ -41,7 +41,8 @@ export default function JoinHouseholdPage({ params }: { params: Promise<{ token:
       let msg = "This invite can't be used.";
       if (err instanceof ApiError) {
         try {
-          msg = (JSON.parse(err.body) as { error?: string })?.error || msg;
+          const body = JSON.parse(err.body) as { error?: string; message?: string };
+          msg = body?.message || body?.error || msg;
         } catch {
           /* keep default */
         }

@@ -501,7 +501,7 @@ export function MarketingHome() {
               features={[
                 "All recipes, menus & shopping-list features",
                 "50 AI credits a month — the shopping list never costs one",
-                "Share with your whole household",
+                "Share with one other person",
                 "Works offline in the shop",
               ]}
             />
@@ -516,8 +516,8 @@ export function MarketingHome() {
               features={[
                 "Everything in Free",
                 "300 AI credits a month — drafts, photos, improve & macros",
-                "14 days free to start, no card needed",
-                "Shared across your household · cancel anytime",
+                "Your whole household, however many of you",
+                "14 days free to start · cancel anytime",
               ]}
             />
           </div>
@@ -645,7 +645,7 @@ export function MarketingHome() {
             <Faq
               q="What does it cost?"
               a={
-                "The whole app — planning, shopping and sharing — is free, and every new account starts with 14 days of Premium, no card needed. After that the AI extras (drafting a recipe from a link, photo, title or reel, plus macro estimates and inspiration) come with 50 free credits a month: most actions cost one, a photo scan three, and the shopping list never costs anything. Premium is £3.99 a month for 300 credits, shared across your whole household; upgrade or cancel anytime."
+                "The whole app — planning, shopping and sharing — is free, and every new account starts with 14 days of Premium, no card needed. After that the AI extras (drafting a recipe from a link, photo, title or reel, plus macro estimates and inspiration) come with 50 free credits a month: most actions cost one, a photo scan three, and the shopping list never costs anything. Free accounts can share with one other person; Premium is £3.99 a month for 300 credits and as many people as live in your kitchen; upgrade or cancel anytime."
               }
             />
             <Faq
