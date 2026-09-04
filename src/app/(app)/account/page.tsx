@@ -163,6 +163,7 @@ function PremiumCard() {
             {allowance.unlimited
               ? " — unlimited AI across every feature."
               : ` — ${allowance.remaining} of ${allowance.limit} AI credits left this month, shared across every feature.`}
+            {allowance.billingInterval === "year" && " Billed yearly."}
             {allowance.founder && " Founders’ price, locked in."}
           </p>
           <button type="button" className="btn btn-secondary" onClick={manage} disabled={managing}>

@@ -6,7 +6,8 @@ import { Sparkles, Check } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { useMenu } from "@/lib/menu";
 import { PageHeader } from "@/components/page-header";
-import { resetDay } from "@/components/ai-allowance";
+import { resetDay, logPremiumCta } from "@/components/ai-allowance";
+import { apiFetch, ApiError } from "@/lib/api";
 
 // Upgrade flow: the button starts Stripe Checkout (a redirect); on return with
 // ?upgraded=1 we refresh so the newly-unlocked plan shows once the webhook has
@@ -15,6 +16,18 @@ import { resetDay } from "@/components/ai-allowance";
 // billing only starts when the free days would have run out anyway.
 
 const MONTHLY = "£3.99";
+const ANNUAL = "£29.99";
+const FOUNDERS = "£19.99";
+// Two months free, i.e. £29.99 vs 12 × £3.99.
+const ANNUAL_SAVING = "save 37%";
+
+/** GET /premium/offers — what can be bought right now (annual needs the
+    yearly Stripe Price; founders' needs places left on its coupon). */
+interface Offers {
+  monthly: boolean;
+  annual: boolean;
+  founders: { available: boolean; remaining: number | null; cap: number | null };
+}
 
 const INCLUDED = [
   "300 AI credits a month — six times the free plan",
@@ -33,6 +46,25 @@ export default function PremiumPage() {
   const [pending, setPending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [justUpgraded, setJustUpgraded] = useState(false);
+  const [offers, setOffers] = useState<Offers | null>(null);
+  const [interval, setInterval] = useState<"month" | "year">("month");
+
+  useEffect(() => {
+    let cancelled = false;
+    apiFetch<Offers>("/premium/offers")
+      .then((o) => {
+        if (cancelled) return;
+        setOffers(o);
+        // Lead with annual while the founders' offer is on — that's the deal.
+        if (o.annual && o.founders.available) setInterval("year");
+      })
+      .catch(() => {
+        if (!cancelled) setOffers({ monthly: true, annual: false, founders: { available: false, remaining: null, cap: null } });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Back from Checkout: refresh so the unlocked plan lands (webhook-driven, so
   // it may take a moment) and show a thank-you.
@@ -44,27 +76,43 @@ export default function PremiumPage() {
     }
   }, [refresh]);
 
+  const annual = interval === "year" && Boolean(offers?.annual);
+  const founders = annual && Boolean(offers?.founders.available);
+
   async function upgrade() {
     if (pending) return;
     setPending(true);
     setError(null);
+    logPremiumCta(founders ? "premium_page_founders" : annual ? "premium_page_annual" : "premium_page_monthly");
     try {
       const { error: upErr } = await authClient.subscription.upgrade({
         plan: "premium",
+        annual,
         successUrl: `${window.location.origin}/premium?upgraded=1`,
         cancelUrl: `${window.location.origin}/premium`,
       });
       // On success the call redirects to Stripe; reaching here with an error
       // means checkout couldn't start.
       if (upErr) {
-        setError("We couldn’t start checkout just now. Please try again in a moment.");
+        setError(
+          founders
+            ? "The founders’ places have just run out — the standard annual price still applies. Try again."
+            : "We couldn’t start checkout just now. Please try again in a moment.",
+        );
         setPending(false);
       }
-    } catch {
-      setError("We couldn’t start checkout just now. Please try again in a moment.");
+    } catch (err) {
+      setError(
+        founders && err instanceof ApiError
+          ? "The founders’ places have just run out — the standard annual price still applies. Try again."
+          : "We couldn’t start checkout just now. Please try again in a moment.",
+      );
       setPending(false);
     }
   }
+
+  const priceLine = founders ? FOUNDERS : annual ? ANNUAL : MONTHLY;
+  const priceUnit = annual ? "year" : "month";
 
   const paid = allowance.plan === "premium";
   const trial = allowance.isTrial;
@@ -85,7 +133,9 @@ export default function PremiumPage() {
               <p className="text-muted" style={{ fontSize: 14 }}>
                 {allowance.unlimited
                   ? "Your household has unlimited AI."
-                  : `Your household has ${allowance.limit} AI credits a month (${allowance.remaining} left, tops up on ${resetDay(allowance.resetsAt)}).`}{" "}
+                  : `Your household has ${allowance.limit} AI credits a month (${allowance.remaining} left, tops up on ${resetDay(allowance.resetsAt)}).`}
+                {allowance.billingInterval === "year" && " Billed yearly."}
+                {allowance.founder && " Founders’ price, locked in for as long as you stay subscribed."}{" "}
                 Thank you for supporting Fornetto. You can manage or cancel your subscription from
                 your{" "}
                 <Link href="/account" className="recipes-empty-link">
@@ -109,7 +159,7 @@ export default function PremiumPage() {
                   </h2>
                   <p className="text-muted" style={{ fontSize: 14, marginTop: 0 }}>
                     Keep everything you have now for{" "}
-                    <strong style={{ fontSize: 20, color: "var(--color-text)" }}>{MONTHLY}</strong> / month
+                    <strong style={{ fontSize: 20, color: "var(--color-text)" }}>{priceLine}</strong> / {priceUnit}
                     — you won’t pay anything until {longDate(allowance.trialEndsAt)}. Cancel anytime.
                   </p>
                 </>
@@ -117,10 +167,40 @@ export default function PremiumPage() {
                 <>
                   <h2 style={{ marginBottom: 4 }}>Six times the AI for your kitchen</h2>
                   <p className="text-muted" style={{ fontSize: 14, marginTop: 0 }}>
-                    <strong style={{ fontSize: 20, color: "var(--color-text)" }}>{MONTHLY}</strong> / month
+                    <strong style={{ fontSize: 20, color: "var(--color-text)" }}>{priceLine}</strong> / {priceUnit}
                     — cancel anytime.
                   </p>
                 </>
+              )}
+
+              {offers?.annual && (
+                <div className="premium-interval" role="group" aria-label="Billing period">
+                  <button
+                    type="button"
+                    className={`btn ${interval === "month" ? "btn-secondary is-active" : "btn-ghost"}`}
+                    onClick={() => setInterval("month")}
+                    aria-pressed={interval === "month"}
+                  >
+                    Monthly · {MONTHLY}
+                  </button>
+                  <button
+                    type="button"
+                    className={`btn ${interval === "year" ? "btn-secondary is-active" : "btn-ghost"}`}
+                    onClick={() => setInterval("year")}
+                    aria-pressed={interval === "year"}
+                  >
+                    Yearly · {ANNUAL} <span className="premium-saving">{ANNUAL_SAVING}</span>
+                  </button>
+                </div>
+              )}
+
+              {founders && (
+                <div className="premium-founders" role="note">
+                  <strong>Founders’ price: {FOUNDERS} a year, locked in.</strong> The first{" "}
+                  {offers?.founders.cap ?? "few hundred"} households to go yearly keep this price for as
+                  long as they stay subscribed
+                  {offers?.founders.remaining != null && ` — ${offers.founders.remaining} left`}.
+                </div>
               )}
 
               <ul className="premium-features">
@@ -146,9 +226,11 @@ export default function PremiumPage() {
                 <Sparkles size={15} className="btn-ai-spark" aria-hidden />
                 {pending
                   ? "Starting checkout…"
-                  : trial
-                    ? `Keep Premium — ${MONTHLY}/month`
-                    : `Go Premium — ${MONTHLY}/month`}
+                  : founders
+                    ? `Claim the founders’ price — ${FOUNDERS}/year`
+                    : trial
+                      ? `Keep Premium — ${priceLine}/${priceUnit}`
+                      : `Go Premium — ${priceLine}/${priceUnit}`}
               </button>
               {error && (
                 <p className="rf-error" role="alert" style={{ marginTop: 8 }}>
