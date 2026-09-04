@@ -511,7 +511,7 @@ export function MarketingHome() {
               badge="Most popular"
               name="Premium"
               price="£3.99"
-              unit="per month"
+              unit="per month · or £29.99 a year"
               blurb="Six times the AI, for the whole household."
               features={[
                 "Everything in Free",
@@ -645,7 +645,7 @@ export function MarketingHome() {
             <Faq
               q="What does it cost?"
               a={
-                "The whole app — planning, shopping and sharing — is free, and every new account starts with 14 days of Premium, no card needed. After that the AI extras (drafting a recipe from a link, photo, title or reel, plus macro estimates and inspiration) come with 50 free credits a month: most actions cost one, a photo scan three, and the shopping list never costs anything. Free accounts can share with one other person; Premium is £3.99 a month for 300 credits and as many people as live in your kitchen; upgrade or cancel anytime."
+                "The whole app — planning, shopping and sharing — is free, and every new account starts with 14 days of Premium, no card needed. After that the AI extras (drafting a recipe from a link, photo, title or reel, plus macro estimates and inspiration) come with 50 free credits a month: most actions cost one, a photo scan three, and the shopping list never costs anything. Free accounts can share with one other person; Premium is £3.99 a month — or £29.99 a year — for 300 credits and as many people as live in your kitchen; upgrade or cancel anytime."
               }
             />
             <Faq

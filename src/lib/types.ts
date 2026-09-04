@@ -180,6 +180,7 @@ export interface AdminCreditStats {
   };
   rejections?: { count: number; households: number };
   householdLimitHits?: number;
+  subscriptions?: { monthly: number; annual: number; founders: number };
   generated_at?: string;
 }
 

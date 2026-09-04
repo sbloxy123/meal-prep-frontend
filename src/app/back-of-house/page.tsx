@@ -1228,6 +1228,9 @@ function CreditsSection({ stats, days }: { stats: AdminCreditStats | null; days:
         <Stat label={`Refused for credits · ${RANGE_LABEL[days]}`} value={stats?.rejections?.count} />
         <Stat label="Households refused" value={stats?.rejections?.households} />
         <Stat label={`Invite blocked by seats · ${RANGE_LABEL[days]}`} value={stats?.householdLimitHits} />
+        <Stat label="Paying monthly" value={stats?.subscriptions?.monthly} />
+        <Stat label="Paying yearly" value={stats?.subscriptions?.annual} />
+        <Stat label="Founders" value={stats?.subscriptions?.founders} />
       </div>
     </section>
   );
