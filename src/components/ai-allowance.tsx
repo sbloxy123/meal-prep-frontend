@@ -18,13 +18,11 @@ export function logPremiumCta(source: string) {
   });
 }
 
-/** Did an AI call 429 because the household's credits are spent (vs a 6h burst)?
-    Accepts the pre-credits WEEKLY_LIMIT code too, for the deploy gap. */
+/** Did an AI call 429 because the household's credits are spent (vs a 6h burst)? */
 export function isCreditLimit(err: unknown): boolean {
   if (!(err instanceof ApiError) || err.status !== 429) return false;
   try {
-    const code = JSON.parse(err.body)?.error;
-    return code === "CREDIT_LIMIT" || code === "WEEKLY_LIMIT";
+    return JSON.parse(err.body)?.error === "CREDIT_LIMIT";
   } catch {
     return false;
   }
