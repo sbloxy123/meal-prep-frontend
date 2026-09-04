@@ -182,6 +182,25 @@ export interface AdminCreditStats {
   generated_at?: string;
 }
 
+/** GET /admin/aisles — the ingredient → aisle cache review screen. */
+export interface AdminAisleRow {
+  id: number;
+  key: string;
+  label: string;
+  aisle: string;
+  source: "seed" | "model" | "human";
+  confidence: number;
+  usage_count: number;
+  reviewed_at?: string | null;
+  created_at?: string;
+}
+export interface AdminAisleReview {
+  queue: AdminAisleRow[];
+  misses: { id: number; key: string; raw_sample: string | null; hit_count: number; last_seen: string }[];
+  stats: { total: number; seed: number; model: number; human: number; unreviewed: number; misses: number };
+  aisles: Record<string, string>; // slug → label, in walking order
+}
+
 export interface AdminTotals {
   users?: number;
   verifiedUsers?: number;
