@@ -31,7 +31,10 @@ interface ShoppingListResponse {
   singleRecipeTags: { tag_recipe_title: string; name: string }[];
   shoppingListIngredientsByRecipe: { recipe_id: number; ingredient_name: string }[];
   householdMemberCount?: number;
-  // Premium entitlement + weekly AI allowance (see AiAllowance below).
+  // Plan, trial and credits (see AiAllowance below). The four legacy fields
+  // are what the backend sent before credits shipped; derive from them only
+  // when `entitlement` is absent (an older backend during a deploy).
+  entitlement?: EntitlementPayload | null;
   plan?: "free" | "premium";
   aiUsedThisWeek?: number;
   aiWeeklyLimit?: number;
@@ -62,28 +65,74 @@ export interface DietaryRule {
   setBy?: string;
 }
 
-/** The household's premium status and weekly AI-action allowance, derived from
-    GET /shopping-list. Every AI surface reads this to render the allowance
-    tag/row and to disable actions once a free household's pool is spent. */
-export interface AiAllowance {
-  isPremium: boolean;
-  /** AI actions used in the current week (0 for premium — not tracked). */
-  used: number;
-  /** Weekly pool size for free households. */
-  limit: number;
-  /** Actions left this week (free only; Infinity for premium). */
-  remaining: number;
-  /** Free household with no actions left this week. */
-  exhausted: boolean;
-  /** When the weekly window resets (ISO), or null for premium. */
-  resetsAt: string | null;
+/** Every AI action the backend meters. Weights (credits per action) come from
+    the household's own snapshot via the entitlement. */
+export type AiAction =
+  | "import" | "estimate" | "improve" | "generate" | "suggest" | "photo" | "social" | "aisle" | "parse" | "usuals";
+
+export type Plan = "free" | "trial" | "premium";
+
+/** What GET /shopping-list sends as `entitlement` (backend lib/credits.js
+    buildEntitlement). */
+export interface EntitlementPayload {
+  plan: Plan;
+  trialEndsAt: string | null;
+  credits: {
+    used: number;
+    allowance: number | null; // null = unlimited
+    remaining: number | null;
+    unlimited: boolean;
+    exhausted: boolean;
+    resetsAt: string | null;
+    periodStart?: string | null;
+  };
+  weights: Partial<Record<AiAction, number>>;
+  memberLimit: number | null; // null = unlimited
+  founder?: boolean;
+  billingInterval?: "month" | "year" | null;
 }
 
-/** At or below this many actions left, a free household is asked to confirm
-    before an AI action spends one. Above it the allowance notes on each AI
-    surface are enough, and a dialog would just be friction. Matches the
-    threshold the premium banner appears at. */
+/** The household's plan and AI credit allowance for this period, derived from
+    GET /shopping-list. Every AI surface reads this to render the allowance
+    tag/row, price an action and disable it once the credits are spent. */
+export interface AiAllowance {
+  plan: Plan;
+  /** Premium OR trial — the Premium experience (no member limit, premium copy). */
+  isPremium: boolean;
+  isTrial: boolean;
+  trialEndsAt: string | null;
+  trialDaysLeft: number | null;
+  /** Credits used this period. */
+  used: number;
+  /** Credits per period; Infinity when unlimited (comps). */
+  limit: number;
+  /** Credits left this period; Infinity when unlimited. */
+  remaining: number;
+  unlimited: boolean;
+  /** No credits left at all (a 1-credit action can't run). */
+  exhausted: boolean;
+  /** When the period turns over (ISO), or null when unknown. */
+  resetsAt: string | null;
+  weights: Partial<Record<AiAction, number>>;
+  /** Free-tier household size, or null when unlimited (premium/trial). */
+  memberLimit: number | null;
+  founder: boolean;
+  billingInterval: "month" | "year" | null;
+  /** Credits this action costs this household. */
+  costOf: (action: AiAction) => number;
+  /** Can the household pay for this action right now? */
+  canAfford: (action: AiAction) => boolean;
+}
+
+/** When a spend would leave at most this many credits, a free household is
+    asked to confirm first. Above it the allowance notes on each AI surface are
+    enough, and a dialog would just be friction. Matches the threshold the
+    premium banner appears at. */
 const LOW_ALLOWANCE = 3;
+
+const DEFAULT_WEIGHTS: Partial<Record<AiAction, number>> = {
+  import: 1, estimate: 1, improve: 1, generate: 1, suggest: 1, photo: 3, social: 1, aisle: 0, parse: 0, usuals: 0,
+};
 
 // A row of shopping_list. Recipe-derived items carry ingredient_name (with
 // custom_product null); user-added items carry custom_product. recipe_count is
@@ -154,10 +203,10 @@ interface MenuValue {
   // Opens a confirmation first — removing a recipe also clears its items from
   // the shopping list, so it's destructive and non-undoable.
   requestRemoveRecipe: (recipe: OpenRecipe) => void;
-  /** Call before spending a weekly AI action. Resolves true to proceed. Only
-      free households running low (see LOW_ALLOWANCE) actually see a dialog;
+  /** Call before spending AI credits on `action`. Resolves true to proceed.
+      Only households running low (see LOW_ALLOWANCE) actually see a dialog;
       everyone else resolves straight through. */
-  confirmAiSpend: () => Promise<boolean>;
+  confirmAiSpend: (action?: AiAction) => Promise<boolean>;
   // Takes every recipe off this week (each one cascades its ingredients out of
   // the shopping list); manually-added own items are left untouched.
   clearAllRecipes: () => Promise<void>;
@@ -166,6 +215,54 @@ interface MenuValue {
       it's on the menu, and both delete entry points need the same behaviour. */
   deleteRecipe: (recipeId: number) => Promise<void>;
   refresh: () => Promise<void>;
+}
+
+/** Turn the API payload into the allowance every surface reads. Prefers the
+    `entitlement` object; falls back to the pre-credits fields so an older
+    backend still yields sensible numbers. Before the first load resolves
+    nothing is exhausted, so no button is disabled on a blank screen. */
+function deriveAllowance(data: ShoppingListResponse | null): AiAllowance {
+  const e = data?.entitlement ?? null;
+  const plan: Plan = e ? e.plan : data?.plan === "premium" ? "premium" : "free";
+  const isPremium = plan === "premium" || plan === "trial";
+  const rawAllowance = e ? e.credits.allowance : data?.plan === "premium" ? null : (data?.aiWeeklyLimit ?? 50);
+  const unlimited = rawAllowance == null;
+  const used = e ? e.credits.used : (data?.aiUsedThisWeek ?? 0);
+  const limit = unlimited ? Infinity : rawAllowance;
+  const remaining = unlimited ? Infinity : Math.max(0, limit - used);
+  const weights = { ...DEFAULT_WEIGHTS, ...(e?.weights ?? {}) };
+  const costOf = (action: AiAction) => {
+    const w = weights[action];
+    return Number.isInteger(w) ? (w as number) : 1;
+  };
+  const trialEndsAt = e?.trialEndsAt ?? null;
+  const trialDaysLeft =
+    plan === "trial" && trialEndsAt
+      ? Math.max(0, Math.ceil((new Date(trialEndsAt).getTime() - Date.now()) / 86_400_000))
+      : null;
+  return {
+    plan,
+    isPremium,
+    isTrial: plan === "trial",
+    trialEndsAt,
+    trialDaysLeft,
+    used,
+    limit,
+    remaining,
+    unlimited,
+    exhausted: data != null && !unlimited && remaining <= 0,
+    resetsAt: e ? e.credits.resetsAt : (data?.weekResetsAt ?? null),
+    weights,
+    memberLimit: e ? e.memberLimit : isPremium ? null : 2,
+    founder: Boolean(e?.founder),
+    billingInterval: e?.billingInterval ?? null,
+    costOf,
+    canAfford: (action: AiAction) => {
+      if (data == null) return true;
+      const cost = costOf(action);
+      return cost <= 0 || unlimited || remaining >= cost;
+    },
+  };
 }
 
 const MenuContext = createContext<MenuValue | null>(null);
@@ -186,6 +283,7 @@ export function MenuProvider({ children }: { children: ReactNode }) {
   const [aiConfirm, setAiConfirm] = useState<{
     resolve: (ok: boolean) => void;
     remaining: number;
+    cost: number;
   } | null>(null);
   const aiConfirmOpen = useRef(false);
 
@@ -256,33 +354,26 @@ export function MenuProvider({ children }: { children: ReactNode }) {
   const listCount = data?.shoppingList?.length ?? 0;
   const householdShared = (data?.householdMemberCount ?? 1) > 1;
 
-  const allowance = useMemo<AiAllowance>(() => {
-    const isPremium = data?.plan === "premium";
-    const limit = data?.aiWeeklyLimit ?? 15;
-    const used = data?.aiUsedThisWeek ?? 0;
-    const remaining = isPremium ? Infinity : Math.max(0, limit - used);
-    return {
-      isPremium,
-      used,
-      limit,
-      remaining,
-      // Never disable before the first load resolves (data null → not exhausted).
-      exhausted: !isPremium && data != null && remaining <= 0,
-      resetsAt: data?.weekResetsAt ?? null,
-    };
-  }, [data]);
+  const allowance = useMemo<AiAllowance>(() => deriveAllowance(data), [data]);
 
-  // Premium, a comfortable allowance, and an already-spent pool all proceed
-  // without a dialog — the last because every caller guards on `exhausted` and
-  // owns its own weekly-limit copy, which is more useful than a confirmation.
-  const confirmAiSpend = useCallback((): Promise<boolean> => {
-    if (allowance.isPremium || allowance.remaining > LOW_ALLOWANCE || allowance.remaining <= 0) {
+  // Unlimited plans, a comfortable balance, and a balance that can't cover the
+  // action at all proceed without a dialog — the last because every caller
+  // guards on canAfford and shows the limit copy, which is more useful than a
+  // confirmation. Only "this spend leaves you nearly empty" gets a dialog.
+  const confirmAiSpend = useCallback((action?: AiAction): Promise<boolean> => {
+    const cost = action ? allowance.costOf(action) : 1;
+    if (
+      cost <= 0 ||
+      allowance.unlimited ||
+      allowance.remaining < cost ||
+      allowance.remaining - cost > LOW_ALLOWANCE
+    ) {
       return Promise.resolve(true);
     }
     if (aiConfirmOpen.current) return Promise.resolve(false);
     aiConfirmOpen.current = true;
     return new Promise<boolean>((resolve) => {
-      setAiConfirm({ resolve, remaining: allowance.remaining });
+      setAiConfirm({ resolve, remaining: allowance.remaining, cost });
     });
   }, [allowance]);
 
@@ -444,17 +535,17 @@ export function MenuProvider({ children }: { children: ReactNode }) {
       )}
       {aiConfirm && (
         <ConfirmDialog
-          title="Use an AI action?"
+          title={aiConfirm.cost === 1 ? "Use a credit?" : `Use ${aiConfirm.cost} credits?`}
           body={
             <>
               <p style={{ margin: 0 }}>
-                {aiConfirm.remaining === 1
-                  ? "This will use your last free AI action this week."
-                  : `This will use 1 of your ${aiConfirm.remaining} remaining free AI actions this week.`}
+                {aiConfirm.remaining === aiConfirm.cost
+                  ? "This will use the last of your free AI credits this month."
+                  : `This will use ${aiConfirm.cost} of your ${aiConfirm.remaining} remaining credits this month.`}
               </p>
               <p style={{ margin: "8px 0 0" }}>
                 <GoPremiumLink source="ai_spend_confirm">
-                  Go premium for unlimited
+                  Go premium for more
                 </GoPremiumLink>
               </p>
             </>

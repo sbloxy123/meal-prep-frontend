@@ -494,3 +494,43 @@
   font-size: 12px;
   white-space: nowrap;
 }
+
+/* Plan settings (app_config) rows. */
+.admin-config {
+  display: grid;
+  gap: 10px;
+}
+.admin-config-row {
+  display: grid;
+  grid-template-columns: minmax(180px, 1fr) minmax(160px, 2fr) auto;
+  gap: 8px 12px;
+  align-items: center;
+}
+.admin-config-label {
+  font-size: 13px;
+  color: var(--color-neutral-800);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.admin-config-help {
+  font-size: 11px;
+  color: var(--color-neutral-500);
+}
+.admin-config-input {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+}
+.admin-config-meta {
+  grid-column: 2 / 4;
+  font-size: 11px;
+  color: var(--color-neutral-500);
+}
+@media (max-width: 720px) {
+  .admin-config-row {
+    grid-template-columns: 1fr;
+  }
+  .admin-config-meta {
+    grid-column: 1;
+  }
+}

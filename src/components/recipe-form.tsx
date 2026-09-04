@@ -7,7 +7,7 @@ import { X, Plus, Sparkles, ChevronDown } from "lucide-react";
 import { ApiError, apiFetch } from "@/lib/api";
 import { useMenu } from "@/lib/menu";
 import { shouldTakeMethod } from "@/lib/instructions";
-import { AllowanceNote, isWeeklyLimit, WEEKLY_LIMIT_MESSAGE } from "@/components/ai-allowance";
+import { AllowanceNote, isCreditLimit, creditLimitMessage, CREDIT_LIMIT_MESSAGE } from "@/components/ai-allowance";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { ImageDrop, type RecipePhoto } from "@/components/image-drop";
 
@@ -159,18 +159,18 @@ export function RecipeForm({
   }
 
   async function estimateMacros() {
-    if (estimating || !canEstimate || menu.allowance.exhausted) return;
-    if (!(await menu.confirmAiSpend())) return;
+    if (estimating || !canEstimate || !menu.allowance.canAfford("estimate")) return;
+    if (!(await menu.confirmAiSpend("estimate"))) return;
     setEstimating(true);
     setEstimateError("");
     const rows = ingredients.filter((r) => r.name.trim());
     try {
       applyMacros(await requestEstimate(rows, servings));
-      void menu.refresh(); // reflect the decremented weekly allowance
+      void menu.refresh(); // reflect the spent credits
     } catch (err) {
       setEstimateError(
-        isWeeklyLimit(err)
-          ? WEEKLY_LIMIT_MESSAGE
+        isCreditLimit(err)
+          ? creditLimitMessage(err)
           : err instanceof ApiError && err.status === 429
             ? "Estimate limit reached — 20 per 6 hours. Try again later."
             : "Couldn’t estimate macros. Please try again.",
@@ -188,8 +188,8 @@ export function RecipeForm({
   // paths used to write): if the model hands back real steps, we take them.
   // A method already spread over several lines is someone's own work — leave it.
   async function improveRecipe() {
-    if (improving || !canEstimate || menu.allowance.exhausted) return;
-    if (!(await menu.confirmAiSpend())) return;
+    if (improving || !canEstimate || !menu.allowance.canAfford("improve")) return;
+    if (!(await menu.confirmAiSpend("improve"))) return;
     setImproving(true);
     setImproveError("");
     const rows = ingredients.filter((r) => r.name.trim());
@@ -257,11 +257,11 @@ export function RecipeForm({
           // Quantities are already improved; a failed macro fallback is non-fatal.
         }
       }
-      void menu.refresh(); // reflect the decremented weekly allowance
+      void menu.refresh(); // reflect the spent credits
     } catch (err) {
       setImproveError(
-        isWeeklyLimit(err)
-          ? WEEKLY_LIMIT_MESSAGE
+        isCreditLimit(err)
+          ? creditLimitMessage(err)
           : err instanceof ApiError && err.status === 429
             ? "Improve limit reached — 15 per 6 hours. Try again later."
             : "Couldn’t improve this recipe. Please try again.",
@@ -277,9 +277,9 @@ export function RecipeForm({
   useEffect(() => {
     if (!autoImprove || autoImproveFired.current) return;
     autoImproveFired.current = true;
-    if (menu.allowance.exhausted) {
+    if (!menu.allowance.canAfford("improve")) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
-      setImproveError(WEEKLY_LIMIT_MESSAGE);
+      setImproveError(CREDIT_LIMIT_MESSAGE);
       return;
     }
     // Nothing to improve — the hint by the button already explains why.
@@ -592,12 +592,12 @@ export function RecipeForm({
           type="button"
           className="btn btn-ai rf-estimate"
           onClick={estimateMacros}
-          disabled={estimating || improving || !canEstimate || menu.allowance.exhausted}
+          disabled={estimating || improving || !canEstimate || !menu.allowance.canAfford("estimate")}
         >
           <Sparkles size={15} className="btn-ai-spark" aria-hidden />
           {estimating ? "Estimating…" : "Estimate macros"}
         </button>
-        {canEstimate && <AllowanceNote source="estimate_macros_button" />}
+        {canEstimate && <AllowanceNote source="estimate_macros_button" action="estimate" />}
         {!canEstimate && (
           <p className="rf-hint text-muted">
             Add a title and at least one ingredient to estimate.
@@ -697,7 +697,7 @@ export function RecipeForm({
             type="button"
             className="btn btn-ai rf-improve"
             onClick={improveRecipe}
-            disabled={estimating || improving || !canEstimate || menu.allowance.exhausted}
+            disabled={estimating || improving || !canEstimate || !menu.allowance.canAfford("improve")}
           >
             <Sparkles size={15} className="btn-ai-spark" aria-hidden />
             {improving ? "Improving…" : "Improve recipe"}

@@ -484,9 +484,10 @@ export function MarketingHome() {
               </h2>
             </div>
             <p className="text-muted home-pricing-note">
-              Every feature is free, with a weekly allowance for the AI. When
-              you&rsquo;re cooking with it every week, Premium makes the AI
-              unlimited for your whole household.
+              Every feature is free, with 50 AI credits a month. Every new
+              account starts with 14 days of Premium on us &mdash; no card
+              needed. When you&rsquo;re cooking with it every week, Premium
+              gives the whole household six times the AI.
             </p>
           </div>
 
@@ -496,10 +497,10 @@ export function MarketingHome() {
               name="Free"
               price="£0"
               unit="always"
-              blurb="Everything Fornetto does, with a weekly allowance for the AI."
+              blurb="Everything Fornetto does, with a monthly allowance for the AI."
               features={[
                 "All recipes, menus & shopping-list features",
-                "15 AI actions a week",
+                "50 AI credits a month — the shopping list never costs one",
                 "Share with your whole household",
                 "Works offline in the shop",
               ]}
@@ -509,21 +510,21 @@ export function MarketingHome() {
               accent
               badge="Most popular"
               name="Premium"
-              price="£2.99"
+              price="£3.99"
               unit="per month"
-              blurb="Unlimited AI for the whole household."
+              blurb="Six times the AI, for the whole household."
               features={[
                 "Everything in Free",
-                "Unlimited AI — drafts, photos, improve & macros",
-                "Unlimited inspiration & shop-by-aisle",
+                "300 AI credits a month — drafts, photos, improve & macros",
+                "14 days free to start, no card needed",
                 "Shared across your household · cancel anytime",
               ]}
             />
           </div>
 
           <p className="text-muted home-pricing-reassure">
-            Less than a coffee a month. Cancel anytime — and your recipes are
-            always yours.
+            Start with 14 days of Premium, free. Cancel anytime — and your
+            recipes are always yours.
           </p>
         </div>
       </section>
@@ -644,7 +645,7 @@ export function MarketingHome() {
             <Faq
               q="What does it cost?"
               a={
-                "The whole app — planning, shopping and sharing — is free. The AI extras (drafting a recipe from a link, photo, title or reel, plus macro estimates and inspiration) come with a free allowance of 15 a week. Premium is £2.99 a month and makes them unlimited for your whole household; upgrade or cancel anytime."
+                "The whole app — planning, shopping and sharing — is free, and every new account starts with 14 days of Premium, no card needed. After that the AI extras (drafting a recipe from a link, photo, title or reel, plus macro estimates and inspiration) come with 50 free credits a month: most actions cost one, a photo scan three, and the shopping list never costs anything. Premium is £3.99 a month for 300 credits, shared across your whole household; upgrade or cancel anytime."
               }
             />
             <Faq

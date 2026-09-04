@@ -4,8 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { Sparkles, Link2, Share2, Camera, Images, X, Loader2, AlertCircle, ChevronDown } from "lucide-react";
 import { ApiError, apiFetch } from "@/lib/api";
 import { fileToDownscaledBase64 } from "@/lib/image";
-import { useMenu } from "@/lib/menu";
-import { AllowanceTag, AllowanceRow, isWeeklyLimit, WEEKLY_LIMIT_MESSAGE } from "@/components/ai-allowance";
+import { useMenu, type AiAction } from "@/lib/menu";
+import { AllowanceTag, AllowanceRow, isCreditLimit, creditLimitMessage } from "@/components/ai-allowance";
 import type { RecipeFormInitial } from "@/components/recipe-form";
 
 // One consolidated "Fornetto AI" panel replacing the four peer import cards.
@@ -20,6 +20,9 @@ import type { RecipeFormInitial } from "@/components/recipe-form";
 
 type Route = "link" | "social" | "title" | "photo";
 const MAX_PHOTOS = 4;
+// What the backend charges each route as (credits come from the household's
+// weight snapshot: most things 1, a photo scan 3).
+const ROUTE_ACTION: Record<Route, AiAction> = { link: "import", social: "social", title: "generate", photo: "photo" };
 
 const ROUTES: Record<
   Route,
@@ -139,9 +142,10 @@ export function FornettoAiPanel({
           ? value.trim() !== "" || caption.trim() !== ""
           : value.trim() !== "";
     if (!hasInput) return;
-    // Every route below spends a weekly AI action. Confirming here (rather than
-    // on the button) also covers the Enter key and the share-target auto-run.
-    if (!(await menu.confirmAiSpend())) return;
+    // Every route below spends AI credits. Confirming here (rather than on the
+    // button) also covers the Enter key and the share-target auto-run.
+    if (!allowance.canAfford(ROUTE_ACTION[route])) return;
+    if (!(await menu.confirmAiSpend(ROUTE_ACTION[route]))) return;
 
     try {
       let draft: RecipeFormInitial;
@@ -215,8 +219,8 @@ export function FornettoAiPanel({
 
   function handleError(err: unknown) {
     const status = err instanceof ApiError ? err.status : 0;
-    if (isWeeklyLimit(err)) {
-      fail(WEEKLY_LIMIT_MESSAGE, false);
+    if (isCreditLimit(err)) {
+      fail(creditLimitMessage(err), false);
       return;
     }
     if (status === 429) {
@@ -271,7 +275,7 @@ export function FornettoAiPanel({
 
   const actionDisabled =
     pending ||
-    allowance.exhausted ||
+    !allowance.canAfford(ROUTE_ACTION[route]) ||
     (route === "photo" ? photos.length === 0 : !value.trim() && !caption.trim());
   const igPending = pending && route === "social" && /instagram\.com/i.test(value) && !caption.trim();
 
@@ -379,7 +383,7 @@ export function FornettoAiPanel({
               className="btn btn-ai ai-panel-action"
               style={{ alignSelf: "flex-start" }}
               onClick={run}
-              disabled={pending || allowance.exhausted}
+              disabled={pending || !allowance.canAfford("photo")}
             >
               <Sparkles size={14} className="btn-ai-spark" aria-hidden />
               {pending ? "Reading…" : "Extract"}

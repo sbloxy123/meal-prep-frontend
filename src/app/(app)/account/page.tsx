@@ -145,10 +145,25 @@ function PremiumCard() {
   return (
     <section className="account-card">
       <h2>Premium</h2>
-      {allowance.isPremium ? (
+      {allowance.isTrial ? (
         <>
           <p className="text-muted" style={{ fontSize: 14, marginBottom: 12 }}>
-            Your household is on <strong>Premium</strong> — unlimited AI across every feature.
+            Your household is on a <strong>Premium trial</strong> — {allowance.trialDaysLeft} day
+            {allowance.trialDaysLeft === 1 ? "" : "s"} left, {allowance.remaining} of {allowance.limit} credits this
+            month. After that it&rsquo;s the free plan with 50 credits a month, unless you keep Premium.
+          </p>
+          <GoPremiumLink source="account_card_trial" className="btn btn-ai">
+            Keep Premium — £3.99/month
+          </GoPremiumLink>
+        </>
+      ) : allowance.isPremium ? (
+        <>
+          <p className="text-muted" style={{ fontSize: 14, marginBottom: 12 }}>
+            Your household is on <strong>Premium</strong>
+            {allowance.unlimited
+              ? " — unlimited AI across every feature."
+              : ` — ${allowance.remaining} of ${allowance.limit} AI credits left this month, shared across every feature.`}
+            {allowance.founder && " Founders’ price, locked in."}
           </p>
           <button type="button" className="btn btn-secondary" onClick={manage} disabled={managing}>
             {managing ? "Opening…" : "Manage subscription"}
@@ -162,8 +177,8 @@ function PremiumCard() {
       ) : (
         <>
           <p className="text-muted" style={{ fontSize: 14, marginBottom: 12 }}>
-            You’re on the free plan — {allowance.remaining} of {allowance.limit} AI actions left this
-            week. Go Premium for unlimited AI across your whole household, £2.99/month.
+            You’re on the free plan — {allowance.remaining} of {allowance.limit} AI credits left this
+            month. Go Premium for 300 a month across your whole household, £3.99/month.
           </p>
           <GoPremiumLink source="account_card" className="btn btn-ai">
             See Premium
