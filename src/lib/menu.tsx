@@ -31,14 +31,8 @@ interface ShoppingListResponse {
   singleRecipeTags: { tag_recipe_title: string; name: string }[];
   shoppingListIngredientsByRecipe: { recipe_id: number; ingredient_name: string }[];
   householdMemberCount?: number;
-  // Plan, trial and credits (see AiAllowance below). The four legacy fields
-  // are what the backend sent before credits shipped; derive from them only
-  // when `entitlement` is absent (an older backend during a deploy).
+  // Plan, trial and credits (see AiAllowance below).
   entitlement?: EntitlementPayload | null;
-  plan?: "free" | "premium";
-  aiUsedThisWeek?: number;
-  aiWeeklyLimit?: number;
-  weekResetsAt?: string | null;
   // Onboarding questionnaire state. Optional so a frontend running against a
   // backend that predates them simply never offers the questionnaire.
   onboardingNeeded?: boolean;
@@ -217,17 +211,17 @@ interface MenuValue {
   refresh: () => Promise<void>;
 }
 
-/** Turn the API payload into the allowance every surface reads. Prefers the
-    `entitlement` object; falls back to the pre-credits fields so an older
-    backend still yields sensible numbers. Before the first load resolves
-    nothing is exhausted, so no button is disabled on a blank screen. */
+/** Turn the API payload into the allowance every surface reads. Before the
+    first load resolves nothing is exhausted, so no button is disabled on a
+    blank screen; a payload without `entitlement` (never expected) reads as
+    a free plan with the launch allowance. */
 function deriveAllowance(data: ShoppingListResponse | null): AiAllowance {
   const e = data?.entitlement ?? null;
-  const plan: Plan = e ? e.plan : data?.plan === "premium" ? "premium" : "free";
+  const plan: Plan = e ? e.plan : "free";
   const isPremium = plan === "premium" || plan === "trial";
-  const rawAllowance = e ? e.credits.allowance : data?.plan === "premium" ? null : (data?.aiWeeklyLimit ?? 50);
+  const rawAllowance = e ? e.credits.allowance : 50;
   const unlimited = rawAllowance == null;
-  const used = e ? e.credits.used : (data?.aiUsedThisWeek ?? 0);
+  const used = e ? e.credits.used : 0;
   const limit = unlimited ? Infinity : rawAllowance;
   const remaining = unlimited ? Infinity : Math.max(0, limit - used);
   const weights = { ...DEFAULT_WEIGHTS, ...(e?.weights ?? {}) };
@@ -251,7 +245,7 @@ function deriveAllowance(data: ShoppingListResponse | null): AiAllowance {
     remaining,
     unlimited,
     exhausted: data != null && !unlimited && remaining <= 0,
-    resetsAt: e ? e.credits.resetsAt : (data?.weekResetsAt ?? null),
+    resetsAt: e?.credits.resetsAt ?? null,
     weights,
     memberLimit: e ? e.memberLimit : isPremium ? null : 2,
     founder: Boolean(e?.founder),
