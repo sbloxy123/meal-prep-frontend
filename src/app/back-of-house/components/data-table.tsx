@@ -32,6 +32,7 @@ export function DataTable<T>({
   defaultSort,
   compact,
   empty = "Nothing to show.",
+  onRowClick,
 }: {
   columns: Column<T>[];
   rows: T[];
@@ -40,6 +41,8 @@ export function DataTable<T>({
   defaultSort?: { key: string; dir: "asc" | "desc" };
   compact?: boolean;
   empty?: ReactNode;
+  /** Makes rows clickable (cursor + keyboard). */
+  onRowClick?: (row: T) => void;
 }) {
   const [sort, setSort] = useState(defaultSort ?? null);
 
@@ -87,7 +90,13 @@ export function DataTable<T>({
         </thead>
         <tbody>
           {sorted.map((row) => (
-            <tr key={rowKey(row)}>
+            <tr
+              key={rowKey(row)}
+              className={onRowClick ? "is-clickable" : undefined}
+              onClick={onRowClick ? () => onRowClick(row) : undefined}
+              tabIndex={onRowClick ? 0 : undefined}
+              onKeyDown={onRowClick ? (e) => { if (e.key === "Enter") onRowClick(row); } : undefined}
+            >
               {columns.map((c) => (
                 <td
                   key={c.key}

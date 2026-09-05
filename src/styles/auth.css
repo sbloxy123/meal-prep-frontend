@@ -89,3 +89,13 @@
   text-transform: uppercase;
   color: color-mix(in srgb, var(--color-text) 40%, transparent);
 }
+
+.auth-fineprint {
+  font-size: 12px;
+  line-height: 1.5;
+  margin: 10px 0 0;
+}
+.auth-fineprint a {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}

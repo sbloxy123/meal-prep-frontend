@@ -3,14 +3,39 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { ApiError, apiFetch } from "@/lib/api";
 import type { AdminConfig } from "@/lib/types";
-import { fmtDate } from "../lib/format";
+import { fmtDate, relative } from "../lib/format";
+import type { AdminAccessLog } from "@/lib/types";
+import { useAdminData } from "../lib/use-admin-data";
+import { Section, Empty } from "../components/primitives";
 
 export function SettingsTab() {
   return (
     <>
       <ConfigSection />
       <PremiumGrantsSection />
+      <AccessLogSection />
     </>
+  );
+}
+
+// Every time an admin opened a person or a full recipe, with the reason given.
+function AccessLogSection() {
+  const { data } = useAdminData<AdminAccessLog>("/admin/access-log");
+  const entries = data?.entries ?? [];
+  return (
+    <Section title="Access log" note="Who looked at whom from this dashboard, and why. Kept so there is an answer if a user ever asks.">
+      {entries.length === 0 ? <Empty>Nothing yet.</Empty> : (
+        <ul className="admin-timeline">
+          {entries.map((e, i) => (
+            <li key={i}>
+              <span className="admin-timeline-when">{relative(e.at)}</span> {e.admin ?? "admin"}{" "}
+              {e.type === "admin_viewed_recipe" ? `opened recipe #${e.recipe_id}` : "viewed"} {e.target ?? "?"}
+              {e.reason ? <> — <em>{e.reason}</em></> : null}
+            </li>
+          ))}
+        </ul>
+      )}
+    </Section>
   );
 }
 

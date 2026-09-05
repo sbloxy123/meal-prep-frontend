@@ -202,6 +202,9 @@ function AboutCard() {
       <Link href="/about" className="btn btn-secondary">
         View the guide
       </Link>
+      <p className="text-muted" style={{ fontSize: 13, marginTop: 12 }}>
+        What we collect and why: <Link href="/privacy">privacy page</Link>.
+      </p>
     </section>
   );
 }

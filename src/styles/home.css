@@ -592,3 +592,58 @@
   .home-footer { flex-direction: column; align-items: center; text-align: center; }
   .home-footer-links { margin-left: 0 !important; }
 }
+
+/* /privacy — a plain legal page in the house type. */
+.legal {
+  background: var(--color-bg);
+  color: var(--color-text);
+  min-height: 100vh;
+  padding: 40px 20px 64px;
+}
+.legal-inner {
+  max-width: 680px;
+  margin: 0 auto;
+  font-size: 16px;
+  line-height: 1.65;
+}
+.legal-kicker {
+  font-size: 13px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  margin: 0 0 8px;
+}
+.legal-kicker a {
+  color: var(--color-accent-700);
+  text-decoration: none;
+}
+.legal h1 {
+  font-family: var(--font-heading);
+  font-weight: var(--font-heading-weight, 600);
+  font-size: 40px;
+  margin: 0 0 4px;
+}
+.legal h2 {
+  font-family: var(--font-heading);
+  font-weight: var(--font-heading-weight, 600);
+  font-size: 24px;
+  margin: 28px 0 8px;
+}
+.legal-updated {
+  color: var(--color-neutral-600);
+  font-size: 14px;
+  margin: 0 0 20px;
+}
+.legal ul {
+  padding-left: 20px;
+}
+.legal li {
+  margin-bottom: 8px;
+}
+.legal a {
+  color: var(--color-accent-800, var(--color-text));
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.legal-foot {
+  margin-top: 36px;
+}
