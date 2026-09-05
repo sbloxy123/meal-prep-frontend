@@ -85,6 +85,10 @@ export default function SignUpPage() {
           <button type="submit" className="btn btn-primary btn-block auth-submit" disabled={loading}>
             {loading ? "Creating account…" : "Create account"}
           </button>
+          <p className="auth-fineprint text-muted">
+            By creating an account you agree to how we handle your data — see our{" "}
+            <Link href="/privacy">privacy page</Link>.
+          </p>
         </form>
 
         <div className="auth-alt">

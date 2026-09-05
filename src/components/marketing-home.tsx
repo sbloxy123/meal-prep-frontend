@@ -704,6 +704,7 @@ export function MarketingHome() {
           <div className="home-footer-links">
             <a href="#how">How it works</a>
             <a href="#pricing">Pricing</a>
+            <Link href="/privacy">Privacy</Link>
             <a href="#features">Features</a>
             <a href="#faq">Questions</a>
             <MarketingFooterAuthLink />

@@ -408,3 +408,38 @@ export interface AdminOnboarding {
   followThrough: { outcome: "completed" | "skipped"; users: number; addedRecipe: number; plannedWeek: number; generatedList: number; finishedShop: number }[];
   generated_at?: string;
 }
+
+/** GET /admin/recipes/overview?days= — what people add, nobody named. */
+export interface AdminRecipesOverview {
+  days: number;
+  sources: Record<string, number>;
+  shape: { recipes: number; withPhoto: number; withLink: number; favourited: number; withMacros: number; avgIngredients: number; avgSteps: number; everOnMenu: number };
+  repeats: { title: string; households: number; count: number }[];
+  topTags: { name: string; households: number; count: number }[];
+  recent: { id: number; title: string | null; created_at: string | null; on_menu: boolean; favourite: boolean; has_photo: boolean; household_key: string; source: string | null; tags: string[] }[];
+}
+
+/** GET /admin/users/:id — one person: titles + metadata, never recipe text. */
+export interface AdminUserDetail {
+  user: { id: string; name: string | null; email: string; created_at: string; email_verified: boolean; role: string | null; onboarding_outcome: string | null; onboarded_at: string | null };
+  household: { id: string; name: string | null; members: { user_id: string; name: string | null; email: string; role: string }[] } | null;
+  entitlement: { plan: "free" | "trial" | "premium"; trialEndsAt: string | null; credits: { used: number; allowance: number | null; remaining: number | null; resetsAt: string | null }; memberLimit: number | null } | null;
+  recipes: { id: number; title: string | null; created_at: string | null; is_on_menu: boolean; favorite: boolean; has_photo: boolean; has_link: boolean; macros_source: string | null; source: string | null; tags: string[]; ingredients: number; times_on_menu: number; mine: boolean }[];
+  activity: { type: string; at: string; meta: Record<string, unknown> | null }[];
+  ai: { action: string; count: number; costPence: number }[];
+}
+
+/** GET /admin/recipes/:id?reason= — the full recipe (logged with the reason). */
+export interface AdminRecipeDetail {
+  recipe: {
+    id: number; title: string | null; description: string | null; instructions: string | null; link_url: string | null;
+    prep_time_minutes: number | null; cook_time_minutes: number | null; servings: number | null; image_url: string | null;
+    calories: number | null; protein_g: number | null; carb_g: number | null; fat_g: number | null; macros_source: string | null;
+    created_at: string | null; added_by_email: string | null; tags: string[];
+    ingredients: { name: string; quantity: string | number | null; unit: string | null }[];
+  };
+}
+
+export interface AdminAccessLog {
+  entries: { type: string; at: string; admin: string | null; target: string | null; recipe_id: number | null; reason: string | null }[];
+}

@@ -5,13 +5,59 @@ import { Chart, Breakdown, Stat } from "../components/primitives";
 import { StaleLayoutNotice } from "../components/stale-layout-notice";
 import { pct, retentionText, toItems } from "../lib/format";
 import { RANGE_LABEL, type Range } from "../lib/constants";
+import { useAdminData } from "../lib/use-admin-data";
+import { DataTable, type Column } from "../components/data-table";
+import { Section, SubTitle, Empty } from "../components/primitives";
+import { cap, fmtDate } from "../lib/format";
+import type { AdminRecipesOverview } from "@/lib/types";
 
 export function EngagementTab({ totals, series, days }: { totals: NonNullable<AdminOverview["totals"]>; series: NonNullable<AdminOverview["series"]>; days: Range }) {
   return (
     <>
       <EngagementSection totals={totals} series={series} days={days} />
+      <WhatPeopleAdd days={days} />
       <GrowthSection totals={totals} />
     </>
+  );
+}
+
+// Anonymous by construction: sources, shape, titles that recur across
+// households, and the last fifty titles with a short household key. Nobody is
+// named; the Users tab is where a person is looked at, and that is logged.
+function WhatPeopleAdd({ days }: { days: Range }) {
+  const { data, loading } = useAdminData<AdminRecipesOverview>(`/admin/recipes/overview?days=${days}`, [days]);
+  if (loading) return <Section title="What people add"><Empty>Loading…</Empty></Section>;
+  if (!data) return null;
+  const s = data.shape;
+  const pctOf = (a: number) => (s.recipes ? `${Math.round((a / s.recipes) * 100)}%` : "—");
+  const recentColumns: Column<AdminRecipesOverview["recent"][number]>[] = [
+    { key: "title", label: "Recipe", mobile: "title", render: (r) => r.title || "Untitled" },
+    { key: "source", label: "Source", mobile: "pill", render: (r) => <span className="admin-pill">{cap(r.source ?? "unknown")}</span> },
+    { key: "tags", label: "Collections", render: (r) => (r.tags.length ? r.tags.join(", ") : "—") },
+    { key: "created_at", label: "Added", render: (r) => fmtDate(r.created_at) },
+    { key: "household_key", label: "Household", mobile: "hide", render: (r) => <code>{r.household_key}</code> },
+    { key: "flags", label: "", mobile: "hide", render: (r) => <>{r.has_photo && "📷 "}{r.favourite && "★ "}{r.on_menu && "this week"}</> },
+  ];
+  return (
+    <Section
+      title={`What people add · ${RANGE_LABEL[days]}`}
+      note="Anonymous: where recipes come from, what they look like, which dishes recur across households, and the latest titles. Nobody is named here — look someone up on the Users tab if you need to, and that is logged."
+    >
+      <div className="admin-stat-grid" style={{ marginBottom: 16 }}>
+        <Stat label="Recipes added" value={s.recipes} />
+        <Stat label="With a photo" text={pctOf(s.withPhoto)} />
+        <Stat label="From a link" text={pctOf(s.withLink)} />
+        <Stat label="Put on a week" text={pctOf(s.everOnMenu)} />
+        <Stat label="Favourited" text={pctOf(s.favourited)} />
+        <Stat label="Ingredients / steps (avg)" text={`${s.avgIngredients} / ${s.avgSteps}`} />
+      </div>
+      <SubTitle top={0}>Where they come from</SubTitle>
+      <Breakdown items={Object.entries(data.sources).filter(([, v]) => v > 0).map(([k, v]) => ({ label: cap(k), value: v }))} />
+      {data.repeats.length > 0 && (<><SubTitle>Dishes several households have</SubTitle><Breakdown items={data.repeats.map((r) => ({ label: `${cap(r.title)} · ${r.households} households`, value: r.count }))} /></>)}
+      {data.topTags.length > 0 && (<><SubTitle>Collections used · {RANGE_LABEL[days]}</SubTitle><Breakdown items={data.topTags.map((t) => ({ label: `${t.name} · ${t.households} households`, value: t.count }))} /></>)}
+      <SubTitle>Latest recipes · titles only</SubTitle>
+      <DataTable columns={recentColumns} rows={data.recent} rowKey={(r) => r.id} compact empty="No recipes yet." />
+    </Section>
   );
 }
 

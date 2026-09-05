@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { UserDrawer } from "../components/user-drawer";
 import type { AdminUserRow } from "@/lib/types";
 import { DataTable, type Column } from "../components/data-table";
 import { Section } from "../components/primitives";
@@ -13,6 +14,7 @@ import { SEGMENTS, type Segment } from "../lib/constants";
 export function UsersTab({ users }: { users: AdminUserRow[] }) {
   const [q, setQ] = useState("");
   const [segment, setSegment] = useState<Segment>("all");
+  const [open, setOpen] = useState<string | null>(null);
 
   const rows = useMemo(() => {
     const needle = q.trim().toLowerCase();
@@ -93,7 +95,9 @@ export function UsersTab({ users }: { users: AdminUserRow[] }) {
           ))}
         </div>
       </div>
-      <DataTable columns={columns} rows={rows} rowKey={(u) => u.id} defaultSort={{ key: "created_at", dir: "desc" }} empty="No users match." />
+      <p className="admin-section-note">Tap a person for their plan, activity and recipe list (titles and metadata — opening a full recipe asks for a reason and is logged).</p>
+      <DataTable columns={columns} rows={rows} rowKey={(u) => u.id} defaultSort={{ key: "created_at", dir: "desc" }} empty="No users match." onRowClick={(u) => setOpen(u.id)} />
+      {open && <UserDrawer userId={open} onClose={() => setOpen(null)} />}
     </Section>
   );
 }
