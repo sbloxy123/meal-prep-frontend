@@ -69,6 +69,8 @@ const HISTORY_COLUMNS: Column<AdminHistoryMonth>[] = [
   { key: "users", label: "Users", numeric: true, render: (m) => <span className={grey(m, "users")}>{n(m.users)}</span> },
   { key: "signups", label: "Signups", numeric: true, render: (m) => m.signups },
   { key: "active_7d", label: "Active 7d", numeric: true, render: (m) => <span className={grey(m, "active_7d")}>{n(m.active_7d)}</span> },
+  { key: "installed_users", label: "Installed", numeric: true, render: (m) => n(m.installed_users) },
+  { key: "standalone_active_7d", label: "In app 7d", numeric: true, render: (m) => n(m.standalone_active_7d) },
   { key: "d7", label: "D7 %", numeric: true, render: (m) => (m.d7 == null ? "—" : `${m.d7}% (${m.d7_cohort})`) },
   { key: "paid_households", label: "Paying", numeric: true, render: (m) => <span className={grey(m, "paid_households")}>{n(m.paid_households)}</span> },
   { key: "mrr_pence", label: "MRR", numeric: true, render: (m) => <span className={grey(m, "mrr_pence")}>{m.mrr_pence == null ? "—" : fmtPence(m.mrr_pence)}</span> },
