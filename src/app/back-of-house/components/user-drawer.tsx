@@ -6,6 +6,7 @@ import { ApiError, apiFetch } from "@/lib/api";
 import type { AdminRecipeDetail, AdminUserDetail } from "@/lib/types";
 import { useModalA11y } from "@/lib/use-modal";
 import { DataTable, type Column } from "./data-table";
+import { PLATFORM_LABEL } from "../lib/constants";
 import { Stat, SubTitle, Empty } from "./primitives";
 import { fmtDate, fmtPence, relative, cap } from "../lib/format";
 
@@ -64,6 +65,12 @@ export function UserDrawer({ userId, onClose }: { userId: string; onClose: () =>
               <Stat label="Onboarding" text={data.user.onboarding_outcome ? cap(data.user.onboarding_outcome.replace("_", " ")) : "not yet"} />
               <Stat label="Household" text={data.household ? `${data.household.name ?? "—"} · ${data.household.members.length}` : "—"} />
               <Stat label="AI actions" value={data.ai.reduce((a, r) => a + r.count, 0)} />
+              <Stat
+                label="Installed app"
+                text={data.user.installed_at
+                  ? `${PLATFORM_LABEL[data.user.installed_platform ?? "unknown"] ?? "Yes"} · ${data.user.standalone_days_30} of ${data.user.active_days_30} active days (30d)`
+                  : "Browser only"}
+              />
             </div>
             {data.household && data.household.members.length > 1 && (
               <p className="admin-section-note">Members: {data.household.members.map((m) => `${m.name || m.email} (${m.role})`).join(", ")}</p>

@@ -21,6 +21,7 @@ import { clearAdminCache } from "./lib/use-admin-data";
 import { OverviewTab } from "./tabs/overview";
 import { UsersTab } from "./tabs/users";
 import { EngagementTab } from "./tabs/engagement";
+import { InstallsTab } from "./tabs/installs";
 import { OnboardingTab } from "./tabs/onboarding";
 import { AiTab } from "./tabs/ai";
 import { CreditsTab } from "./tabs/credits";
@@ -31,6 +32,7 @@ const TABS = [
   { key: "overview", label: "Overview" },
   { key: "users", label: "Users" },
   { key: "engagement", label: "Engagement" },
+  { key: "installs", label: "Installs" },
   { key: "onboarding", label: "Onboarding" },
   { key: "ai", label: "AI & cost" },
   { key: "credits", label: "Credits & revenue" },
@@ -151,6 +153,7 @@ export default function BackOfHousePage() {
       {tab === "overview" && <OverviewTab overview={overview} days={days} />}
       {tab === "users" && <UsersTab users={users} />}
       {tab === "engagement" && <EngagementTab totals={totals} series={series} days={days} />}
+      {tab === "installs" && <InstallsTab days={days} />}
       {tab === "onboarding" && <OnboardingTab days={days} />}
       {tab === "ai" && <AiTab series={series} users={users} days={days} />}
       {tab === "credits" && <CreditsTab days={days} />}

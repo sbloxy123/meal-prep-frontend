@@ -307,6 +307,10 @@ export interface AdminUserRow {
   shares_created?: number | null;
   week_adds?: number | null;
   lists_generated?: number | null;
+  // Installed app (migration 021): first/latest launch from a home screen.
+  installed_at?: string | null;
+  installed_platform?: string | null;
+  last_standalone_at?: string | null;
 }
 
 export interface AdminUsersResponse {
@@ -353,6 +357,10 @@ export interface AdminHistoryMonth {
   active_7d?: number | null;
   active_30d?: number | null;
   trials_active?: number | null;
+  installed_users?: number | null;
+  standalone_active_7d?: number | null;
+  standalone_active_30d?: number | null;
+  standalone_active_users?: number;
   signups: number;
   active_users: number;
   ai_actions: number;
@@ -421,7 +429,12 @@ export interface AdminRecipesOverview {
 
 /** GET /admin/users/:id — one person: titles + metadata, never recipe text. */
 export interface AdminUserDetail {
-  user: { id: string; name: string | null; email: string; created_at: string; email_verified: boolean; role: string | null; onboarding_outcome: string | null; onboarded_at: string | null };
+  user: {
+    id: string; name: string | null; email: string; created_at: string; email_verified: boolean; role: string | null;
+    onboarding_outcome: string | null; onboarded_at: string | null;
+    installed_at: string | null; installed_platform: string | null; last_standalone_at: string | null;
+    active_days_30: number; standalone_days_30: number;
+  };
   household: { id: string; name: string | null; members: { user_id: string; name: string | null; email: string; role: string }[] } | null;
   entitlement: { plan: "free" | "trial" | "premium"; trialEndsAt: string | null; credits: { used: number; allowance: number | null; remaining: number | null; resetsAt: string | null }; memberLimit: number | null } | null;
   recipes: { id: number; title: string | null; created_at: string | null; is_on_menu: boolean; favorite: boolean; has_photo: boolean; has_link: boolean; macros_source: string | null; source: string | null; tags: string[]; ingredients: number; times_on_menu: number; mine: boolean }[];
@@ -442,4 +455,44 @@ export interface AdminRecipeDetail {
 
 export interface AdminAccessLog {
   entries: { type: string; at: string; admin: string | null; target: string | null; recipe_id: number | null; reason: string | null }[];
+}
+
+/** GET /admin/installs?days= — the installed (home-screen) app vs the browser. */
+export interface AdminInstallGroup {
+  users: number;
+  active: number;
+  avgActiveDays: number;
+  avgRecipes: number;
+  avgLists: number;
+  avgShops: number;
+  avgWeekAdds: number;
+  shopped: number;
+  paying: number;
+  d7: { cohort: number; retained: number };
+  d30: { cohort: number; retained: number };
+}
+export interface AdminInstalls {
+  days: number;
+  totals: {
+    users: number;
+    installedUsers: number;
+    installedInWindow: number;
+    signupsInWindow: number;
+    signupsInstalled: number;
+    activeUsers: number;
+    standaloneActive: number;
+    mixed: number;
+    activeDays: number;
+    standaloneDays: number;
+    medianDaysToInstall: number | null;
+  };
+  cohorts: { month: string; signups: number; installed: number; installed_1d: number; installed_7d: number }[];
+  platforms: { platform: string; n: number }[];
+  compare: { installed: AdminInstallGroup; browser: AdminInstallGroup };
+  weekly: { week: string; active: number; inApp: number; browserOnly: number }[];
+  recent: {
+    id: string; name: string | null; email: string; created_at: string;
+    installed_at: string; installed_platform: string | null; last_standalone_at: string | null;
+    active_days_30: number; standalone_days_30: number;
+  }[];
 }

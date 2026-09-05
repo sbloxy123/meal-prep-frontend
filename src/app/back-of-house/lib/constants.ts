@@ -26,7 +26,7 @@ const AI_LABEL: Record<AiAction, string> = {
   usuals: "My usuals",
 };
 
-type Segment = "all" | "active" | "inactive" | "unverified" | "recipes" | "premium";
+type Segment = "all" | "active" | "inactive" | "unverified" | "recipes" | "premium" | "installed";
 
 type SortKey = "name" | "joined" | "active" | "recipes" | "ai" | "household" | "plan";
 
@@ -37,9 +37,13 @@ const SEGMENTS: { key: Segment; label: string }[] = [
   { key: "unverified", label: "Unverified" },
   { key: "recipes", label: "Has recipes" },
   { key: "premium", label: "Premium" },
+  { key: "installed", label: "Installed" },
 ];
 
 const PLAN_LABEL: Record<string, string> = { free: "Free", trial: "Trial", premium: "Premium" };
 
-export { RANGES, RANGE_LABEL, AI_ACTIONS, AI_LABEL, SEGMENTS, PLAN_LABEL };
+// installed_platform values (client-hint.ts) → what the dashboard says.
+const PLATFORM_LABEL: Record<string, string> = { ios: "iPhone / iPad", android: "Android", desktop: "Desktop", unknown: "Unknown" };
+
+export { RANGES, RANGE_LABEL, AI_ACTIONS, AI_LABEL, SEGMENTS, PLAN_LABEL, PLATFORM_LABEL };
 export type { Range, AiAction, Segment, SortKey };

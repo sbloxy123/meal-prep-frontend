@@ -17,6 +17,8 @@ export class ApiError extends Error {
   }
 }
 
+import { clientHintHeaders } from "./client-hint";
+
 export async function apiFetch<T = unknown>(
   path: string,
   options?: RequestInit,
@@ -26,6 +28,7 @@ export async function apiFetch<T = unknown>(
     credentials: "include",
     headers: {
       "Content-Type": "application/json",
+      ...clientHintHeaders(), // installed app or browser tab — see client-hint.ts
       ...options?.headers,
     },
   });
@@ -48,6 +51,7 @@ export async function apiSend(
     credentials: "include",
     headers: {
       "Content-Type": "application/json",
+      ...clientHintHeaders(), // installed app or browser tab — see client-hint.ts
       ...options?.headers,
     },
   });

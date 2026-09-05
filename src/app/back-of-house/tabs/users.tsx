@@ -6,7 +6,7 @@ import type { AdminUserRow } from "@/lib/types";
 import { DataTable, type Column } from "../components/data-table";
 import { Section } from "../components/primitives";
 import { daysSince, fmtDate, planLabel, relative } from "../lib/format";
-import { SEGMENTS, type Segment } from "../lib/constants";
+import { PLATFORM_LABEL, SEGMENTS, type Segment } from "../lib/constants";
 
 // One person at a time: search, segment, sort. One table for every width —
 // the DataTable turns rows into cards on phones.
@@ -27,6 +27,7 @@ export function UsersTab({ users }: { users: AdminUserRow[] }) {
         case "unverified": return !u.email_verified;
         case "recipes": return (u.recipe_count ?? 0) > 0;
         case "premium": return u.plan === "premium";
+        case "installed": return u.installed_at != null;
         default: return true;
       }
     });
@@ -64,6 +65,11 @@ export function UsersTab({ users }: { users: AdminUserRow[] }) {
       key: "plan", label: "Plan", sortable: true, mobile: "pill",
       sortValue: (u) => (u.plan === "premium" ? (u.paid ? 2 : 1) : 0),
       render: (u) => planLabel(u).premium ? <span className="admin-pill is-premium">{planLabel(u).text}</span> : <span className="admin-muted">Free</span>,
+    },
+    {
+      key: "app", label: "App", sortable: true, mobile: "pill",
+      sortValue: (u) => u.installed_at ?? "",
+      render: (u) => (u.installed_at ? <span className="admin-pill is-ok">{PLATFORM_LABEL[u.installed_platform ?? "unknown"] ?? "Installed"}</span> : <span className="admin-muted">Browser</span>),
     },
     {
       key: "household", label: "Household", sortable: true,
